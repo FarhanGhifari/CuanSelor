@@ -14,10 +14,10 @@ import os
 # Tambahkan project root ke path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from src.calculator import RetirementCalculator, UserProfile
-from src.inflation import get_inflation_summary, calibrate_ou_params
-from src.investment import get_instrument_comparison_table, fetch_idx_historical_returns
-from src.actuarial import get_mortality_table
+from financial_advisor_dist.src.calculator import RetirementCalculator, UserProfile
+from financial_advisor_dist.src.inflation import get_inflation_summary, calibrate_ou_params
+from financial_advisor_dist.src.investment import get_instrument_comparison_table, fetch_idx_historical_returns
+from financial_advisor_dist.src.actuarial import get_mortality_table
 
 
 def print_section(title: str):
@@ -47,7 +47,7 @@ def main():
         custom_deposit_rate = 8.0, # e.g. BPR / Bank Digital NeoBank
     )
 
-    from src.calculator import get_salary_growth
+    from financial_advisor_dist.src.calculator import get_salary_growth
     growth_rate = get_salary_growth(profile)
 
     print(f"Profil: {profile.name} | Usia: {profile.age} thn | "

@@ -13,7 +13,7 @@ CATATAN AKTUARIS SKEPTIS:
 import numpy as np
 import pandas as pd
 from typing import Optional
-from src.config import HISTORICAL_CPI_INDONESIA, INFLATION_OU_PARAMS, SECTORAL_INFLATION_MULTIPLIERS
+from financial_advisor_dist.src.config import HISTORICAL_CPI_INDONESIA, INFLATION_OU_PARAMS, SECTORAL_INFLATION_MULTIPLIERS
 
 
 def calibrate_ou_params(historical_data: Optional[dict] = None) -> dict:

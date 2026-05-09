@@ -16,7 +16,7 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 from typing import Optional, Literal
-from src.config import ACTUARIAL
+from financial_advisor_dist.src.config import ACTUARIAL
 
 
 class MortalityTable:

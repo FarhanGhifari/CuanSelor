@@ -17,7 +17,7 @@ Pendekatan:
 from typing import Optional
 import numpy as np
 import pandas as pd
-from src.config import (
+from financial_advisor_dist.src.config import (
     INVESTMENT_INSTRUMENTS,
     RISK_PROFILES,
     PROFILE_ORDER,

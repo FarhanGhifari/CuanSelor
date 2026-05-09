@@ -22,13 +22,13 @@ import numpy as np
 import json
 from dataclasses import dataclass, field, asdict
 from typing import Literal, Optional
-from src.config import (
+from financial_advisor_dist.src.config import (
     MONTE_CARLO, SAFE_WITHDRAWAL_RATES, CONTRIBUTION,
     LIFESTYLE, RISK_PROFILES, SECTOR_SALARY_GROWTH
 )
-from src.actuarial import get_mortality_table
-from src.inflation import simulate_inflation_paths
-from src.investment import (
+from financial_advisor_dist.src.actuarial import get_mortality_table
+from financial_advisor_dist.src.inflation import simulate_inflation_paths
+from financial_advisor_dist.src.investment import (
     simulate_portfolio_returns,
     get_glide_path_profile,
     get_portfolio_stats,
