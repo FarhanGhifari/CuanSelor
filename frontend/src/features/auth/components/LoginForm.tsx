@@ -41,7 +41,6 @@ export default function LoginForm() {
     }
 
     console.log("Login success:", result);
-    // TODO: router.push(ROUTES.DASHBOARD)
     setIsLoading(false);
   };
 

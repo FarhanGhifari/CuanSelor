@@ -1,27 +1,25 @@
 "use client";
 
-import { useState }        from "react";
-import { useRouter }       from "next/navigation";
-import { authClient }      from "@/lib/auth/auth-client";
-import { authMock }        from "../services/auth.mock";
-import { ROUTES }          from "@/lib/constants/routes";
-import type { LoginInput } from "../validations/auth.schema";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { authClient } from "@/lib/auth/auth-client";
+import { authMock } from "../services/auth.mock";
+import { ROUTES } from "@/lib/constants/routes";
+import type { LoginInput, RegisterInput } from "../validations/auth.schema";
 
 const IS_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === "true";
 
 // ── useSession ────────────────────────────────────────────────
 // Cek apakah user sudah login + ambil data user
-// Pakai di komponen manapun:
-//   const { data: session, isPending } = useSession()
-//   session?.user.name, session?.user.email
+// Contoh: const { data: session, isPending } = useSession()
 export { useSession } from "@/lib/auth/auth-client";
 
 
 // ── useLogin ──────────────────────────────────────────────────
 export function useLogin() {
-  const router                    = useRouter();
+  const router = useRouter();
   const [isPending, setIsPending] = useState(false);
-  const [error, setError]         = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const login = async ({ email, password }: LoginInput) => {
     setIsPending(true);
@@ -44,15 +42,10 @@ export function useLogin() {
         email,
         password,
         callbackURL: ROUTES.DASHBOARD,
-        rememberMe:  true,
+        rememberMe: true,
         fetchOptions: {
-          onError: (ctx) => {
-            setError(ctx.error.message ?? "Email atau password salah");
-          },
-          onSuccess: () => {
-            router.push(ROUTES.DASHBOARD);
-            router.refresh();
-          },
+          onError: (ctx) => setError(ctx.error.message ?? "Email atau password salah"),
+          onSuccess: () => { router.push(ROUTES.DASHBOARD); router.refresh(); },
         },
       });
 
@@ -69,11 +62,62 @@ export function useLogin() {
 }
 
 
+// ── useRegister ───────────────────────────────────────────────
+export function useRegister() {
+  const router = useRouter();
+  const [isPending, setIsPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const register = async (payload: RegisterInput) => {
+    setIsPending(true);
+    setError(null);
+
+    try {
+      if (IS_MOCK) {
+        const { data, error: mockErr } = await authMock.register(payload);
+        if (mockErr || !data) {
+          setError(mockErr?.message ?? "Registrasi gagal");
+          return false;
+        }
+        router.push(ROUTES.DASHBOARD);
+        router.refresh();
+        return true;
+      }
+
+      // ── Real Better Auth ──────────────────────────────────
+      const { error: authErr } = await authClient.signUp.email({
+        name: payload.fullName,
+        email: payload.email,
+        password: payload.password,
+        fetchOptions: {
+          onError: (ctx) => setError(ctx.error.message ?? "Registrasi gagal"),
+          onSuccess: () => { router.push(ROUTES.DASHBOARD); router.refresh(); },
+        },
+      });
+
+      if (authErr) {
+        setError(authErr.message ?? "Registrasi gagal");
+        return false;
+      }
+
+      return true;
+    } catch {
+      setError("Terjadi kesalahan. Coba lagi.");
+      return false;
+    } finally {
+      setIsPending(false);
+    }
+  };
+
+  return { register, isPending, error };
+}
+
+
 // ── useGoogleLogin ────────────────────────────────────────────
 export function useGoogleLogin() {
-  const router                    = useRouter();
+  const router = useRouter();
   const [isPending, setIsPending] = useState(false);
-  const [error, setError]         = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const loginWithGoogle = async () => {
     setIsPending(true);
@@ -91,9 +135,8 @@ export function useGoogleLogin() {
         return;
       }
 
-      // ── Real Better Auth Google OAuth ─────────────────────
       await authClient.signIn.social({
-        provider:    "google",
+        provider: "google",
         callbackURL: ROUTES.DASHBOARD,
       });
 
@@ -110,7 +153,7 @@ export function useGoogleLogin() {
 
 // ── useLogout ─────────────────────────────────────────────────
 export function useLogout() {
-  const router                    = useRouter();
+  const router = useRouter();
   const [isPending, setIsPending] = useState(false);
 
   const logout = async () => {
@@ -125,10 +168,7 @@ export function useLogout() {
 
       await authClient.signOut({
         fetchOptions: {
-          onSuccess: () => {
-            router.push(ROUTES.LOGIN);
-            router.refresh();
-          },
+          onSuccess: () => { router.push(ROUTES.LOGIN); router.refresh(); },
         },
       });
     } finally {
