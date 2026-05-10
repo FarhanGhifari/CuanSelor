@@ -44,10 +44,10 @@ export default function LoginPage() {
 
             {/* Right Side */}
             <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-8 relative">
-                <div className="w-full max-w-md">
-                    <div className="mb-8">
-                        <h2 className="text-[2.5rem] font-bold text-[#111827] tracking-tight mb-2">Welcome Back</h2>
-                        <p className="text-[#6B7280] text-[1.05rem]">Sign in to continue to your dashboard</p>
+                <div className="w-full max-w-lg">
+                    <div className="mb-8 text-center">
+                        <h2 className="text-[2.8rem] font-bold text-[#111827] tracking-tight mb-2">Welcome Back</h2>
+                        <p className="text-[#6B7280] text-[1.1rem]">Sign in to continue to your dashboard</p>
                     </div>
                     
                     <LoginForm/>

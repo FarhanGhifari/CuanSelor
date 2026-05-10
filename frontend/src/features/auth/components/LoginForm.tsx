@@ -44,7 +44,7 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="w-full bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 p-8">
+    <div className="w-full bg-white rounded-[24px] shadow-[0_12px_40px_rgb(0,0,0,0.06)] border border-gray-100 p-10">
       {loginError && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3 text-red-600 animate-in fade-in slide-in-from-top-2 duration-300">
           <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
@@ -52,11 +52,11 @@ export default function LoginForm() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div className="space-y-2">
           <label
             htmlFor="email"
-            className="text-[13px] font-medium text-gray-700 block"
+            className="text-[14px] font-medium text-gray-700 block"
           >
             Email Address
           </label>
@@ -69,7 +69,7 @@ export default function LoginForm() {
               type="email"
               placeholder="you@example.com"
               className={cn(
-                "w-full pl-10 pr-4 py-3 bg-white border rounded-xl outline-none transition-all duration-200 text-sm placeholder:text-gray-400",
+                "w-full pl-10 pr-4 py-4 bg-white border rounded-xl outline-none transition-all duration-200 text-base placeholder:text-gray-400",
                 errors.email
                   ? "border-red-500 focus:border-red-500 focus:ring-4 focus:ring-red-500/10"
                   : "border-gray-200 focus:border-[#10B981] focus:ring-4 focus:ring-[#10B981]/10"
@@ -86,7 +86,7 @@ export default function LoginForm() {
         <div className="space-y-2">
           <label
             htmlFor="password"
-            className="text-[13px] font-medium text-gray-700 block"
+            className="text-[14px] font-medium text-gray-700 block"
           >
             Password
           </label>
@@ -99,7 +99,7 @@ export default function LoginForm() {
               type="password"
               placeholder="Enter your password"
               className={cn(
-                "w-full pl-10 pr-4 py-3 bg-white border rounded-xl outline-none transition-all duration-200 text-sm placeholder:text-gray-400",
+                "w-full pl-10 pr-4 py-4 bg-white border rounded-xl outline-none transition-all duration-200 text-base placeholder:text-gray-400",
                 errors.password
                   ? "border-red-500 focus:border-red-500 focus:ring-4 focus:ring-red-500/10"
                   : "border-gray-200 focus:border-[#10B981] focus:ring-4 focus:ring-[#10B981]/10"
@@ -123,14 +123,14 @@ export default function LoginForm() {
             />
             <label
               htmlFor="rememberMe"
-              className="text-[13px] text-gray-600 cursor-pointer select-none"
+              className="text-[14px] text-gray-600 cursor-pointer select-none"
             >
               Remember me
             </label>
           </div>
           <Link
             href="/auth/forgot-password"
-            className="text-[13px] text-[#10B981] hover:text-[#059669] font-medium"
+            className="text-[14px] text-[#10B981] hover:text-[#059669] font-medium"
           >
             Forgot password?
           </Link>
@@ -139,7 +139,7 @@ export default function LoginForm() {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full py-3.5 px-6 bg-[#10B981] hover:bg-[#059669] disabled:bg-[#6EE7B7] text-white font-medium rounded-xl transition-all duration-200 flex items-center justify-center mt-2"
+          className="w-full py-4 px-6 bg-[#10B981] hover:bg-[#059669] disabled:bg-[#6EE7B7] text-white font-bold text-lg rounded-xl transition-all duration-200 flex items-center justify-center mt-2"
         >
           {isLoading ? (
             <Loader2 className="animate-spin" size={20} />
@@ -161,7 +161,7 @@ export default function LoginForm() {
 
         <button
           type="button"
-          className="w-full flex items-center justify-center py-3 px-4 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors font-medium text-[13px] gap-2 text-[#111827]"
+          className="w-full flex items-center justify-center py-4 px-4 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors font-medium text-base gap-2 text-[#111827]"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path
@@ -184,11 +184,11 @@ export default function LoginForm() {
           Sign in with Google
         </button>
 
-        <p className="text-center text-[13px] text-gray-600 mt-6 pt-2">
+        <p className="text-center text-[14px] text-gray-600 mt-6 pt-2">
           Don&rsquo;t have an account?{" "}
           <Link
             href="/auth/register"
-            className="text-[#10B981] hover:text-[#059669] font-medium"
+            className="text-[#10B981] hover:text-[#059669] font-bold"
           >
             Sign up
           </Link>
