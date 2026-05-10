@@ -1,24 +1,21 @@
 import type { Metadata } from "next";
-import LoginForm from '../../../features/auth/components/LoginForm';
+import LoginForm from '@/features/auth/components/LoginForm';
 import { TrendingUp } from "lucide-react";
 import Link from "next/link";
 
 export const metadata: Metadata = {
     title: 'Login - CuanSelor',
-    description: "Masuk ke akun CuanSelor Anda",
+    description: "Log in to your CuanSelor account",
 }
 
 export default function LoginPage() {
     return (
-        <div className="min-h-screen w-full flex bg-[#F9FAFB]">
+        <div className="min-h-screen w-full flex bg-white">
             {/* Left Side */}
             <div className="hidden lg:flex w-1/2 relative p-12 flex-col justify-between overflow-hidden text-white" 
                  style={{ background: 'linear-gradient(135deg, #1A2E35 0%, #294A52 40%, #87B9B4 100%)' }}>
-                <div className="relative z-10 flex items-center gap-3">
-                    <div className="w-10 h-10 bg-[#34D399] rounded-xl flex items-center justify-center">
-                        <TrendingUp className="text-white" size={24} />
-                    </div>
-                    <span className="text-2xl font-bold tracking-wide">CuanSelor</span>
+                <div className="absolute top-1 left-8 z-10">
+                    <img src="/logo.png" alt="CuanSelor Logo" className="h-40 w-auto" />
                 </div>
 
                 <div className="relative z-10 mt-auto mb-20">

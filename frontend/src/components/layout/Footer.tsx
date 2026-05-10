@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { TrendingUp } from "lucide-react";
 
 const FOOTER_LINKS = [
     {
@@ -29,22 +28,16 @@ const FOOTER_LINKS = [
 
 export function Footer() {
     return (
-        <footer className="w-full py-12 px-8 lg:px-16" style={{ background: "#1a2e2a" }}>
+        <footer className="w-full bg-muted py-12 px-8 lg:px-16 border-t border-border">
             <div className="max-w-screen-2xl mx-auto">
                 <div className="grid md:grid-cols-4 gap-8 mb-8">
 
                     {/* Brand */}
                     <div>
                         <div className="flex items-center gap-2 mb-4">
-                            <div
-                                className="w-10 h-10 rounded-xl flex items-center justify-center"
-                                style={{ background: "linear-gradient(135deg, #10b981, #14b8a6)" }}
-                            >
-                                <TrendingUp className="w-6 h-6 text-white" />
-                            </div>
-                            <span className="text-xl font-semibold text-white">CuanSelor</span>
+                            <img src="/logo.png" alt="CuanSelor Logo" className="h-16 w-auto" />
                         </div>
-                        <p className="text-white/60 text-sm leading-relaxed">
+                        <p className="text-muted-foreground text-sm leading-relaxed">
                             Your AI-powered financial advisor for a secure future.
                         </p>
                     </div>
@@ -52,13 +45,13 @@ export function Footer() {
                     {/* Link groups */}
                     {FOOTER_LINKS.map((group) => (
                         <div key={group.title}>
-                            <h4 className="font-semibold text-white mb-4">{group.title}</h4>
+                            <h4 className="font-semibold text-foreground mb-4">{group.title}</h4>
                             <ul className="space-y-2">
                                 {group.links.map((link) => (
                                     <li key={link.href}>
                                         <Link
                                             href={link.href}
-                                            className="text-sm text-white/60 hover:text-white transition-colors"
+                                            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                                         >
                                             {link.label}
                                         </Link>
@@ -70,7 +63,7 @@ export function Footer() {
                 </div>
 
                 {/* Bottom bar */}
-                <div className="border-t border-white/10 pt-8 text-center text-sm text-white/40">
+                <div className="border-t border-border pt-8 text-center text-sm text-muted-foreground">
                     © {new Date().getFullYear()} CuanSelor. All rights reserved.
                 </div>
             </div>

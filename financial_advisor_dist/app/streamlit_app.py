@@ -7,9 +7,9 @@ import plotly.express as px
 # Pastikan path python mengenali folder src
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.calculator import RetirementCalculator, UserProfile
-from src.config import SECTOR_SALARY_GROWTH, RISK_PROFILES
-from src.actuarial import get_mortality_table
+from financial_advisor_dist.src.calculator import RetirementCalculator, UserProfile
+from financial_advisor_dist.src.config import SECTOR_SALARY_GROWTH, RISK_PROFILES
+from financial_advisor_dist.src.actuarial import get_mortality_table
 
 st.set_page_config(
     page_title="Gen Z Retirement Calculator",
