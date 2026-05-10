@@ -1,8 +1,8 @@
 
 export const ROUTES = {
-  LOGIN:           "/login",
-  REGISTER:        "/register",
-  FORGOT_PASSWORD: "/forgot-password",
+  LOGIN:           "/auth/login",
+  REGISTER:        "/auth/register",
+  FORGOT_PASSWORD: "/auth/forgot-password",
   DASHBOARD:       "/dashboard",
   RISK_ASSESSMENT: "/profil-risiko",
   PROJECTION:      "/proyeksi",

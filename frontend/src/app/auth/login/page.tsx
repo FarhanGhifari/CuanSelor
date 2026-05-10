@@ -54,7 +54,9 @@ export default function LoginPage() {
                     </p>
                 </div>
                 
-                <button className="absolute bottom-6 right-6 w-10 h-10 bg-white border border-gray-200 rounded-full shadow-sm flex items-center justify-center text-gray-500 hover:text-gray-700 transition-colors">
+                <button 
+                    suppressHydrationWarning
+                    className="absolute bottom-6 right-6 w-10 h-10 bg-white border border-gray-200 rounded-full shadow-sm flex items-center justify-center text-gray-500 hover:text-gray-700 transition-colors">
                     <span className="text-lg font-medium">?</span>
                 </button>
             </div>

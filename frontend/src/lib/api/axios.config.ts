@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { API } from '../constants/api-endpoints.js';
+import { ROUTES } from '../constants/routes';
 
 export const apiClient = axios.create({
     baseURL: API.AUTH.LOGIN.split("/api")[0],
@@ -32,7 +33,7 @@ apiClient.interceptors.response.use(
                 return apiClient(orig);
             } catch {
                 localStorage.removeItem("access_token");
-                window.location.href = "/login";
+                window.location.href = ROUTES.LOGIN;
             }
         }
         return Promise.reject(err);

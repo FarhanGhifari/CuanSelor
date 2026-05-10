@@ -1,0 +1,323 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Lock, Loader2, Eye, EyeOff, CheckCircle2, XCircle, ArrowLeft, ShieldCheck } from "lucide-react";
+import { resetPasswordSchema, type ResetPasswordInput } from "../validations/auth.schema";
+import { authMock } from "../services/auth.mock";
+import { cn } from "@/lib/utils/cn";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { ROUTES } from "@/lib/constants/routes";
+
+// Password strength helpers
+const strengthChecks = [
+  { label: "At least 8 characters", test: (v: string) => v.length >= 8 },
+  { label: "At least one uppercase letter", test: (v: string) => /[A-Z]/.test(v) },
+  { label: "At least one number", test: (v: string) => /[0-9]/.test(v) },
+];
+
+function getStrengthLevel(password: string): { score: number; label: string; color: string } {
+  const passed = strengthChecks.filter((c) => c.test(password)).length;
+  if (passed === 0) return { score: 0, label: "", color: "" };
+  if (passed === 1) return { score: 1, label: "Weak", color: "#ef4444" };
+  if (passed === 2) return { score: 2, label: "Fair", color: "#f59e0b" };
+  return { score: 3, label: "Strong", color: "#10b981" };
+}
+
+type Step = "loading" | "invalid" | "form" | "success";
+
+export default function ResetPasswordForm() {
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token") ?? "";
+
+  const [step, setStep] = useState<Step>("loading");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [watchedPassword, setWatchedPassword] = useState("");
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors, isSubmitting },
+  } = useForm<ResetPasswordInput>({
+    resolver: zodResolver(resetPasswordSchema),
+    defaultValues: { password: "", confirmPassword: "" },
+  });
+
+  // Watch password for strength meter
+  useEffect(() => {
+    const subscription = watch((value) => {
+      setWatchedPassword(value.password ?? "");
+    });
+    return () => subscription.unsubscribe();
+  }, [watch]);
+
+  // Verify token on mount
+  useEffect(() => {
+    if (!token) {
+      setStep("invalid");
+      return;
+    }
+    authMock.verifyResetToken(token).then(({ error }) => {
+      setStep(error ? "invalid" : "form");
+    });
+  }, [token]);
+
+  const onSubmit = async (data: ResetPasswordInput) => {
+    const { error } = await authMock.resetPassword(token, data.password);
+    if (error) {
+      setStep("invalid");
+      return;
+    }
+    setStep("success");
+  };
+
+  const strength = getStrengthLevel(watchedPassword);
+
+  // ── Token invalid / expired ────────────────────────────────────────────────
+  if (step === "loading") {
+    return (
+      <div className="w-full bg-white rounded-[24px] shadow-[0_12px_40px_rgb(0,0,0,0.06)] border border-gray-100 p-10 flex flex-col items-center gap-4">
+        <Loader2 className="animate-spin w-8 h-8 text-[#10B981]" />
+        <p className="text-gray-500 text-sm">Verifying your reset link...</p>
+      </div>
+    );
+  }
+
+  if (step === "invalid") {
+    return (
+      <div className="w-full bg-white rounded-[24px] shadow-[0_12px_40px_rgb(0,0,0,0.06)] border border-gray-100 p-10 text-center">
+        <div className="flex justify-center mb-6">
+          <div className="w-20 h-20 rounded-full bg-red-50 flex items-center justify-center">
+            <XCircle className="w-10 h-10 text-red-400" strokeWidth={1.5} />
+          </div>
+        </div>
+        <h3 className="text-2xl font-bold text-gray-900 mb-3">Link Invalid or Expired</h3>
+        <p className="text-gray-500 text-sm leading-relaxed mb-8">
+          This password reset link is no longer valid. Reset links expire after 15 minutes.
+          Please request a new one.
+        </p>
+        <Link
+          href={ROUTES.FORGOT_PASSWORD}
+          className="inline-flex items-center justify-center w-full py-3.5 px-6 text-white font-semibold text-sm rounded-xl transition-all duration-200"
+          style={{ background: "linear-gradient(90deg, #10b981, #14b8a6)" }}
+        >
+          Request New Link
+        </Link>
+        <div className="mt-5">
+          <Link
+            href={ROUTES.LOGIN}
+            className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-gray-700 transition-colors"
+          >
+            <ArrowLeft size={14} /> Back to Sign In
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Success ────────────────────────────────────────────────────────────────
+  if (step === "success") {
+    return (
+      <div className="w-full bg-white rounded-[24px] shadow-[0_12px_40px_rgb(0,0,0,0.06)] border border-gray-100 p-10 text-center">
+        <div className="flex justify-center mb-6">
+          <div
+            className="w-20 h-20 rounded-full flex items-center justify-center"
+            style={{ background: "linear-gradient(135deg, #d1fae5, #a7f3d0)" }}
+          >
+            <CheckCircle2 className="w-10 h-10 text-[#10B981]" strokeWidth={1.5} />
+          </div>
+        </div>
+        <h3 className="text-2xl font-bold text-gray-900 mb-3">Password Updated!</h3>
+        <p className="text-gray-500 text-sm leading-relaxed mb-8">
+          Your password has been reset successfully. You can now sign in with your new password.
+        </p>
+        <Link
+          href={ROUTES.LOGIN}
+          className="inline-flex items-center justify-center w-full py-3.5 px-6 text-white font-semibold text-sm rounded-xl transition-all duration-200 hover:opacity-90"
+          style={{ background: "linear-gradient(90deg, #10b981, #14b8a6)" }}
+        >
+          Sign In
+        </Link>
+      </div>
+    );
+  }
+
+  // ── Reset form ─────────────────────────────────────────────────────────────
+  return (
+    <div className="w-full bg-white rounded-[24px] shadow-[0_12px_40px_rgb(0,0,0,0.06)] border border-gray-100 p-10">
+      {/* Header */}
+      <div className="mb-8">
+        <div
+          className="w-14 h-14 rounded-2xl flex items-center justify-center mb-5"
+          style={{ background: "linear-gradient(135deg, #d1fae5, #a7f3d0)" }}
+        >
+          <ShieldCheck className="w-7 h-7 text-[#10B981]" strokeWidth={1.5} />
+        </div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Create new password</h2>
+        <p className="text-sm text-gray-500 leading-relaxed">
+          Your new password must be different from your previous password.
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        {/* New Password */}
+        <div className="space-y-2">
+          <label htmlFor="password" className="text-[14px] font-medium text-gray-700 block">
+            New Password
+          </label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+              <Lock size={18} strokeWidth={1.5} />
+            </div>
+            <input
+              {...register("password")}
+              id="password"
+              type={showPassword ? "text" : "password"}
+              placeholder="Create a strong password"
+              suppressHydrationWarning
+              autoComplete="new-password"
+              className={cn(
+                "w-full pl-10 pr-12 py-4 bg-white border rounded-xl outline-none transition-all duration-200 text-base placeholder:text-gray-400",
+                errors.password
+                  ? "border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/10"
+                  : "border-gray-200 focus:border-[#10B981] focus:ring-4 focus:ring-[#10B981]/10"
+              )}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              {showPassword ? <EyeOff size={18} strokeWidth={1.5} /> : <Eye size={18} strokeWidth={1.5} />}
+            </button>
+          </div>
+
+          {/* Strength meter */}
+          {watchedPassword.length > 0 && (
+            <div className="space-y-2 pt-1">
+              <div className="flex gap-1.5">
+                {[1, 2, 3].map((level) => (
+                  <div
+                    key={level}
+                    className="h-1.5 flex-1 rounded-full transition-all duration-300"
+                    style={{
+                      backgroundColor:
+                        strength.score >= level ? strength.color : "#e5e7eb",
+                    }}
+                  />
+                ))}
+              </div>
+              {strength.label && (
+                <p className="text-xs font-medium" style={{ color: strength.color }}>
+                  {strength.label} password
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Requirement checklist */}
+          <ul className="space-y-1 pt-1">
+            {strengthChecks.map((check) => {
+              const passed = check.test(watchedPassword);
+              return (
+                <li key={check.label} className="flex items-center gap-2">
+                  <div
+                    className={cn(
+                      "w-4 h-4 rounded-full flex items-center justify-center transition-colors",
+                      passed ? "bg-[#10b981]" : "bg-gray-100"
+                    )}
+                  >
+                    <CheckCircle2
+                      size={10}
+                      className={passed ? "text-white" : "text-gray-300"}
+                      strokeWidth={3}
+                    />
+                  </div>
+                  <span
+                    className={cn(
+                      "text-xs transition-colors",
+                      passed ? "text-[#10b981] font-medium" : "text-gray-400"
+                    )}
+                  >
+                    {check.label}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+
+          {errors.password && (
+            <p className="text-xs text-red-500 font-medium">{errors.password.message}</p>
+          )}
+        </div>
+
+        {/* Confirm Password */}
+        <div className="space-y-2">
+          <label htmlFor="confirmPassword" className="text-[14px] font-medium text-gray-700 block">
+            Confirm Password
+          </label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+              <Lock size={18} strokeWidth={1.5} />
+            </div>
+            <input
+              {...register("confirmPassword")}
+              id="confirmPassword"
+              type={showConfirm ? "text" : "password"}
+              placeholder="Repeat your new password"
+              suppressHydrationWarning
+              autoComplete="new-password"
+              className={cn(
+                "w-full pl-10 pr-12 py-4 bg-white border rounded-xl outline-none transition-all duration-200 text-base placeholder:text-gray-400",
+                errors.confirmPassword
+                  ? "border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/10"
+                  : "border-gray-200 focus:border-[#10B981] focus:ring-4 focus:ring-[#10B981]/10"
+              )}
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirm(!showConfirm)}
+              className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              {showConfirm ? <EyeOff size={18} strokeWidth={1.5} /> : <Eye size={18} strokeWidth={1.5} />}
+            </button>
+          </div>
+          {errors.confirmPassword && (
+            <p className="text-xs text-red-500 font-medium">{errors.confirmPassword.message}</p>
+          )}
+        </div>
+
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          suppressHydrationWarning
+          className="w-full py-4 px-6 text-white font-bold text-base rounded-xl transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-70 mt-2"
+          style={{ background: "linear-gradient(90deg, #10b981, #14b8a6)" }}
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="animate-spin" size={18} />
+              Resetting password...
+            </>
+          ) : (
+            "Reset Password"
+          )}
+        </button>
+      </form>
+
+      <div className="mt-8 pt-6 border-t border-gray-100 text-center">
+        <Link
+          href={ROUTES.LOGIN}
+          className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-800 transition-colors font-medium"
+        >
+          <ArrowLeft size={15} />
+          Back to Sign In
+        </Link>
+      </div>
+    </div>
+  );
+}

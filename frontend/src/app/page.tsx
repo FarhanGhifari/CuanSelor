@@ -79,7 +79,7 @@ export default function LandingPage() {
                   <div className="bg-muted/30 rounded-xl p-4 border border-border/50 transition-colors duration-500 group-hover:bg-muted/50">
                     <div className="text-sm text-muted-foreground mb-2">AI Recommendation</div>
                     <div className="text-sm text-foreground italic">
-                      "Invest Rp 7,500,000 more monthly to reach retirement goal by 2050"
+                      &quot;Invest Rp 7,500,000 more monthly to reach retirement goal by 2050&quot;
                     </div>
                   </div>
                 </div>
