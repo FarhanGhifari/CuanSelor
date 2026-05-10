@@ -92,6 +92,10 @@ export const financialInfoSchema = z.object({
   dependents: z
     .string()
     .min(1, "Jumlah tanggungan wajib diisi"),
+  riskProfile: z
+    .enum(["conservative", "moderate", "aggressive"], {
+      message: "Profil risiko wajib dipilih",
+    }),
 });
 
 export type FinancialInfoInput = z.infer<typeof financialInfoSchema>;

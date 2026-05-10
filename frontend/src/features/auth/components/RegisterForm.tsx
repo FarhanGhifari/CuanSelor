@@ -1,18 +1,30 @@
 "use client";
 
-import { useState }    from "react";
-import Link            from "next/link";
-import { useForm }     from "react-hook-form";
+import { useState } from "react";
+import Link from "next/link";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Input }       from "@/components/ui/Input";
-import { Button }      from "@/components/ui/Button";
-import { User, Mail, Lock, Calendar, Eye, EyeOff, AlertCircle } from "lucide-react";
+import { TrendingUp, User, Mail, Lock, Calendar, Eye, EyeOff } from "lucide-react";
 import {
   personalInfoSchema,
   type PersonalInfoInput,
 } from "@/features/auth/validations/auth.schema";
 import { ROUTES } from "@/lib/constants/routes";
-import { StepIndicator } from "@/components/shared/StepIndicator";
+
+// ── Step Indicator ─────────────────────────────────────────────
+export function StepIndicator({ current }: { current: 1 | 2 }) {
+  const steps = [
+    { step: 1, label: "Data Diri" },
+    { step: 2, label: "Info Finansial" },
+  ];
+  return (
+    <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-4">
+      <span className="text-primary text-sm font-medium">
+        Step {current} of 2 — {steps[current - 1].label}
+      </span>
+    </div>
+  );
+}
 
 // ── Props ──────────────────────────────────────────────────────
 interface RegisterFormProps {
@@ -21,144 +33,204 @@ interface RegisterFormProps {
 
 // ── Component ──────────────────────────────────────────────────
 export function RegisterForm({ onNext }: RegisterFormProps) {
-  const [showPass, setShowPass]       = useState(false);
+  const [showPass, setShowPass] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
   const { register, handleSubmit, formState: { errors } } =
     useForm<PersonalInfoInput>({ resolver: zodResolver(personalInfoSchema) });
 
   return (
-    <div className="flex-1 flex flex-col justify-center items-center bg-gray-50 px-6 py-12">
-      <div className="w-full max-w-md">
+    <div className="w-full max-w-2xl">
+      {/* Step badge */}
+      <div className="text-center mb-8">
+        <StepIndicator current={1} />
+        <h1 className="text-4xl font-bold text-foreground mb-4">
+          Buat Akun CuanSelor
+        </h1>
+        <p className="text-lg text-muted-foreground">
+          Isi data diri kamu untuk memulai perjalanan finansialmu
+        </p>
+      </div>
 
-        {/* Heading */}
-        <h2 className="text-3xl font-extrabold text-gray-900 mb-1">Buat Akun</h2>
-        <p className="text-gray-500 text-sm mb-8">Isi data diri kamu untuk memulai</p>
+      {/* Form Card */}
+      <div className="bg-card rounded-2xl shadow-xl border border-border p-8 md:p-12">
+        <form onSubmit={handleSubmit(onNext)} noValidate className="space-y-8">
 
-        {/* Step indicator */}
-        <StepIndicator current={1}/>
+          {/* Personal Information */}
+          <div>
+            <h3 className="text-lg font-semibold text-foreground mb-6 flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <User className="w-4 h-4 text-primary" />
+              </div>
+              Informasi Pribadi
+            </h3>
 
-        {/* Card */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-          <form onSubmit={handleSubmit(onNext)} noValidate>
-            <div className="space-y-4">
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Nama */}
+              <div className="md:col-span-2">
+                <label className="block text-sm text-muted-foreground mb-2">Nama Lengkap</label>
+                <div className="relative">
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/60" />
+                  <input
+                    type="text"
+                    placeholder="John Doe"
+                    autoComplete="name"
+                    className="w-full pl-12 pr-4 py-3.5 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                    {...register("fullName")}
+                  />
+                </div>
+                {errors.fullName && (
+                  <p className="text-xs text-destructive mt-1.5">{errors.fullName.message}</p>
+                )}
+              </div>
 
-              <Input
-                label="Nama Lengkap"
-                type="text"
-                placeholder="John Doe"
-                autoComplete="name"
-                leftIcon={<User size={18} strokeWidth={1.8} />}
-                error={errors.fullName?.message}
-                {...register("fullName")}
-              />
+              {/* Email */}
+              <div className="md:col-span-2">
+                <label className="block text-sm text-muted-foreground mb-2">Email</label>
+                <div className="relative">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/60" />
+                  <input
+                    type="email"
+                    placeholder="you@example.com"
+                    autoComplete="email"
+                    className="w-full pl-12 pr-4 py-3.5 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                    {...register("email")}
+                  />
+                </div>
+                {errors.email && (
+                  <p className="text-xs text-destructive mt-1.5">{errors.email.message}</p>
+                )}
+              </div>
 
-              <Input
-                label="Email"
-                type="email"
-                placeholder="you@example.com"
-                autoComplete="email"
-                leftIcon={<Mail size={18} strokeWidth={1.8} />}
-                error={errors.email?.message}
-                {...register("email")}
-              />
-
-              <Input
-                label="Password"
-                type={showPass ? "text" : "password"}
-                placeholder="Minimal 8 karakter"
-                autoComplete="new-password"
-                leftIcon={<Lock size={18} strokeWidth={1.8} />}
-                rightIcon={
-                  <button type="button" tabIndex={-1}
+              {/* Password */}
+              <div>
+                <label className="block text-sm text-muted-foreground mb-2">Password</label>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/60" />
+                  <input
+                    type={showPass ? "text" : "password"}
+                    placeholder="Minimal 8 karakter"
+                    autoComplete="new-password"
+                    className="w-full pl-12 pr-12 py-3.5 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                    {...register("password")}
+                  />
+                  <button
+                    type="button"
+                    tabIndex={-1}
                     onClick={() => setShowPass(p => !p)}
-                    className="text-gray-400 hover:text-gray-600 transition-colors">
-                    {showPass ? <Eye size={18} strokeWidth={1.8} /> : <EyeOff size={18} strokeWidth={1.8} />}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-muted-foreground transition-colors"
+                  >
+                    {showPass ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
-                }
-                error={errors.password?.message}
-                {...register("password")}
-              />
+                </div>
+                {errors.password && (
+                  <p className="text-xs text-destructive mt-1.5">{errors.password.message}</p>
+                )}
+              </div>
 
-              <Input
-                label="Konfirmasi Password"
-                type={showConfirm ? "text" : "password"}
-                placeholder="Ulangi password"
-                autoComplete="new-password"
-                leftIcon={<Lock size={18} strokeWidth={1.8} />}
-                rightIcon={
-                  <button type="button" tabIndex={-1}
+              {/* Confirm Password */}
+              <div>
+                <label className="block text-sm text-muted-foreground mb-2">Konfirmasi Password</label>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/60" />
+                  <input
+                    type={showConfirm ? "text" : "password"}
+                    placeholder="Ulangi password"
+                    autoComplete="new-password"
+                    className="w-full pl-12 pr-12 py-3.5 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                    {...register("confirmPassword")}
+                  />
+                  <button
+                    type="button"
+                    tabIndex={-1}
                     onClick={() => setShowConfirm(p => !p)}
-                    className="text-gray-400 hover:text-gray-600 transition-colors">
-                    {showConfirm ? <Eye size={18} strokeWidth={1.8} /> : <EyeOff size={18} strokeWidth={1.8} />}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-muted-foreground transition-colors"
+                  >
+                    {showConfirm ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
-                }
-                error={errors.confirmPassword?.message}
-                {...register("confirmPassword")}
-              />
+                </div>
+                {errors.confirmPassword && (
+                  <p className="text-xs text-destructive mt-1.5">{errors.confirmPassword.message}</p>
+                )}
+              </div>
 
-              <Input
-                label="Tanggal Lahir"
-                type="date"
-                leftIcon={<Calendar size={18} strokeWidth={1.8} />}
-                error={errors.birthDate?.message}
-                {...register("birthDate")}
-              />
+              {/* Tanggal Lahir */}
+              <div>
+                <label className="block text-sm text-muted-foreground mb-2">Tanggal Lahir</label>
+                <div className="relative">
+                  <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/60" />
+                  <input
+                    type="date"
+                    className="w-full pl-12 pr-4 py-3.5 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                    {...register("birthDate")}
+                  />
+                </div>
+                {errors.birthDate && (
+                  <p className="text-xs text-destructive mt-1.5">{errors.birthDate.message}</p>
+                )}
+              </div>
 
               {/* Jenis Kelamin */}
-              <div className="space-y-1.5">
-                <label className="block text-sm font-medium text-gray-700">
-                  Jenis Kelamin
-                </label>
+              <div>
+                <label className="block text-sm text-muted-foreground mb-3">Jenis Kelamin</label>
                 <div className="grid grid-cols-2 gap-3">
                   {[
-                    { value: "male",   label: "Laki-laki" },
+                    { value: "male", label: "Laki-laki" },
                     { value: "female", label: "Perempuan" },
-                  ].map(opt => (
-                    <label key={opt.value}
-                      className="flex items-center gap-2.5 p-3 border border-gray-200 rounded-xl cursor-pointer hover:border-emerald-400 hover:bg-emerald-50/40 transition-all has-[:checked]:border-emerald-400 has-[:checked]:bg-emerald-50">
-                      <input type="radio" value={opt.value}
-                        className="accent-emerald-500"
-                        {...register("gender")} />
-                      <span className="text-sm text-gray-700">{opt.label}</span>
+                  ].map((opt) => (
+                    <label key={opt.value} className="relative cursor-pointer">
+                      <input
+                        type="radio"
+                        value={opt.value}
+                        className="peer sr-only"
+                        {...register("gender")}
+                      />
+                      <div className="p-4 bg-background border-2 border-border rounded-xl peer-checked:border-primary peer-checked:bg-primary/5 transition-all hover:border-primary/50 text-center">
+                        <span className="text-sm font-medium text-foreground">{opt.label}</span>
+                      </div>
                     </label>
                   ))}
                 </div>
                 {errors.gender && (
-                  <p className="text-xs text-red-500 flex items-center gap-1.5 mt-1">
-                    <AlertCircle size={14} />
-                    {errors.gender.message}
-                  </p>
+                  <p className="text-xs text-destructive mt-1.5">{errors.gender.message}</p>
                 )}
               </div>
-
-              <Button type="submit" fullWidth>
-                Lanjut ke Info Finansial →
-              </Button>
             </div>
-          </form>
-        </div>
+          </div>
 
-        {/* Sign in */}
-        <p className="text-center text-sm text-gray-500 mt-6">
-          Sudah punya akun?{" "}
-          <Link href={ROUTES.LOGIN}
-            className="font-semibold text-emerald-500 hover:text-emerald-600 transition-colors">
-            Masuk
-          </Link>
-        </p>
-
-        <p className="text-center text-xs text-gray-400 mt-3 leading-relaxed">
-          Dengan mendaftar, kamu menyetujui{" "}
-          <Link href="/terms" className="text-emerald-500 hover:underline">Syarat & Ketentuan</Link>{" "}
-          dan{" "}
-          <Link href="/privacy" className="text-emerald-500 hover:underline">Kebijakan Privasi</Link>
-        </p>
+          {/* Submit */}
+          <div className="pt-2">
+            <button
+              type="submit"
+              className="w-full py-4 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-xl hover:shadow-lg hover:shadow-primary/30 transition-all flex items-center justify-center gap-2 text-lg font-medium"
+            >
+              Lanjut ke Info Finansial
+              <TrendingUp className="w-5 h-5" />
+            </button>
+            <p className="text-center text-sm text-muted-foreground mt-4">
+              Sudah punya akun?{" "}
+              <Link href={ROUTES.LOGIN} className="text-primary hover:underline font-medium">
+                Masuk
+              </Link>
+            </p>
+          </div>
+        </form>
       </div>
 
-      <button className="fixed bottom-6 right-6 w-9 h-9 rounded-full border border-gray-300 bg-white flex items-center justify-center text-gray-500 hover:bg-gray-100 shadow-sm transition text-sm font-bold">
-        ?
-      </button>
+      {/* Trust badges */}
+      <div className="grid grid-cols-3 gap-6 mt-10 text-center">
+        {[
+          { icon: "🔒", title: "Aman & Privat", desc: "Data kamu dienkripsi" },
+          { icon: "🤖", title: "Berbasis AI", desc: "Rekomendasi cerdas" },
+          { icon: "🎯", title: "Goal-Oriented", desc: "Pantau progres pensiunmu" },
+        ].map((b) => (
+          <div key={b.title}>
+            <div className="text-2xl mb-2">{b.icon}</div>
+            <div className="font-medium text-foreground text-sm mb-1">{b.title}</div>
+            <div className="text-xs text-muted-foreground">{b.desc}</div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
