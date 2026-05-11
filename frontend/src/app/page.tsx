@@ -30,8 +30,8 @@ function FaqItem({ q, a }: { q: string; a: string }) {
           {q}
         </span>
         {open
-          ? <ChevronUp className="w-5 h-5 text-primary flex-shrink-0" />
-          : <ChevronDown className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+          ? <ChevronUp className="w-5 h-5 text-primary shrink-0" />
+          : <ChevronDown className="w-5 h-5 text-muted-foreground shrink-0" />
         }
       </button>
       {open && (
@@ -125,7 +125,7 @@ export default function HomePage() {
                       <span className="text-sm font-medium text-primary">65%</span>
                     </div>
                     <div className="h-2 bg-background rounded-full overflow-hidden border border-border/50">
-                      <div className="h-full bg-gradient-to-r from-primary to-[#56A8F9] w-2/3 transition-all duration-1000 group-hover:w-[70%]" />
+                      <div className="h-full bg-linear-to-r from-primary to-[#56A8F9] w-2/3 transition-all duration-1000 group-hover:w-[70%]" />
                     </div>
                     <p className="text-xs text-muted-foreground mt-2">Target pensiun usia 55 · Est. 2047</p>
                   </div>
@@ -189,7 +189,7 @@ export default function HomePage() {
                   className="bg-card rounded-2xl p-6 border border-border shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 relative"
                 >
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold flex-shrink-0">
+                    <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold shrink-0">
                       {i + 1}
                     </div>
                     <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -258,7 +258,7 @@ export default function HomePage() {
               <div className="space-y-3">
                 {COMPARISON.old.items.map((item) => (
                   <div key={item} className="flex items-center gap-2.5 text-sm text-muted-foreground">
-                    <XCircle className="w-4 h-4 text-destructive flex-shrink-0" />
+                    <XCircle className="w-4 h-4 text-destructive shrink-0" />
                     {item}
                   </div>
                 ))}
@@ -276,7 +276,7 @@ export default function HomePage() {
               <div className="space-y-3">
                 {COMPARISON.new.items.map((item) => (
                   <div key={item} className="flex items-center gap-2.5 text-sm text-foreground">
-                    <CheckCircle className="w-4 h-4 text-primary flex-shrink-0" />
+                    <CheckCircle className="w-4 h-4 text-primary shrink-0" />
                     {item}
                   </div>
                 ))}
@@ -333,7 +333,7 @@ export default function HomePage() {
                   &quot;{t.quote}&quot;
                 </p>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-sm font-semibold text-primary flex-shrink-0">
+                  <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-sm font-semibold text-primary shrink-0">
                     {t.initials}
                   </div>
                   <div>
@@ -349,7 +349,7 @@ export default function HomePage() {
 
       {/* ── ABOUT ─────────────────────────────────────────────── */}
       <section id="about" className="py-24 px-8 lg:px-12 bg-muted/50 border-y border-border/40 scroll-mt-32">
-        <div className="max-w-screen-xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           {/* Centered Title Header */}
           <div className="text-center mb-16">
             <div className="inline-block px-4 py-2 bg-primary/10 rounded-full text-primary font-bold text-2xl mb-6">
@@ -420,14 +420,14 @@ export default function HomePage() {
                     key={label}
                     className="flex items-center gap-4 p-3 rounded-xl bg-muted/40 hover:bg-muted/70 transition-colors"
                   >
-                    <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${color}`}>
+                    <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${color}`}>
                       <Icon className="w-4 h-4" />
                     </div>
                     <div>
                       <p className="text-sm font-medium text-foreground">{label}</p>
                       <p className="text-xs text-muted-foreground">{sub}</p>
                     </div>
-                    <CheckCircle className="w-4 h-4 text-primary ml-auto flex-shrink-0" />
+                    <CheckCircle className="w-4 h-4 text-primary ml-auto shrink-0" />
                   </div>
                 ))}
 
@@ -474,7 +474,7 @@ export default function HomePage() {
                   },
                 ].map(({ icon: Icon, title, desc }) => (
                   <div key={title} className="flex items-start gap-4">
-                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center mt-0.5 flex-shrink-0">
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center mt-0.5 shrink-0">
                       <Icon className="w-4 h-4 text-primary" />
                     </div>
                     <div>

@@ -1,0 +1,1 @@
+# isinya perkakas AI
