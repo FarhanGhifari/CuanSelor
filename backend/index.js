@@ -3,6 +3,7 @@ const cors = require("cors");
 require("dotenv").config();
 const { authenticateToken, optionalAuth } = require("./middleware/auth");
 const onboardingRoutes = require("./routes/onboarding");
+const profileRoutes = require("./routes/profile");
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -24,8 +25,9 @@ app.get("/", (req, res) => {
   });
 });
 
-// ── Onboarding Routes ─────────────────────────────────────────
+// ── App Routes ─────────────────────────────────────────
 app.use("/api/onboarding", onboardingRoutes);
+app.use("/api/profile", profileRoutes);
 
 // Protected route example
 app.get("/api/protected", authenticateToken, (req, res) => {

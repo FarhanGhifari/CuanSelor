@@ -6,15 +6,15 @@ import { Footer } from "./Footer";
 
 export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isAuthPage = pathname.startsWith("/auth") || pathname.startsWith("/onboarding");
+  const hideLayout = pathname.startsWith("/auth") || pathname.startsWith("/onboarding") || pathname.startsWith("/dashboard");
 
   return (
     <>
-      {!isAuthPage && <Navbar />}
+      {!hideLayout && <Navbar />}
       <main className="grow">
         {children}
       </main>
-      {!isAuthPage && <Footer />}
+      {!hideLayout && <Footer />}
     </>
   );
 }

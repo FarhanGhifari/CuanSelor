@@ -5,7 +5,7 @@ const FOOTER_LINKS = [
         title: "Product",
         links: [
             { label: "Features", href: "/#features" },
-            { label: "Pricing", href: "/pricing" },
+            { label: "How it works", href: "/#how-it-works" },
             { label: "FAQ", href: "/faq" },
         ],
     },
@@ -28,14 +28,16 @@ const FOOTER_LINKS = [
 
 export function Footer() {
     return (
-        <footer className="w-full bg-muted py-12 px-8 lg:px-16 border-t border-border">
+        <footer className="w-full bg-muted py-8 px-8 lg:px-16 border-t border-border">
             <div className="max-w-screen-2xl mx-auto">
                 <div className="grid md:grid-cols-4 gap-8 mb-8">
 
                     {/* Brand */}
                     <div>
                         <div className="flex items-center gap-2 mb-4">
-                            <img src="/logo.png" alt="CuanSelor Logo" className="h-16 w-auto" />
+                            <div className="relative h-10 w-40 overflow-hidden">
+                                <img src="/logo.png" alt="CuanSelor Logo" className="absolute left-0 top-1/2 -translate-y-1/2 h-20 w-auto object-cover max-w-none" />
+                            </div>
                         </div>
                         <p className="text-muted-foreground text-sm leading-relaxed">
                             Your AI-powered financial advisor for a secure future.
@@ -63,7 +65,7 @@ export function Footer() {
                 </div>
 
                 {/* Bottom bar */}
-                <div className="border-t border-border pt-8 text-center text-sm text-muted-foreground">
+                <div className="border-t border-border pt-6 text-center text-sm text-muted-foreground">
                     © {new Date().getFullYear()} CuanSelor. All rights reserved.
                 </div>
             </div>

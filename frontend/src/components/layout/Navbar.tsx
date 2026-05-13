@@ -17,11 +17,11 @@ export function Navbar() {
 
     return (
         <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-200">
-            <div className="max-w-screen-2xl mx-auto px-8 lg:px-16 py-4 flex items-center justify-between">
+            <div className="max-w-screen-2xl mx-auto px-8 lg:px-16 py-2.5 flex items-center justify-between">
 
                 {/**Logo */}
-                <Link href="/" className="flex items-center relative h-16 w-64">
-                    <img src="/logo.png" alt="CuanSelor Logo" className="absolute left-0 top-1/2 -translate-y-1/2 h-32 w-auto" />
+                <Link href="/" className="flex items-center relative h-12 w-48 overflow-hidden">
+                    <img src="/logo.png" alt="CuanSelor Logo" className="absolute left-0 top-1/2 -translate-y-1/2 h-24 w-auto object-cover max-w-none" />
                 </Link>
 
                 {/* Nav links — hanya tampil di landing page */}
@@ -50,7 +50,7 @@ export function Navbar() {
                     <Link
                         href={ROUTES.REGISTER}
                         className={cn(
-                            "px-5 py-2.5 text-sm text-white rounded-xl transition-all",
+                            "px-4 py-2 text-sm text-white rounded-xl transition-all",
                             "shadow-lg shadow-emerald-100 hover:opacity-90"
                         )}
                         style={{ background: "linear-gradient(90deg, #10b981, #14b8a6)" }}
