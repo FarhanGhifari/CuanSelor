@@ -1,4 +1,4 @@
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
+const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 const ML   = process.env.NEXT_PUBLIC_ML_API_URL ?? "http://localhost:8000";
 
 export const API = {
@@ -12,6 +12,11 @@ export const API = {
   PROFILE: {
     GET:    `${BASE}/api/profile`,
     UPDATE: `${BASE}/api/profile`,
+  },
+  ONBOARDING: {
+    STATUS:    `${BASE}/api/onboarding/status`,
+    FINANCIAL: `${BASE}/api/onboarding/financial`,
+    PENSION:   `${BASE}/api/onboarding/pension`,
   },
   RISK: {
     QUESTIONS: `${BASE}/api/risk/questions`,

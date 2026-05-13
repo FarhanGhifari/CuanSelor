@@ -57,12 +57,6 @@ export const personalInfoSchema = z.object({
     .min(1, "Password wajib diisi")
     .min(8, "Password minimal 8 karakter"),
   confirmPassword: z.string().min(1, "Konfirmasi password wajib diisi"),
-  birthDate: z
-    .string()
-    .min(1, "Tanggal lahir wajib diisi"),
-  gender: z.enum(["male", "female"], {
-    message: "Jenis kelamin wajib dipilih",
-  }),
 }).refine((d) => d.password === d.confirmPassword, {
   message: "Password tidak cocok",
   path:    ["confirmPassword"],
@@ -70,33 +64,51 @@ export const personalInfoSchema = z.object({
 
 export type PersonalInfoInput = z.infer<typeof personalInfoSchema>;
 
-export const financialInfoSchema = z.object({
-  profession: z
-    .string()
-    .min(1, "Pekerjaan wajib diisi"),
+// Alias — agar mock services yang import RegisterInput tetap kompatibel
+export type RegisterInput = PersonalInfoInput;
+
+export const financialOnboardingSchema = z.object({
   monthlyIncome: z
     .string()
     .min(1, "Pendapatan bulanan wajib diisi"),
   monthlyExpense: z
     .string()
     .min(1, "Pengeluaran bulanan wajib diisi"),
+  annualBonusMonths: z
+    .string()
+    .min(1, "Bonus/THR wajib diisi"),
   currentSavings: z
     .string()
-    .min(1, "Total tabungan wajib diisi"),
-  totalDebt: z
+    .min(1, "Dana investasi saat ini wajib diisi"),
+  savingsPercentage: z
     .string()
-    .min(1, "Total utang wajib diisi"),
+    .min(1, "Persentase nabung wajib diisi"),
+});
+
+export type FinancialOnboardingInput = z.infer<typeof financialOnboardingSchema>;
+
+export const pensionOnboardingSchema = z.object({
   retirementAge: z
     .string()
     .min(1, "Target usia pensiun wajib diisi"),
-  dependents: z
+  lifestylePercent: z
     .string()
-    .min(1, "Jumlah tanggungan wajib diisi"),
+    .min(1, "Target gaya hidup wajib diisi"),
+  hasHealthInsurance: z.boolean().optional(),
   riskProfile: z
     .enum(["conservative", "moderate", "aggressive"], {
       message: "Profil risiko wajib dipilih",
     }),
+  sector: z
+    .string()
+    .min(1, "Sektor pekerjaan wajib dipilih"),
+  includePandemicRisk: z.boolean().optional(),
+  depositRate: z
+    .string()
+    .min(1, "Bunga deposito wajib diisi"),
+  confirmAccuracy: z
+    .boolean()
+    .refine((v) => v, { message: "Konfirmasi data wajib dicentang" }),
 });
 
-export type FinancialInfoInput = z.infer<typeof financialInfoSchema>;
-export type RegisterInput = PersonalInfoInput & FinancialInfoInput;
+export type PensionOnboardingInput = z.infer<typeof pensionOnboardingSchema>;

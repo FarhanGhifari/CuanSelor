@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { TrendingUp, User, Mail, Lock, Calendar, Eye, EyeOff } from "lucide-react";
+import { TrendingUp, User, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import {
   personalInfoSchema,
   type PersonalInfoInput,
@@ -28,11 +28,11 @@ export function StepIndicator({ current }: { current: 1 | 2 }) {
 
 // ── Props ──────────────────────────────────────────────────────
 interface RegisterFormProps {
-  onNext: (data: PersonalInfoInput) => void;
+  onSubmit: (data: PersonalInfoInput) => void;
 }
 
 // ── Component ──────────────────────────────────────────────────
-export function RegisterForm({ onNext }: RegisterFormProps) {
+export function RegisterForm({ onSubmit }: RegisterFormProps) {
   const [showPass, setShowPass] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
@@ -54,7 +54,7 @@ export function RegisterForm({ onNext }: RegisterFormProps) {
 
       {/* Form Card */}
       <div className="bg-card rounded-2xl shadow-xl border border-border p-8 md:p-12">
-        <form onSubmit={handleSubmit(onNext)} noValidate className="space-y-8">
+        <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-8">
 
           {/* Personal Information */}
           <div>
@@ -154,47 +154,6 @@ export function RegisterForm({ onNext }: RegisterFormProps) {
                 )}
               </div>
 
-              {/* Tanggal Lahir */}
-              <div>
-                <label className="block text-sm text-muted-foreground mb-2">Tanggal Lahir</label>
-                <div className="relative">
-                  <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/60" />
-                  <input
-                    type="date"
-                    className="w-full pl-12 pr-4 py-3.5 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                    {...register("birthDate")}
-                  />
-                </div>
-                {errors.birthDate && (
-                  <p className="text-xs text-destructive mt-1.5">{errors.birthDate.message}</p>
-                )}
-              </div>
-
-              {/* Jenis Kelamin */}
-              <div>
-                <label className="block text-sm text-muted-foreground mb-3">Jenis Kelamin</label>
-                <div className="grid grid-cols-2 gap-3">
-                  {[
-                    { value: "male", label: "Laki-laki" },
-                    { value: "female", label: "Perempuan" },
-                  ].map((opt) => (
-                    <label key={opt.value} className="relative cursor-pointer">
-                      <input
-                        type="radio"
-                        value={opt.value}
-                        className="peer sr-only"
-                        {...register("gender")}
-                      />
-                      <div className="p-4 bg-background border-2 border-border rounded-xl peer-checked:border-primary peer-checked:bg-primary/5 transition-all hover:border-primary/50 text-center">
-                        <span className="text-sm font-medium text-foreground">{opt.label}</span>
-                      </div>
-                    </label>
-                  ))}
-                </div>
-                {errors.gender && (
-                  <p className="text-xs text-destructive mt-1.5">{errors.gender.message}</p>
-                )}
-              </div>
             </div>
           </div>
 
@@ -204,7 +163,7 @@ export function RegisterForm({ onNext }: RegisterFormProps) {
               type="submit"
               className="w-full py-4 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-xl hover:shadow-lg hover:shadow-primary/30 transition-all flex items-center justify-center gap-2 text-lg font-medium"
             >
-              Lanjut ke Info Finansial
+              Daftar
               <TrendingUp className="w-5 h-5" />
             </button>
             <p className="text-center text-sm text-muted-foreground mt-4">

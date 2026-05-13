@@ -11,7 +11,7 @@ CREATE TABLE public.profiles (
 -- 2. Table: financial_records (Data finansial terkini user)
 CREATE TABLE public.financial_records (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL UNIQUE, -- UNIQUE karena 1 user hanya punya 1 record finansial aktif (1-to-1)
+  user_id TEXT REFERENCES public."user"(id) ON DELETE CASCADE NOT NULL UNIQUE, -- UNIQUE karena 1 user hanya punya 1 record finansial aktif (1-to-1)
   monthly_income NUMERIC NOT NULL DEFAULT 0,
   monthly_expenses NUMERIC NOT NULL DEFAULT 0,
   annual_bonus NUMERIC NOT NULL DEFAULT 0,
@@ -25,7 +25,7 @@ CREATE TABLE public.financial_records (
 -- 3. Table: retirement_plans (Rencana dan hasil kalkulasi Aktuaria)
 CREATE TABLE public.retirement_plans (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL UNIQUE, -- UNIQUE (1-to-1)
+  user_id TEXT REFERENCES public."user"(id) ON DELETE CASCADE NOT NULL UNIQUE, -- UNIQUE (1-to-1)
   target_retirement_age INTEGER NOT NULL,
   post_retirement_lifestyle NUMERIC NOT NULL,
   life_expectancy_age INTEGER,
@@ -37,7 +37,7 @@ CREATE TABLE public.retirement_plans (
 -- 4. Table: risk_profiles (History/Riwayat assessment profil risiko)
 CREATE TABLE public.risk_profiles (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL, -- TIDAK UNIQUE karena bisa banyak assessment (1-to-Many)
+  user_id TEXT REFERENCES public."user"(id) ON DELETE CASCADE NOT NULL, -- TIDAK UNIQUE karena bisa banyak assessment (1-to-Many)
   answers JSONB NOT NULL,
   risk_category VARCHAR NOT NULL,
   ai_suggestion TEXT,

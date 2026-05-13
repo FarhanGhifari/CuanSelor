@@ -1,17 +1,18 @@
-export function StepIndicator({ current }: { current: 1 | 2 }) {
+export function StepIndicator({ current }: { current: 1 | 2 | 3 }) {
   const steps = [
-    { step: 1, label: "Data Diri"      },
+    { step: 1, label: "Data Diri" },
     { step: 2, label: "Info Finansial" },
+    { step: 3, label: "Proyeksi Pensiun" },
   ];
   return (
-    <div className="flex items-center gap-2 mb-8">
+    <div className="flex items-center justify-center gap-2 mb-8">
       {steps.map(({ step, label }, i) => {
-        const done   = current > step;
+        const done = current > step;
         const active = current === step;
         return (
           <div key={step} className="flex items-center gap-2">
             {i > 0 && (
-              <div className={`h-px w-10 transition-colors ${done ? "bg-emerald-400" : "bg-gray-200"}`} />
+              <div className={`h-px w-8 sm:w-12 transition-colors ${done ? "bg-emerald-400" : "bg-gray-200"}`} />
             )}
             <div className="flex items-center gap-2">
               <div

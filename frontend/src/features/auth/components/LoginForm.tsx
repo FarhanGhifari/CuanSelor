@@ -5,12 +5,16 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Mail, Lock, Loader2, Eye, EyeOff } from "lucide-react";
 import { loginSchema, type LoginInput } from "../validations/auth.schema";
-import { authMock } from "../services/auth.mock";
+import { authClient } from "@/lib/auth/auth-client";
 import { cn } from "@/lib/utils/cn";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ROUTES } from "@/lib/constants/routes";
+import { apiClient } from "@/lib/api/axios.config";
+import { API } from "@/lib/constants/api-endpoints";
 
 export default function LoginForm() {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
@@ -32,16 +36,34 @@ export default function LoginForm() {
     setIsLoading(true);
     setLoginError(null);
 
-    const { data: result, error } = await authMock.signInEmail(data.email, data.password);
+    try {
+      const result = await authClient.signIn.email({
+        email: data.email,
+        password: data.password,
+      });
 
-    if (error) {
-      setLoginError(error.message);
+      if (result.error) {
+        setLoginError(result.error.message || "Login failed");
+        return;
+      }
+
+      try {
+        const statusRes = await apiClient.get(API.ONBOARDING.STATUS);
+        if (statusRes.data.isFullyOnboarded) {
+          router.push(ROUTES.DASHBOARD);
+        } else {
+          router.push(ROUTES.ONBOARDING);
+        }
+      } catch (err) {
+        console.error("Failed to check onboarding status:", err);
+        router.push(ROUTES.ONBOARDING);
+      }
+    } catch (error) {
+      setLoginError("An error occurred during login");
+      console.error(error);
+    } finally {
       setIsLoading(false);
-      return;
     }
-
-    console.log("Login success:", result);
-    setIsLoading(false);
   };
 
   return (

@@ -1,38 +1,22 @@
 import axios from 'axios';
-import { API } from '../constants/api-endpoints.js';
 import { ROUTES } from '../constants/routes';
 
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+
 export const apiClient = axios.create({
-    baseURL: API.AUTH.LOGIN.split("/api")[0],
+    baseURL: BASE_URL,
     timeout: 10_000,
     headers: { "Content-Type": "application/json" },
+    // Cookie Better Auth otomatis di-forward ke backend
     withCredentials: true,
-});
-
-apiClient.interceptors.request.use((config) => {
-    if (typeof window !== "undefined") {
-        const token = localStorage.getItem("access_token");
-        if (token) config.headers.Authorization = `Bearer ${token}`;
-    }
-
-    return config
 });
 
 apiClient.interceptors.response.use(
     (res) => res,
     async (err) => {
-        const orig = err.config;
-        if (err.response?.status === 401 && !orig._retry) {
-            orig._retry = true;
-            try {
-                const { data } = await axios.post(
-                    API.AUTH.REFRESH, {}, { withCredentials: true }
-                );
-                localStorage.setItem("access_token", data.access_token);
-                orig.headers.Authorization = `Bearer ${data.access_token}`;
-                return apiClient(orig);
-            } catch {
-                localStorage.removeItem("access_token");
+        if (err.response?.status === 401) {
+            // Session expired — redirect ke login
+            if (typeof window !== "undefined") {
                 window.location.href = ROUTES.LOGIN;
             }
         }
