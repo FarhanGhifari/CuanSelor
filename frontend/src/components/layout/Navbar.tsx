@@ -9,11 +9,11 @@ const NAV_LINK = [
     { label: "Features", href: "/#features" },
     { label: "Why Us", href: "/#why-us" },
     { label: "About", href: "/#about" },
+    { label: "Blog", href: "/blog" },
 ];
 
 export function Navbar() {
     const pathname = usePathname();
-    const isLanding = pathname === "/";
 
     return (
         <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-200">
@@ -24,20 +24,35 @@ export function Navbar() {
                     <img src="/logo.png" alt="CuanSelor Logo" className="absolute left-0 top-1/2 -translate-y-1/2 h-24 w-auto object-cover max-w-none" />
                 </Link>
 
-                {/* Nav links — hanya tampil di landing page */}
-                {isLanding && (
-                    <div className="hidden md:flex items-center gap-8">
-                        {NAV_LINK.map((link) => (
-                            <a
+                {/* Nav links — tampil di semua halaman */}
+                <div className="hidden md:flex items-center gap-8">
+                    {NAV_LINK.map((link) => {
+                        const isHash = link.href.startsWith("/#");
+                        if (isHash) {
+                            return (
+                                <a
+                                    key={link.href}
+                                    href={link.href}
+                                    className="text-gray-500 hover:text-gray-900 transition-colors text-sm font-medium"
+                                >
+                                    {link.label}
+                                </a>
+                            );
+                        }
+                        return (
+                            <Link
                                 key={link.href}
                                 href={link.href}
-                                className="text-gray-500 hover:text-gray-900 transition-colors text-sm font-medium"
+                                className={cn(
+                                    "text-gray-500 hover:text-gray-900 transition-colors text-sm font-medium",
+                                    pathname === link.href && "text-emerald-600 font-semibold"
+                                )}
                             >
                                 {link.label}
-                            </a>
-                        ))}
-                    </div>
-                )}
+                            </Link>
+                        );
+                    })}
+                </div>
 
                 {/* CTA */}
                 <div className="flex items-center gap-4">
