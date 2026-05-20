@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth/auth-client";
 import { authMock } from "../services/auth.mock";
 import { ROUTES } from "@/lib/constants/routes";
-import type { LoginInput, PersonalInfoInput } from "../validations/auth.schema";
+import type { LoginInput, PersonalInfoInput, RegisterInput } from "../validations/auth.schema";
 
 const IS_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === "true";
 
@@ -62,12 +62,16 @@ export function useLogin() {
 }
 
 
-// ── useRegister ───────────────────────────────────────────────
+// Di useAuth.ts — bagian useRegister
+// Ganti ROUTES.DASHBOARD → ROUTES.ONBOARDING
+// Setelah akun dibuat, user diarahkan ke wizard onboarding dulu
+
 export function useRegister() {
+  const router = useRouter();
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const register = async (payload: PersonalInfoInput) => {
+  const register = async (payload: RegisterInput) => {
     setIsPending(true);
     setError(null);
 
@@ -78,16 +82,21 @@ export function useRegister() {
           setError(mockErr?.message ?? "Registrasi gagal");
           return false;
         }
+        router.push(ROUTES.ONBOARDING); // ← ke onboarding, bukan dashboard
+        router.refresh();
         return true;
       }
 
-      // ── Real Better Auth ──────────────────────────────────
       const { error: authErr } = await authClient.signUp.email({
         name: payload.fullName,
         email: payload.email,
         password: payload.password,
         fetchOptions: {
           onError: (ctx) => setError(ctx.error.message ?? "Registrasi gagal"),
+          onSuccess: () => {
+            router.push(ROUTES.ONBOARDING); // ← ke onboarding, bukan dashboard
+            router.refresh();
+          },
         },
       });
 

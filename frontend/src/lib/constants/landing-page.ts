@@ -101,6 +101,36 @@ export const TESTIMONIALS = [
     name: "Bagas W.",
     role: "Mahasiswa, 21 thn",
   },
+  {
+    initials: "DP",
+    quote: "Bantu banget buat nge-track target dana darurat! Simulasi what-if nya ngebantu gue mutusin beli laptop baru sekarang atau nabung dulu.",
+    name: "Dian P.",
+    role: "Graphic Designer, 25 thn",
+  },
+  {
+    initials: "RK",
+    quote: "Fitur kalkulator inflasinya bikin mata melek. Dulu mikir pensiun bawa Rp 1 M cukup, ternyata pas dihitung pake aktuaria, butuhnya Rp 5 M gara-gara inflasi!",
+    name: "Rian K.",
+    role: "Software Engineer, 23 thn",
+  },
+  {
+    initials: "CA",
+    quote: "Gue suka banget fitur portofolio sesuai profil risiko. AI-nya nyaranin porsi reksa dana sama SBN yang pas banget buat profil moderat kayak gue.",
+    name: "Clara A.",
+    role: "Content Creator, 22 thn",
+  },
+  {
+    initials: "FM",
+    quote: "UI-nya gokil, bersih dan estetik banget! Fitur target dana pensiun dengan progress bar bikin gue termotivasi buat nyisihin sisa gaji tiap akhir bulan.",
+    name: "Fajar M.",
+    role: "Junior Auditor, 26 thn",
+  },
+  {
+    initials: "NS",
+    quote: "Paling suka konsultasi sama AI Advisor-nya tengah malem pas lagi overthinking finansial. Jawabannya berbobot dan gak bikin pusing kepala.",
+    name: "Nabila S.",
+    role: "Digital Marketer, 24 thn",
+  },
 ];
 
 export const FAQS = [
