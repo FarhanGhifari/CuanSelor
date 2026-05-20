@@ -172,37 +172,39 @@
 .hero-orb-2 { animation: gradientShift 20s ease-in-out infinite 5s; }
 .hero-orb-3 { animation: gradientShift 18s ease-in-out infinite 10s; }
 
-/* ── Hero: Dashboard Float (Cinematic) ── */
+/* ── Hero: Dashboard Float (Cinematic & Hardware Accelerated) ── */
 @keyframes dashboardFloat {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50%      { transform: translateY(-14px) rotate(0.3deg); }
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50%      { transform: translate3d(0, -14px, 0); }
 }
 .lp-float-dashboard {
   animation: dashboardFloat 8s ease-in-out infinite;
   transform-style: preserve-3d;
+  will-change: transform;
 }
 
-/* ── Hero: Floating Cards (Organic with rotation) ── */
+/* ── Hero: Floating Cards (Organic & GPU Optimized Pure translate3d) ── */
 @keyframes floatOrgA {
-  0%, 100% { transform: translateY(0px) rotate(1.5deg) scale(1); }
-  50%      { transform: translateY(-16px) rotate(3deg) scale(1.01); }
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50%      { transform: translate3d(0, -16px, 0); }
 }
 @keyframes floatOrgB {
-  0%, 100% { transform: translateY(0px) rotate(-2deg) scale(0.99); }
-  50%      { transform: translateY(-18px) rotate(-3.5deg) scale(1.01); }
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50%      { transform: translate3d(0, -18px, 0); }
 }
 @keyframes floatOrgC {
-  0%, 100% { transform: translateY(0px) rotate(1deg) scale(1); }
-  50%      { transform: translateY(-12px) rotate(2.5deg) scale(1.02); }
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50%      { transform: translate3d(0, -12px, 0); }
 }
 @keyframes floatOrgD {
-  0%, 100% { transform: translateY(0px) rotate(-1.5deg) scale(0.98); }
-  50%      { transform: translateY(-15px) rotate(-2deg) scale(1); }
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50%      { transform: translate3d(0, -15px, 0); }
 }
-.lp-float-a { animation: floatOrgA 7s ease-in-out infinite; }
-.lp-float-b { animation: floatOrgB 8s ease-in-out infinite; }
-.lp-float-c { animation: floatOrgC 6.5s ease-in-out infinite; }
-.lp-float-d { animation: floatOrgD 7.5s ease-in-out infinite; }
+.lp-float-a { animation: floatOrgA 7s ease-in-out infinite; will-change: transform; }
+.lp-float-b { animation: floatOrgB 8s ease-in-out infinite; will-change: transform; }
+.lp-float-c { animation: floatOrgC 6.5s ease-in-out infinite; will-change: transform; }
+.lp-float-d { animation: floatOrgD 7.5s ease-in-out infinite; will-change: transform; }
+
 
 /* ── Hero: Badge Glow Pulse ── */
 @keyframes badgeGlow {
@@ -343,19 +345,34 @@
 }
 .lp-star:hover { animation: none !important; transform: scale(1.6) rotate(180deg) !important; color: #ff6b6b !important; }
 
-/* ── How-it-works — card entrance ── */
-@keyframes cardEntrance {
-  0%   { opacity: 0; transform: translateY(100px) scale(0.7) rotateX(12deg); }
-  75%  { transform: translateY(-8px) scale(1.02) rotateX(-2deg); }
-  100% { opacity: 1; transform: translateY(0) scale(1) rotateX(0deg); }
+/* ── How-it-works — card entrance (Optimized Left/Right Animations) ── */
+@keyframes cardEntranceLeft {
+  0%   { opacity: 0; transform: translate3d(-180px, 15px, 0) rotate(-6deg) scale(0.94); }
+  70%  { transform: translate3d(8px, -2px, 0) rotate(0.5deg) scale(1.01); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0) rotate(0deg) scale(1); }
+}
+@keyframes cardEntranceRight {
+  0%   { opacity: 0; transform: translate3d(180px, 15px, 0) rotate(6deg) scale(0.94); }
+  70%  { transform: translate3d(-8px, -2px, 0) rotate(-0.5deg) scale(1.01); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0) rotate(0deg) scale(1); }
 }
 .lp-step-card {
   opacity: 0;
-  animation: cardEntrance 1.1s cubic-bezier(0.19, 1, 0.22, 1) forwards;
-  transition: transform 0.45s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.45s ease !important;
-  cursor: pointer; transform-origin: center bottom;
+  transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.4s ease !important;
+  cursor: pointer;
+  transform-origin: center bottom;
 }
-.lp-step-card:hover { transform: translateY(-10px) scale(1.04) !important; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12) !important; }
+.in-view .lp-step-card-left {
+  animation: cardEntranceLeft 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.in-view .lp-step-card-right {
+  animation: cardEntranceRight 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.lp-step-card:hover {
+  transform: translateY(-12px) scale(1.04) !important;
+  box-shadow: 0 25px 50px rgba(15, 23, 42, 0.15) !important;
+}
+
 
 /* ── Testimonials — marquee ── */
 @keyframes marqueeRight {

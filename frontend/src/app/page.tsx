@@ -1,14 +1,14 @@
-import HeroSection        from "@/components/landing/HeroSection";
-import ProblemSection     from "@/components/landing/ProblemSection";
-import StatsSection       from "@/components/landing/StatsSection";
-import HowItWorksSection  from "@/components/landing/HowItWorksSection";
-import FeaturesSection    from "@/components/landing/FeaturesSection";
-import ComparisonSection  from "@/components/landing/ComparisonSection";
-import TestimonialsSection from "@/components/landing/TestimonialsSection";
-import AboutSection       from "@/components/landing/AboutSection";
-import FaqSection         from "@/components/landing/FaqSection";
-import TrustSection       from "@/components/landing/TrustSection";
-import CtaSection         from "@/components/landing/CtaSection";
+import HeroSection        from "@/features/landing/components/HeroSection";
+import ProblemSection     from "@/features/landing/components/ProblemSection";
+import StatsSection       from "@/features/landing/components/StatsSection";
+import HowItWorksSection  from "@/features/landing/components/HowItWorksSection";
+import FeaturesSection    from "@/features/landing/components/FeaturesSection";
+import ComparisonSection  from "@/features/landing/components/ComparisonSection";
+import TestimonialsSection from "@/features/landing/components/TestimonialsSection";
+import AboutSection       from "@/features/landing/components/AboutSection";
+import FaqSection         from "@/features/landing/components/FaqSection";
+import TrustSection       from "@/features/landing/components/TrustSection";
+import CtaSection         from "@/features/landing/components/CtaSection";
 
 /**
  * Homepage — assembles all landing page sections.

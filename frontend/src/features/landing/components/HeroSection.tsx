@@ -6,33 +6,67 @@ import { T, FONT } from "./tokens";
 import { ROUTES } from "@/lib/constants/routes";
 import PillCTA from "./PillCTA";
 
-/* ═══════════════════════════════════════════════════════════════
-   HERO SECTION — "Light Premium Fintech"
-   White, clean, AI-powered, premium SaaS aesthetic
-   ═══════════════════════════════════════════════════════════════ */
 export default function HeroSection() {
   const sectionRef = useRef<HTMLElement>(null);
-  const [scrollY, setScrollY] = useState(0);
+  const dashboardRef = useRef<HTMLDivElement>(null);
+  const orbRef1 = useRef<HTMLDivElement>(null);
+  const orbRef2 = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    let ticking = false;
-    const handleScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          if (sectionRef.current) {
-            const rect = sectionRef.current.getBoundingClientRect();
-            if (rect.bottom > 0) {
-              setScrollY(window.scrollY);
-            }
+    let currentY = window.scrollY;
+    let targetY = window.scrollY;
+    let isScrolling = false;
+    let animId: number;
+
+    const lerp = (start: number, end: number, factor: number) => {
+      return start + (end - start) * factor;
+    };
+
+    const updateParallax = () => {
+      currentY = lerp(currentY, targetY, 0.08); // Butter-smooth premium inertial delay
+
+      if (sectionRef.current) {
+        const rect = sectionRef.current.getBoundingClientRect();
+        // Only run transform if section is visible in viewport
+        if (rect.bottom > 0 && rect.top < window.innerHeight) {
+          if (dashboardRef.current) {
+            dashboardRef.current.style.transform = `translate3d(0, ${currentY * 0.03}px, 0)`;
           }
-          ticking = false;
-        });
-        ticking = true;
+          if (orbRef1.current) {
+            orbRef1.current.style.transform = `translate3d(0, ${currentY * 0.02}px, 0)`;
+          }
+          if (orbRef2.current) {
+            orbRef2.current.style.transform = `translate3d(0, ${currentY * 0.015}px, 0)`;
+          }
+        }
+      }
+
+      if (Math.abs(targetY - currentY) > 0.1) {
+        animId = requestAnimationFrame(updateParallax);
+      } else {
+        currentY = targetY;
+        isScrolling = false;
       }
     };
+
+    const handleScroll = () => {
+      targetY = window.scrollY;
+      if (!isScrolling) {
+        isScrolling = true;
+        animId = requestAnimationFrame(updateParallax);
+      }
+    };
+
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    // Trigger once for initial paint
+    handleScroll();
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      cancelAnimationFrame(animId);
+    };
   }, []);
+
 
   return (
     <section
@@ -43,8 +77,64 @@ export default function HeroSection() {
         background: "radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.04) 0%, transparent 60%), radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.06) 0%, transparent 60%), #FFFFFF",
       }}
     >
-      {/* ═══ LAYER 1: Background Effects ═══ */}
-      <BackgroundLayer scrollY={scrollY} />
+      {/* ═══ LAYER 1: Background Effects (Inlined for direct ref binding and zero re-renders) ═══ */}
+      <div className="noise-overlay pointer-events-none" />
+
+      {/* Ambient orbs */}
+      <div
+        className="absolute pointer-events-none hero-orb-1"
+        style={{
+          width: 800, height: 800, borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(16,185,129,0.06) 0%, transparent 65%)",
+          top: -300, left: -200,
+          filter: "blur(60px)",
+        }}
+      />
+      <div
+        className="absolute pointer-events-none hero-orb-2"
+        style={{
+          width: 600, height: 600, borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(99,102,241,0.05) 0%, transparent 65%)",
+          top: "20%", right: -100,
+          filter: "blur(80px)",
+        }}
+      />
+      <div
+        className="absolute pointer-events-none hero-orb-3"
+        style={{
+          width: 500, height: 500, borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(20,184,166,0.04) 0%, transparent 65%)",
+          bottom: -200, left: "40%",
+          filter: "blur(70px)",
+        }}
+      />
+
+      {/* Glow behind dashboard — hardware accelerated soft ambient orbs */}
+      <div
+        ref={orbRef1}
+        className="absolute pointer-events-none"
+        style={{
+          width: 700, height: 500, borderRadius: "50%",
+          background: "radial-gradient(ellipse, rgba(16,185,129,0.07) 0%, transparent 70%)",
+          top: "15%", right: "-10%",
+          filter: "blur(60px)",
+          willChange: "transform",
+        }}
+      />
+      <div
+        ref={orbRef2}
+        className="absolute pointer-events-none"
+        style={{
+          width: 500, height: 500, borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(99,102,241,0.06) 0%, transparent 70%)",
+          top: "35%", right: "-5%",
+          filter: "blur(70px)",
+          willChange: "transform",
+        }}
+      />
+
+      {/* Interactive Morphing Canvas Waves */}
+      <CanvasWave />
 
       <div
         className="relative z-10 w-full max-w-[1536px] mx-auto px-6 md:px-10 lg:px-16"
@@ -71,7 +161,7 @@ export default function HeroSection() {
               </span>
             </div>
 
-            {/* ── Headline (#7) — Short, bold, and punchy ── */}
+            {/* ── Headline — Short, bold, and punchy ── */}
             <h1
               className="hero-fade-2"
               style={{
@@ -113,7 +203,7 @@ export default function HeroSection() {
               Analisis kondisi keuangan, proyeksi masa depan pensiun, dan dapatkan rekomendasi investasi personal — diperkuat oleh kecerdasan buatan.
             </p>
 
-            {/* ── Emotional Statement (#20) ── */}
+            {/* ── Emotional Statement ── */}
             <p
               className="hero-fade-3"
               style={{
@@ -131,7 +221,7 @@ export default function HeroSection() {
               Tapi tentang memiliki masa depan yang aman.
             </p>
 
-            {/* ── CTA Buttons (#10) ── */}
+            {/* ── CTA Buttons ── */}
             <div className="hero-fade-4" style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 48 }}>
               <PillCTA href={ROUTES.REGISTER} style={{ padding: "14px 28px", fontSize: 15 }}>
                 Mulai Gratis Sekarang
@@ -142,19 +232,19 @@ export default function HeroSection() {
               </PillCTA>
             </div>
 
-            {/* ── Trust Indicators (#11) — Consolidated Horizontal Glass Pill Strip ── */}
+            {/* ── Trust Indicators — Consolidated Horizontal Glass Pill Strip ── */}
             <div className="hero-fade-5">
               <TrustStrip />
             </div>
           </div>
 
-          {/* ══════════ RIGHT COLUMN — Dashboard (#3, #4, #5) ══════════ */}
+          {/* ══════════ RIGHT COLUMN — Dashboard — Hardware Accelerated ══════════ */}
           <div
+            ref={dashboardRef}
             className="lg:col-span-6 lg:col-start-7 relative hidden lg:block hero-fade-7"
             style={{
               height: 600,
-              transform: `translateY(${scrollY * 0.03}px)`,
-              transition: "transform 0.1s linear",
+              willChange: "transform",
             }}
           >
             <FloatingDashboard />
@@ -176,72 +266,6 @@ export default function HeroSection() {
       >
       </div>
     </section>
-  );
-}
-
-/* ─────────────────────────────────────────────────────── */
-/*  LAYER 1: Background Effects (#1, #2, #9, #16)         */
-/* ─────────────────────────────────────────────────────── */
-function BackgroundLayer({ scrollY }: { scrollY: number }) {
-  return (
-    <>
-      {/* Noise texture (#16) */}
-      <div className="noise-overlay" />
-
-      {/* Ambient orbs (#1, #9) */}
-      <div
-        className="absolute pointer-events-none hero-orb-1"
-        style={{
-          width: 800, height: 800, borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(16,185,129,0.06) 0%, transparent 65%)",
-          top: -300, left: -200,
-          filter: "blur(60px)",
-        }}
-      />
-      <div
-        className="absolute pointer-events-none hero-orb-2"
-        style={{
-          width: 600, height: 600, borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(99,102,241,0.05) 0%, transparent 65%)",
-          top: "20%", right: -100,
-          filter: "blur(80px)",
-        }}
-      />
-      <div
-        className="absolute pointer-events-none hero-orb-3"
-        style={{
-          width: 500, height: 500, borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(20,184,166,0.04) 0%, transparent 65%)",
-          bottom: -200, left: "40%",
-          filter: "blur(70px)",
-        }}
-      />
-
-      {/* Glow behind dashboard (#9) — soft premium ambient orbs */}
-      <div
-        className="absolute pointer-events-none"
-        style={{
-          width: 700, height: 500, borderRadius: "50%",
-          background: "radial-gradient(ellipse, rgba(16,185,129,0.07) 0%, transparent 70%)",
-          top: "15%", right: "-10%",
-          filter: "blur(60px)",
-          transform: `translateY(${scrollY * 0.02}px)`,
-        }}
-      />
-      <div
-        className="absolute pointer-events-none"
-        style={{
-          width: 500, height: 500, borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(99,102,241,0.06) 0%, transparent 70%)",
-          top: "35%", right: "-5%",
-          filter: "blur(70px)",
-          transform: `translateY(${scrollY * 0.015}px)`,
-        }}
-      />
-
-      {/* Interactive Morphing Canvas Waves */}
-      <CanvasWave />
-    </>
   );
 }
 
@@ -268,37 +292,63 @@ function CanvasWave() {
     handleResize();
 
     let isVisible = true;
+    let lastTime = 0;
+    const fpsInterval = 1000 / 45; // Throttled to 45 FPS for maximum energy savings
 
-    const draw = () => {
+    let lastWidth = 0;
+    let gradient1: CanvasGradient | null = null;
+    let gradient2: CanvasGradient | null = null;
+
+    const draw = (timestamp: number) => {
       if (!isVisible) return;
+
+      animId = requestAnimationFrame(draw);
+
+      if (!lastTime) lastTime = timestamp;
+      const elapsed = timestamp - lastTime;
+
+      // Skip frames to throttle redraw rate
+      if (elapsed < fpsInterval) return;
+      lastTime = timestamp - (elapsed % fpsInterval);
 
       ctx.clearRect(0, 0, width, height);
 
-      const time = Date.now() * 0.0006;
+      const time = timestamp * 0.0004;
+
+      // Re-create gradients only when canvas width changes (huge GC savings)
+      if (width !== lastWidth || !gradient1 || !gradient2) {
+        lastWidth = width;
+
+        gradient1 = ctx.createLinearGradient(0, 0, width, 0);
+        gradient1.addColorStop(0, "rgba(255, 255, 255, 0)");
+        gradient1.addColorStop(0.2, "rgba(16, 185, 129, 0.18)");
+        gradient1.addColorStop(0.8, "rgba(20, 184, 166, 0.10)");
+        gradient1.addColorStop(1, "rgba(255, 255, 255, 0)");
+
+        gradient2 = ctx.createLinearGradient(0, 0, width, 0);
+        gradient2.addColorStop(0, "rgba(255, 255, 255, 0)");
+        gradient2.addColorStop(0.2, "rgba(99, 102, 241, 0.14)");
+        gradient2.addColorStop(0.8, "rgba(139, 92, 246, 0.08)");
+        gradient2.addColorStop(1, "rgba(255, 255, 255, 0)");
+      }
 
       // Ribbon 1: Emerald / Teal (Left center flowing right)
-      drawRibbon(ctx, width, height, time, {
-        lineCount: 30,
-        colorStart: "rgba(16, 185, 129, 0.20)",
-        colorEnd: "rgba(20, 184, 166, 0.12)",
+      drawRibbon(ctx, width, height, time, gradient1, {
+        lineCount: 12,
         yOffset: height * 0.48,
         amplitude: 75,
         speed: 0.35,
-        spacing: 3.5,
+        spacing: 5.5,
       });
 
       // Ribbon 2: Indigo / Violet (Right center flowing left)
-      drawRibbon(ctx, width, height, time + 15, {
-        lineCount: 24,
-        colorStart: "rgba(99, 102, 241, 0.16)",
-        colorEnd: "rgba(139, 92, 246, 0.10)",
+      drawRibbon(ctx, width, height, time + 15, gradient2, {
+        lineCount: 10,
         yOffset: height * 0.54,
         amplitude: 60,
         speed: -0.28,
-        spacing: 4.2,
+        spacing: 6.5,
       });
-
-      animId = requestAnimationFrame(draw);
     };
 
     const drawRibbon = (
@@ -306,22 +356,16 @@ function CanvasWave() {
       w: number,
       h: number,
       t: number,
+      strokeStyle: CanvasGradient,
       opt: {
         lineCount: number;
-        colorStart: string;
-        colorEnd: string;
         yOffset: number;
         amplitude: number;
         speed: number;
         spacing: number;
       }
     ) => {
-      const grad = c.createLinearGradient(0, 0, w, 0);
-      grad.addColorStop(0, "rgba(255, 255, 255, 0)");
-      grad.addColorStop(0.2, opt.colorStart);
-      grad.addColorStop(0.8, opt.colorEnd);
-      grad.addColorStop(1, "rgba(255, 255, 255, 0)");
-      c.strokeStyle = grad;
+      c.strokeStyle = strokeStyle;
 
       for (let i = 0; i < opt.lineCount; i++) {
         c.beginPath();
@@ -329,7 +373,7 @@ function CanvasWave() {
 
         const offset = i * opt.spacing;
 
-        for (let x = 0; x <= w; x += 15) {
+        for (let x = 0; x <= w; x += 45) {
           const progress = x / w;
           const angle = progress * Math.PI * 2.4;
           
@@ -353,7 +397,6 @@ function CanvasWave() {
         const wasVisible = isVisible;
         isVisible = entry.isIntersecting;
         if (isVisible && !wasVisible) {
-          // Restart animation loop
           animId = requestAnimationFrame(draw);
         }
       },
@@ -380,9 +423,6 @@ function CanvasWave() {
   );
 }
 
-/* ─────────────────────────────────────────────────────── */
-/*  Trust Strip (#11) — Consolidated Horizontal Glass Pill */
-/* ─────────────────────────────────────────────────────── */
 function TrustStrip() {
   const items = [
     { icon: <Users style={{ width: 14, height: 14, color: T.emerald }} />, value: "50K+", label: "Pengguna" },
@@ -426,9 +466,6 @@ function TrustStrip() {
   );
 }
 
-/* ─────────────────────────────────────────────────────── */
-/*  Floating Dashboard (#3, #4, #5, #12, #14, #18)        */
-/* ─────────────────────────────────────────────────────── */
 function FloatingDashboard() {
   return (
     <div className="relative w-full h-full">
@@ -438,9 +475,9 @@ function FloatingDashboard() {
         className="absolute lp-float-dashboard"
         style={{
           top: 0, right: 0, left: "2%", bottom: "2%",
-          background: "rgba(255, 255, 255, 0.82)",
-          backdropFilter: "blur(24px)",
-          WebkitBackdropFilter: "blur(24px)",
+          background: "rgba(255, 255, 255, 0.85)",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
           borderRadius: 24,
           border: "1px solid rgba(255, 255, 255, 0.6)",
           boxShadow: "0 40px 90px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(15, 23, 42, 0.04), inset 0 1px 1px rgba(255, 255, 255, 0.85)",
@@ -470,7 +507,7 @@ function FloatingDashboard() {
               <TrendingUp style={{ width: 14, height: 14, color: "#fff" }} />
             </div>
             <span style={{ fontSize: 14, fontWeight: 800, color: T.ink, fontFamily: FONT }}>cuanSelor</span>
-            {/* Live indicator (#18) */}
+            {/* Live indicator */}
             <div style={{ display: "flex", alignItems: "center", gap: 4, marginLeft: 8 }}>
               <span className="live-pulse-dot" style={{ width: 6, height: 6, borderRadius: "50%", background: "#10B981", display: "inline-block" }} />
               <span style={{ fontSize: 9, fontWeight: 600, color: "#10B981", fontFamily: FONT }}>Live</span>
@@ -515,7 +552,7 @@ function FloatingDashboard() {
             />
           </div>
 
-          {/* Chart Section (#12) — Glowing Centerpiece */}
+          {/* Chart Section — Glowing Centerpiece */}
           <div
             style={{
               flex: 1,
@@ -576,9 +613,6 @@ function FloatingDashboard() {
   );
 }
 
-/* ─────────────────────────────────────────────────────── */
-/*  Metric Card (Light Mode Overlay)                       */
-/* ─────────────────────────────────────────────────────── */
 interface MetricCardProps {
   label: string;
   value: string;
@@ -608,7 +642,7 @@ function MetricCard({ label, value, badge, accentColor, bg, border, hasProgress,
 }
 
 /* ─────────────────────────────────────────────────────── */
-/*  Animated Number Counter (#18)                          */
+/*  Animated Number Counter                                */
 /* ─────────────────────────────────────────────────────── */
 function AnimatedNumber({ value, color }: { value: string; color: string }) {
   const [displayed, setDisplayed] = useState(value);
@@ -639,9 +673,9 @@ function AnimatedNumber({ value, color }: { value: string; color: string }) {
   );
 }
 
-/* ─────────────────────────────────────────────────────── */
-/*  Animated SVG Chart (#12) — Glowing Centerpiece          */
-/* ─────────────────────────────────────────────────────── */
+
+/*  Animated SVG Chart — Glowing Centerpiece */
+
 function AnimatedChart() {
   const pathRef = useRef<SVGPathElement | null>(null);
 
@@ -704,9 +738,8 @@ function AnimatedChart() {
   );
 }
 
-/* ─────────────────────────────────────────────────────── */
-/*  AI Insight Bubble (#8, #14)                            */
-/* ─────────────────────────────────────────────────────── */
+/*  AI Insight Bubble  */
+
 function AIInsightBubble() {
   const [hovered, setHovered] = useState(false);
 
@@ -715,8 +748,8 @@ function AIInsightBubble() {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        background: "rgba(255, 255, 255, 0.90)",
-        backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+        background: "rgba(255, 255, 255, 0.85)",
+        backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
         borderRadius: 18,
         border: "1px solid rgba(99,102,241,0.15)",
         boxShadow: hovered ? "0 24px 50px rgba(99,102,241,0.12)" : "0 16px 40px rgba(15,23,42,0.06)",
@@ -747,9 +780,8 @@ function AIInsightBubble() {
   );
 }
 
-/* ─────────────────────────────────────────────────────── */
-/*  Portfolio Mini Bubble (#14)                            */
-/* ─────────────────────────────────────────────────────── */
+/*  Portfolio Mini Bubble  */
+
 function PortfolioMini() {
   const [hovered, setHovered] = useState(false);
   const items = [
@@ -763,8 +795,8 @@ function PortfolioMini() {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        background: "rgba(255, 255, 255, 0.90)",
-        backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+        background: "rgba(255, 255, 255, 0.85)",
+        backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
         borderRadius: 18,
         border: "1px solid rgba(16,185,129,0.15)",
         boxShadow: hovered ? "0 24px 50px rgba(16,185,129,0.10)" : "0 16px 40px rgba(15,23,42,0.06)",
@@ -793,9 +825,8 @@ function PortfolioMini() {
   );
 }
 
-/* ─────────────────────────────────────────────────────── */
-/*  Return Metric Bubble (#14)                             */
-/* ─────────────────────────────────────────────────────── */
+/*  Return Metric Bubble */
+
 function ReturnBubble() {
   const [hovered, setHovered] = useState(false);
 
@@ -804,8 +835,8 @@ function ReturnBubble() {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        background: "rgba(255, 255, 255, 0.90)",
-        backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+        background: "rgba(255, 255, 255, 0.85)",
+        backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
         borderRadius: 18,
         border: "1px solid rgba(245,158,11,0.20)",
         boxShadow: hovered ? "0 24px 50px rgba(245,158,11,0.10)" : "0 16px 40px rgba(15,23,42,0.06)",
@@ -837,9 +868,8 @@ function ReturnBubble() {
   );
 }
 
-/* ─────────────────────────────────────────────────────── */
-/*  AI Chat Bubble (#8, #14, #18)                          */
-/* ─────────────────────────────────────────────────────── */
+/*  AI Chat Bubble */
+
 function AIChatBubble() {
   const [hovered, setHovered] = useState(false);
 
@@ -848,8 +878,8 @@ function AIChatBubble() {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        background: "rgba(255, 255, 255, 0.90)",
-        backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+        background: "rgba(255, 255, 255, 0.85)",
+        backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
         borderRadius: 18,
         border: "1px solid rgba(15,23,42,0.08)",
         boxShadow: hovered ? "0 24px 50px rgba(15,23,42,0.10)" : "0 16px 40px rgba(15,23,42,0.06)",
@@ -892,4 +922,3 @@ function AIChatBubble() {
     </div>
   );
 }
-

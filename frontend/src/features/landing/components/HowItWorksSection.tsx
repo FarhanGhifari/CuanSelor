@@ -1,6 +1,9 @@
+"use client";
+
+import { useEffect, useRef } from "react";
 import { ArrowRight } from "lucide-react";
 import { T, FONT } from "./tokens";
-import { HOW_IT_WORKS } from "@/lib/constants/landing-page";
+import { HOW_IT_WORKS } from "@/features/landing/data/landing-page";
 
 const STEP_BG_COLORS = [
   "linear-gradient(180deg, #ff5a5a 0%, #b32121 100%)",
@@ -11,8 +14,32 @@ const STEP_BG_COLORS = [
 
 /** How-it-works section with animated entrance step cards. */
 export default function HowItWorksSection() {
+  const sectionRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("in-view");
+          observer.unobserve(entry.target); // Trigger only once
+        }
+      },
+      { threshold: 0.1 } // Trigger when 10% of the section is visible
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <section className="py-[60px] md:py-[120px] px-6 md:px-[5%]" style={{ background: T.canvas }}>
+    <section
+      ref={sectionRef}
+      className="py-[60px] md:py-[120px] px-6 md:px-[5%] overflow-hidden"
+      style={{ background: T.canvas }}
+    >
       <div className="w-full max-w-[1400px] mx-auto">
         {/* Heading */}
         <div style={{ textAlign: "left", marginBottom: 40, maxWidth: 640 }}>
@@ -38,10 +65,11 @@ export default function HowItWorksSection() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5" style={{ perspective: 1200 }}>
           {HOW_IT_WORKS.map((step, i) => {
             const Icon = step.icon;
+            const isLeft = i < 2; // Card 1 & 2 enter from left, Card 3 & 4 from right
             return (
               <div
                 key={step.title}
-                className="lp-step-card"
+                className={`lp-step-card ${isLeft ? "lp-step-card-left" : "lp-step-card-right"}`}
                 style={{
                   position: "relative",
                   background: STEP_BG_COLORS[i % STEP_BG_COLORS.length],
@@ -52,9 +80,10 @@ export default function HowItWorksSection() {
                   display: "flex",
                   flexDirection: "column",
                   overflow: "hidden",
-                  animationDelay: `${i * 0.16}s`,
+                  animationDelay: `${i * 0.12}s`, // Sleek cascading stagger delay
                 }}
               >
+
                 {/* Top-right arrow */}
                 <div style={{ position: "absolute", top: 24, right: 24, width: 32, height: 32, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10 }}>
                   <ArrowRight style={{ color: "#fff", width: 16, height: 16 }} />

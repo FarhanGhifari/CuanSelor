@@ -1,5 +1,5 @@
 import { T, FONT } from "./tokens";
-import { TESTIMONIALS } from "@/lib/constants/landing-page";
+import { TESTIMONIALS } from "@/features/landing/data/landing-page";
 
 /** Reusable testimonial card. */
 function TestimonialCard({ t }: { t: (typeof TESTIMONIALS)[number] }) {

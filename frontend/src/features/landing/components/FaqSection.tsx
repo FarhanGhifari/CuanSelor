@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { T, FONT } from "./tokens";
-import { FAQS } from "@/lib/constants/landing-page";
+import { FAQS } from "@/features/landing/data/landing-page";
 
 /** Single accordion item for FAQ. */
 function FaqItem({ q, a }: { q: string; a: string }) {
@@ -12,6 +12,7 @@ function FaqItem({ q, a }: { q: string; a: string }) {
   return (
     <div style={{ borderBottom: `1px solid ${T.hairline}` }}>
       <button
+        suppressHydrationWarning
         onClick={() => setOpen((prev) => !prev)}
         className="w-full flex items-center justify-between py-5 text-left gap-6"
         style={{ background: "none", border: "none", cursor: "pointer" }}

@@ -1,11 +1,11 @@
 import { CheckCircle, XCircle, Shield, Brain, Users } from "lucide-react";
 import { T, FONT } from "./tokens";
-import { COMPARISON } from "@/lib/constants/landing-page";
+import { COMPARISON } from "@/features/landing/data/landing-page";
 
 const WHY_US_PILLARS = [
-  { icon: Shield, title: "Aman & Privat",  desc: "Enkripsi bank-level. Data kamu tidak pernah dijual." },
-  { icon: Brain,  title: "Berbasis AI",    desc: "Rekomendasi cerdas yang disesuaikan situasi unikmu." },
-  { icon: Users,  title: "Untuk Gen Z",    desc: "Dirancang untuk kebutuhan finansial anak muda Indonesia." },
+  { icon: Shield, title: "Aman & Privat", desc: "Enkripsi bank-level. Data kamu tidak pernah dijual." },
+  { icon: Brain, title: "Berbasis AI", desc: "Rekomendasi cerdas yang disesuaikan situasi unikmu." },
+  { icon: Users, title: "Untuk Gen Z", desc: "Dirancang untuk kebutuhan finansial anak muda Indonesia." },
 ];
 
 /** Comparison table + 3-pillar section on parchment background. */
