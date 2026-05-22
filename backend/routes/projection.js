@@ -5,6 +5,24 @@ const path = require("path");
 const supabase = require("../config/supabase");
 const { authenticateToken } = require("../middleware/auth");
 
+// ── Helper: Map frontend sector to BPS sector ────────────────
+function mapSectorToBPS(frontendSector) {
+  const sectorMapping = {
+    "Pemerintahan / PNS": "Administrasi Pemerintahan dan Pertahanan, serta Jaminan Sosial Wajib",
+    "BUMN / BUMD": "Rata-rata", // BUMN bisa di berbagai sektor, pakai rata-rata
+    "Swasta — Keuangan": "Aktivitas Keuangan dan Asuransi",
+    "Swasta — Teknologi": "Aktivitas Penerbitan dan Telekomunikasi",
+    "Swasta — Manufaktur": "Industri",
+    "Swasta — Kesehatan": "Aktivitas Kesehatan Manusia dan Aktivitas Sosial",
+    "Swasta — Pendidikan": "Pendidikan",
+    "Wiraswasta / Freelance": "Rata-rata",
+    "Profesional (Dokter/Pengacara)": "Aktivitas Profesional, Ilmiah, dan Teknis dan Aktivitas Administratif dan Penunjang Usaha",
+    "Lainnya": "Rata-rata",
+  };
+
+  return sectorMapping[frontendSector] || "Rata-rata";
+}
+
 // ── GET /api/projection ─────────────────────────────────────
 // Menghitung proyeksi pensiun user menggunakan Monte Carlo simulation
 // via Python child process (streamlit-ds/run_calculator.py)
@@ -59,19 +77,24 @@ router.get("/", authenticateToken, async (req, res) => {
     // 3. Construct payload untuk Python calculator
     //    Mapping field database → field UserProfile Python
     const riskAnswers = risk.answers || {};
-    const sector = riskAnswers.sector || "Rata-rata";
+    const frontendSector = riskAnswers.sector || "Rata-rata";
+    const bpsSector = mapSectorToBPS(frontendSector);
     const hasHealthInsurance = riskAnswers.hasHealthInsurance || false;
     const includePandemicRisk = riskAnswers.includePandemicRisk || false;
+    
+    // Get age and gender from risk_profiles.answers (stored during onboarding)
+    const age = riskAnswers.age || 30;
+    const gender = riskAnswers.gender || "male";
 
     const calculatorInput = {
       name: user?.name || "User",
-      age: calculateAge(user),
-      gender: riskAnswers.gender || "male",
+      age: Number(age),
+      gender: gender,
       monthly_salary: Number(financial.monthly_income) || 0,
       savings_rate: Number(financial.saving_percentage) / 100 || 0.20,
       retirement_age: Number(pension.target_retirement_age) || 55,
       risk_profile: (risk.risk_category || "moderate").toLowerCase(),
-      sector: sector,
+      sector: bpsSector, // Mapped to BPS sector
       include_pandemic_risk: includePandemicRisk,
       custom_deposit_rate: financial.expected_annual_return
         ? Number(financial.expected_annual_return) / 100
@@ -160,15 +183,6 @@ function runPythonCalculator(scriptPath, cwd, inputPayload) {
       reject(new Error("Kalkulasi timeout (>30 detik)"));
     }, 30000);
   });
-}
-
-// ── Helper: Calculate age from user data ────────────────────
-function calculateAge(user) {
-  // Default age jika tidak bisa dihitung
-  if (!user) return 30;
-  // Jika ada date_of_birth di profiles table
-  // Untuk sementara, default 30 tahun (bisa diupdate nanti)
-  return 30;
 }
 
 module.exports = router;

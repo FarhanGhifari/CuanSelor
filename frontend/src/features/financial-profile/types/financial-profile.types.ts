@@ -1,6 +1,10 @@
 export type RiskProfile = "conservative" | "moderate" | "aggressive";
 
 export interface OnboardingPayload {
+    // Step 0 - Personal Data
+    fullName: string;
+    age: number;
+    gender: "male" | "female";
     // Step 1
     monthlyIncome: number;
     annualBonusMonths: number;

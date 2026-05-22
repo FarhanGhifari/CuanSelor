@@ -14,6 +14,9 @@ const svc = IS_MOCK ? financialProfileMock : financialProfileService;
 // ── Helper: sanitize WizardData → OnboardingPayload ────────────────
 function sanitize(raw: WizardData): OnboardingPayload {
   return {
+    fullName:           String(raw.fullName ?? ""),
+    age:                Number(raw.age) || 30,
+    gender:             (raw.gender as "male" | "female") ?? "male",
     monthlyIncome:      Number(raw.monthlyIncome)      || 0,
     annualBonusMonths:  Number(raw.annualBonusMonths)  || 0,
     monthlyExpense:     Number(raw.monthlyExpense)     || 0,
@@ -42,7 +45,8 @@ export function useOnboarding() {
     setError(null);
     try {
       await svc.save(sanitize(raw));
-      router.push(ROUTES.DASHBOARD);
+      // Redirect to projection page after successful onboarding
+      router.push("/dashboard/projection");
       router.refresh();
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })

@@ -1,41 +1,35 @@
 /**
- * Format angka ke Rupiah (IDR) human-readable
- * Contoh: 3044341083 → "Rp 3,04 M"
+ * Format number to Indonesian Rupiah currency
  */
-export function formatRupiah(value: number): string {
-  const abs = Math.abs(value);
-  if (abs >= 1_000_000_000_000) {
-    return `Rp ${(value / 1_000_000_000_000).toFixed(1)} T`;
+export function formatCurrency(value: number): string {
+  if (value >= 1_000_000_000) {
+    return `Rp ${(value / 1_000_000_000).toFixed(1)}M`;
   }
-  if (abs >= 1_000_000_000) {
-    return `Rp ${(value / 1_000_000_000).toFixed(2)} M`;
+  if (value >= 1_000_000) {
+    return `Rp ${(value / 1_000_000).toFixed(1)}jt`;
   }
-  if (abs >= 1_000_000) {
-    return `Rp ${(value / 1_000_000).toFixed(1)} jt`;
-  }
-  if (abs >= 1_000) {
-    return `Rp ${(value / 1_000).toFixed(0)} rb`;
+  if (value >= 1_000) {
+    return `Rp ${(value / 1_000).toFixed(0)}rb`;
   }
   return `Rp ${value.toFixed(0)}`;
 }
 
 /**
- * Format angka ke Rupiah lengkap (tanpa singkatan)
- * Contoh: 3044341083 → "Rp 3.044.341.083"
+ * Format percentage with 1 decimal place
  */
-export function formatRupiahFull(value: number): string {
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
+export function formatPercentage(value: number): string {
+  return `${(value * 100).toFixed(1)}%`;
 }
 
 /**
- * Format persentase
- * Contoh: 0.85 → "85%"  |  1.0 → "100%"
+ * Format large number with K/M suffix
  */
-export function formatPercent(value: number): string {
-  return `${(value * 100).toFixed(1)}%`;
+export function formatNumber(value: number): string {
+  if (value >= 1_000_000) {
+    return `${(value / 1_000_000).toFixed(1)}M`;
+  }
+  if (value >= 1_000) {
+    return `${(value / 1_000).toFixed(1)}K`;
+  }
+  return value.toFixed(0);
 }

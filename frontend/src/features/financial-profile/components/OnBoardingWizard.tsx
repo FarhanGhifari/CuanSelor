@@ -11,6 +11,9 @@ import {
 
 /* ── Types ─────────────────────────────────────────────────────────── */
 export interface WizardData {
+    fullName:           string | null;
+    age:                number | null;
+    gender:             "male" | "female" | null;
     monthlyIncome:      number | null;
     annualBonusMonths:  number | null;
     monthlyExpense:     number | null;
@@ -28,6 +31,9 @@ export interface WizardData {
 }
 
 const INITIAL: WizardData = {
+    fullName:           null,
+    age:                null,
+    gender:             null,
     monthlyIncome:      null,
     annualBonusMonths:  null,
     monthlyExpense:     null,
@@ -277,6 +283,79 @@ function StepHeader({
 }
 
 /* ── Steps ──────────────────────────────────────────────────────────── */
+
+function S0_Personal({ data, set }: { data: WizardData; set: (p: Partial<WizardData>) => void }) {
+    return (
+        <div>
+            <StepHeader emoji="👋" headline="Kenalan dulu, yuk!" sub="Data ini penting untuk kalkulasi aktuaria yang akurat." />
+            
+            {/* Nama */}
+            <div className="mb-6">
+                <label className="block text-sm font-semibold mb-2" style={{ color: T.ink }}>
+                    Nama Lengkap
+                </label>
+                <input
+                    type="text"
+                    placeholder="Contoh: Budi Santoso"
+                    value={data.fullName || ""}
+                    onChange={e => set({ fullName: e.target.value || null })}
+                    className="w-full px-5 py-4 text-base rounded-2xl border-2 transition-all outline-none"
+                    style={{
+                        borderColor: data.fullName ? T.blue : T.hairline,
+                        color: T.ink,
+                    }}
+                    autoFocus
+                />
+            </div>
+
+            {/* Usia */}
+            <div className="mb-6">
+                <label className="block text-sm font-semibold mb-2" style={{ color: T.ink }}>
+                    Usia Saat Ini
+                </label>
+                <div className="flex items-center gap-3">
+                    <input
+                        type="number"
+                        min={18}
+                        max={65}
+                        placeholder="30"
+                        value={data.age ?? ""}
+                        onChange={e => set({ age: e.target.value ? Number(e.target.value) : null })}
+                        className="w-28 py-4 px-4 border-2 rounded-2xl text-lg font-bold text-center outline-none transition-all"
+                        style={{ borderColor: data.age ? T.blue : T.hairline, color: T.ink }}
+                    />
+                    <span className="text-base font-medium" style={{ color: T.muted }}>tahun</span>
+                </div>
+            </div>
+
+            {/* Gender */}
+            <div>
+                <label className="block text-sm font-semibold mb-3" style={{ color: T.ink }}>
+                    Jenis Kelamin
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                    <Chip
+                        selected={data.gender === "male"}
+                        onClick={() => set({ gender: "male" })}
+                        icon={<span className="text-2xl">👨</span>}
+                    >
+                        Laki-laki
+                    </Chip>
+                    <Chip
+                        selected={data.gender === "female"}
+                        onClick={() => set({ gender: "female" })}
+                        icon={<span className="text-2xl">👩</span>}
+                    >
+                        Perempuan
+                    </Chip>
+                </div>
+                <p className="text-xs mt-3" style={{ color: T.muted }}>
+                    💡 Data ini digunakan untuk kalkulasi harapan hidup berdasarkan tabel mortalitas Indonesia
+                </p>
+            </div>
+        </div>
+    );
+}
 
 function S1_Income({ data, set }: { data: WizardData; set: (p: Partial<WizardData>) => void }) {
     const surplus = data.monthlyIncome !== null && data.monthlyExpense !== null
@@ -716,6 +795,9 @@ function S11_Assumptions({ data, set }: { data: WizardData; set: (p: Partial<Wiz
 /* ── Summary ────────────────────────────────────────────────────────── */
 function Summary({ data, onEdit }: { data: WizardData; onEdit: (step: number) => void }) {
     const summaryItems = [
+        { step: 0,  icon: "👤", label: "Nama Lengkap",            val: data.fullName         ?? "-" },
+        { step: 0,  icon: "🎂", label: "Usia",                    val: data.age              ? `${data.age} tahun` : "-" },
+        { step: 0,  icon: data.gender === "male" ? "👨" : "👩", label: "Jenis Kelamin", val: data.gender === "male" ? "Laki-laki" : data.gender === "female" ? "Perempuan" : "-" },
         { step: 1,  icon: "💰", label: "Penghasilan Bulanan",     val: data.monthlyIncome    ? `Rp ${fmt(data.monthlyIncome)}`    : "-" },
         { step: 2,  icon: "🎁", label: "Bonus/THR",               val: data.annualBonusMonths !== null ? (data.annualBonusMonths === 0 ? "Tidak ada" : `${data.annualBonusMonths}× gaji/tahun`) : "-" },
         { step: 3,  icon: "🛒", label: "Pengeluaran Bulanan",     val: data.monthlyExpense   ? `Rp ${fmt(data.monthlyExpense)}`   : "-" },
@@ -776,9 +858,10 @@ function TopProgress({ step, total }: { step: number; total: number }) {
 
 /* ══ Main Wizard ════════════════════════════════════════════════════════ */
 
-const TOTAL = 11; // steps 1–11 (11 = assumptions), + summary
+const TOTAL = 12; // steps 0–11 (0 = personal, 11 = assumptions), + summary
 
 const STEP_CONFIG = [
+    { label: "Data Diri",    validate: (d: WizardData) => d.fullName !== null && d.age !== null && d.gender !== null },
     { label: "Gaji",         validate: (d: WizardData) => d.monthlyIncome !== null },
     { label: "Bonus",        validate: (d: WizardData) => d.annualBonusMonths !== null },
     { label: "Pengeluaran",  validate: (d: WizardData) => d.monthlyExpense !== null },
@@ -867,6 +950,7 @@ export function OnboardingWizard({
                             </motion.div>
                         ) : (
                             <motion.div key={step} variants={v} initial="initial" animate="animate" exit="exit">
+                                {step === 0  && <S0_Personal        data={data} set={set} />}
                                 {step === 1  && <S1_Income          data={data} set={set} />}
                                 {step === 2  && <S2_Bonus           data={data} set={set} />}
                                 {step === 3  && <S3_Expense         data={data} set={set} />}

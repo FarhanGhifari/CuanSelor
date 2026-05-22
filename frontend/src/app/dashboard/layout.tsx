@@ -31,7 +31,7 @@ const navItems = [
   },
   {
     name: "Proyeksi Pensiun",
-    href: "/dashboard/pension",
+    href: "/dashboard/projection",
     icon: TrendingUp,
   },
   {
