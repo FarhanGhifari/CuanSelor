@@ -35,4 +35,7 @@ export const API = {
     CREATE:  `${BASE}/api/simulation`,
     HISTORY: `${BASE}/api/simulation/history`,
   },
+  PROJECTION_CALC: {
+    GET: `${BASE}/api/projection`,
+  },
 } as const;

@@ -4,6 +4,7 @@ require("dotenv").config();
 const { authenticateToken, optionalAuth } = require("./middleware/auth");
 const onboardingRoutes = require("./routes/onboarding");
 const profileRoutes = require("./routes/profile");
+const projectionRoutes = require("./routes/projection");
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -28,6 +29,7 @@ app.get("/", (req, res) => {
 // ── App Routes ─────────────────────────────────────────
 app.use("/api/onboarding", onboardingRoutes);
 app.use("/api/profile", profileRoutes);
+app.use("/api/projection", projectionRoutes);
 
 // Protected route example
 app.get("/api/protected", authenticateToken, (req, res) => {
