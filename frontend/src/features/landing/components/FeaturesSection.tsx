@@ -187,11 +187,6 @@ export default function FeaturesSection() {
             viewport={{ once: true, margin: "-120px" }}
             className="mx-auto mb-20 max-w-4xl text-center"
           >
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700">
-              <Sparkles size={16} />
-              AI Powered Financial Ecosystem
-            </div>
-
             <h2 className={TEXT.hero}>
               Semua yang Kamu Butuhkan
               <br />

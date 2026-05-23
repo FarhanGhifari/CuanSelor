@@ -858,7 +858,7 @@ function TopProgress({ step, total }: { step: number; total: number }) {
 
 /* ══ Main Wizard ════════════════════════════════════════════════════════ */
 
-const TOTAL = 12; // steps 0–11 (0 = personal, 11 = assumptions), + summary
+const TOTAL = 12; // steps 0-11 (0 = personal, 11 = assumptions), + summary
 
 const STEP_CONFIG = [
     { label: "Data Diri",    validate: (d: WizardData) => d.fullName !== null && d.age !== null && d.gender !== null },
@@ -882,7 +882,7 @@ export function OnboardingWizard({
     isPending: boolean;
     error: string | null;
 }) {
-    const [step, setStep]   = useState(1);
+    const [step, setStep]   = useState(0);
     const [showSummary, setShowSummary] = useState(false);
     const [dir, setDir]     = useState<1 | -1>(1);
     const [data, setDataRaw] = useState<WizardData>(INITIAL);
@@ -895,17 +895,17 @@ export function OnboardingWizard({
         topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, [step, showSummary]);
 
-    const canNext = showSummary ? true : STEP_CONFIG[step - 1]?.validate(data) ?? true;
+    const canNext = showSummary ? true : STEP_CONFIG[step]?.validate(data) ?? true;
 
     const goNext = () => {
         if (showSummary) { onComplete(data); return; }
-        if (step < TOTAL) { setDir(1); setStep(s => s + 1); }
+        if (step < TOTAL - 1) { setDir(1); setStep(s => s + 1); }
         else { setDir(1); setShowSummary(true); }
     };
 
     const goBack = () => {
         if (showSummary) { setDir(-1); setShowSummary(false); return; }
-        if (step > 1) { setDir(-1); setStep(s => s - 1); }
+        if (step > 0) { setDir(-1); setStep(s => s - 1); }
     };
 
     const handleEdit = (s: number) => {
@@ -915,17 +915,17 @@ export function OnboardingWizard({
     };
 
     const v = slideVariant(dir);
-    const currentStepLabel = showSummary ? "Ringkasan" : STEP_CONFIG[step - 1]?.label ?? "";
+    const currentStepLabel = showSummary ? "Ringkasan" : STEP_CONFIG[step]?.label ?? "";
 
     return (
         <div ref={topRef} className="w-full max-w-lg mx-auto">
             {/* Top progress */}
             <div className="mb-4 px-1">
-                <TopProgress step={showSummary ? TOTAL : step} total={TOTAL} />
+                <TopProgress step={showSummary ? TOTAL : step + 1} total={TOTAL} />
                 <div className="flex justify-between mt-1.5">
                     <span className="text-xs font-medium" style={{ color: T.blue }}>{currentStepLabel}</span>
                     <span className="text-xs" style={{ color: T.muted }}>
-                        {showSummary ? "Selesai!" : `${step} / ${TOTAL}`}
+                        {showSummary ? "Selesai!" : `${step + 1} / ${TOTAL}`}
                     </span>
                 </div>
             </div>
@@ -969,7 +969,7 @@ export function OnboardingWizard({
 
                 {/* Nav */}
                 <div className="flex gap-3 mt-8 pt-6 border-t" style={{ borderColor: T.hairline }}>
-                    {(step > 1 || showSummary) && (
+                    {(step > 0 || showSummary) && (
                         <button type="button" onClick={goBack}
                             className="flex items-center gap-1.5 px-5 py-3.5 rounded-2xl border text-sm font-medium transition-all hover:bg-gray-50 active:scale-[0.97]"
                             style={{ borderColor: T.hairline, color: T.muted }}>

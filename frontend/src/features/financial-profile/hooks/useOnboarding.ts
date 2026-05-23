@@ -45,9 +45,7 @@ export function useOnboarding() {
     setError(null);
     try {
       await svc.save(sanitize(raw));
-      // Redirect to projection page after successful onboarding
-      router.push("/dashboard/projection");
-      router.refresh();
+      router.replace(ROUTES.DASHBOARD);
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })
         ?.response?.data?.message;

@@ -49,7 +49,9 @@ export default function LoginForm() {
 
       try {
         const statusRes = await apiClient.get(API.ONBOARDING.STATUS);
-        if (statusRes.data.isFullyOnboarded) {
+        const status = statusRes.data?.data ?? statusRes.data;
+
+        if (status.isFullyOnboarded) {
           router.push(ROUTES.DASHBOARD);
         } else {
           router.push(ROUTES.ONBOARDING);

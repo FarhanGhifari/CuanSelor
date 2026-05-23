@@ -9,6 +9,7 @@ import AboutSection       from "@/features/landing/components/AboutSection";
 import FaqSection         from "@/features/landing/components/FaqSection";
 import TrustSection       from "@/features/landing/components/TrustSection";
 import CtaSection         from "@/features/landing/components/CtaSection";
+import InteractiveSimulationPreview from "@/features/landing/components/InteractiveSimulationPreview";
 
 /**
  * Homepage — assembles all landing page sections.
@@ -24,6 +25,7 @@ export default function HomePage() {
       <StatsSection />
       <HowItWorksSection />
       <FeaturesSection />
+      <InteractiveSimulationPreview/>
       <ComparisonSection />
       <TestimonialsSection />
       <AboutSection />

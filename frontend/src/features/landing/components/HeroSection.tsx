@@ -231,11 +231,6 @@ export default function HeroSection() {
                 Coba Simulasi
               </PillCTA>
             </div>
-
-            {/* ── Trust Indicators — Consolidated Horizontal Glass Pill Strip ── */}
-            <div className="hero-fade-5">
-              <TrustStrip />
-            </div>
           </div>
 
           {/* ══════════ RIGHT COLUMN — Dashboard — Hardware Accelerated ══════════ */}

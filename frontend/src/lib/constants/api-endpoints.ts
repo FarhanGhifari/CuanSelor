@@ -3,11 +3,11 @@ const ML   = process.env.NEXT_PUBLIC_ML_API_URL ?? "http://localhost:8000";
 
 export const API = {
   AUTH: {
-    LOGIN:    `${BASE}/api/auth/login`,
-    REGISTER: `${BASE}/api/auth/register`,
-    LOGOUT:   `${BASE}/api/auth/logout`,
+    LOGIN:    `${BASE}/api/auth/sign-in/email`,
+    REGISTER: `${BASE}/api/auth/sign-up/email`,
+    LOGOUT:   `${BASE}/api/auth/sign-out`,
     ME:       `${BASE}/api/auth/me`,
-    REFRESH:  `${BASE}/api/auth/refresh`,
+    REFRESH:  `${BASE}/api/auth/get-session`,
   },
   PROFILE: {
     GET:    `${BASE}/api/profile`,
