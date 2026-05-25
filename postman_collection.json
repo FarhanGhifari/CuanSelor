@@ -1,0 +1,103 @@
+{
+  "info": {
+    "_postman_id": "a7f44c01-3c6b-4b6d-8c8d-risk-profile-api",
+    "name": "Financial Profile Segmentation API",
+    "description": "Postman collection for testing the FastAPI financial profile segmentation service locally or on Railway.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Root",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            ""
+          ]
+        },
+        "description": "Checks whether the API is running."
+      },
+      "response": []
+    },
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "health"
+          ]
+        },
+        "description": "Health check endpoint used by Railway."
+      },
+      "response": []
+    },
+    {
+      "name": "Swagger Docs",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/docs",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "docs"
+          ]
+        },
+        "description": "FastAPI Swagger UI page."
+      },
+      "response": []
+    },
+    {
+      "name": "Predict Financial Profile Segment",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"age\": 19,\n  \"annual_income\": 51140.4,\n  \"loan_amount\": 3899.6,\n  \"loan_duration_months\": 60,\n  \"interest_rate\": 9.57,\n  \"debt_to_income_ratio\": 0.73,\n  \"monthly_expenses\": 2704.1,\n  \"savings_balance\": 11805.1,\n  \"employment_stability_years\": 9,\n  \"previous_default_count\": 1\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/predict",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "predict"
+          ]
+        },
+        "description": "Sends self-assessment financial profile data to the model and returns a financial profile segment. This is not a probability of default, loan eligibility score, or official credit decision."
+      },
+      "response": []
+    }
+  ]
+}

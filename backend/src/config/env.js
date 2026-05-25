@@ -1,0 +1,43 @@
+import "dotenv/config";
+
+const parseList = (value) =>
+  value
+    ?.split(",")
+    .map((item) => item.trim())
+    .filter(Boolean) || [];
+
+export const env = {
+  nodeEnv: process.env.NODE_ENV || "development",
+  port: Number(process.env.PORT || 8000),
+  frontendUrl: process.env.FRONTEND_URL || process.env.NEXT_APP_URL || "http://localhost:3000",
+  backendUrl:
+    process.env.BETTER_AUTH_URL ||
+    process.env.BACKEND_URL ||
+    `http://localhost:${process.env.PORT || 8000}`,
+  trustedOrigins: parseList(process.env.TRUSTED_ORIGINS),
+  betterAuthSecret: process.env.BETTER_AUTH_SECRET,
+  supabaseUrl: process.env.SUPABASE_URL,
+  supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+  databaseUrl: process.env.SUPABASE_DB_URL || process.env.DATABASE_URL,
+  pgSsl: process.env.PGSSL,
+  googleClientId: process.env.GOOGLE_CLIENT_ID,
+  googleClientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  pythonCommand: process.env.PYTHON_COMMAND || "python",
+  projectionTimeoutMs: Number(process.env.PROJECTION_TIMEOUT_MS || 30000),
+  aiServiceUrl: process.env.AI_SERVICE_URL || "http://127.0.0.1:8001",
+  aiServiceTimeoutMs: Number(process.env.AI_SERVICE_TIMEOUT_MS || 15000),
+  // Rate limiting
+  rateLimitWindowMs: Number(process.env.RATE_LIMIT_WINDOW_MS || 15 * 60 * 1000),
+  rateLimitMax: Number(process.env.RATE_LIMIT_MAX || 100),
+  projectionRateLimitMax: Number(process.env.PROJECTION_RATE_LIMIT_MAX || 10),
+  // Email verification — set ke true di production setelah konfigurasi email provider
+  requireEmailVerification: process.env.REQUIRE_EMAIL_VERIFICATION === "true",
+};
+
+export function requireEnv(keys) {
+  const missing = keys.filter((key) => !env[key]);
+
+  if (missing.length > 0) {
+    throw new Error(`Missing required environment variables: ${missing.join(", ")}`);
+  }
+}

@@ -202,11 +202,17 @@ export default function InteractiveSimulationPreview() {
 
                                 {/* Risk Profile */}
                                 <div>
-                                    <p className="mb-3 text-sm font-semibold text-slate-700">
-                                        Profil Risiko
-                                    </p>
+                                    <div className="mb-3 flex items-center justify-between gap-3">
+                                        <p className="text-sm font-semibold text-slate-700">
+                                            Profil Risiko
+                                        </p>
 
-                                    <div className="grid grid-cols-1 gap-2 md:grid-cols-3 xl:grid-cols-1 2xl:grid-cols-3">
+                                        <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-500">
+                                            {selectedRisk.label}
+                                        </span>
+                                    </div>
+
+                                    <div className="grid grid-cols-3 gap-2 rounded-[20px] border border-slate-200 bg-slate-50 p-1.5">
                                         {RISK_PROFILES.map((profile) => {
                                             const isActive = profile.id === riskProfile;
 
@@ -215,41 +221,50 @@ export default function InteractiveSimulationPreview() {
                                                     key={profile.id}
                                                     type="button"
                                                     onClick={() => setRiskProfile(profile.id)}
+                                                    aria-pressed={isActive}
                                                     className={[
-                                                        "rounded-2xl border p-3 text-left transition-all duration-200",
+                                                        "min-w-0 rounded-[16px] px-2.5 py-3 text-center transition-all duration-200",
+                                                        "focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2",
                                                         isActive
-                                                            ? "border-indigo-300 bg-indigo-50 shadow-sm"
-                                                            : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50",
+                                                            ? "bg-white text-indigo-700 shadow-sm ring-1 ring-indigo-200"
+                                                            : "text-slate-500 hover:bg-white/70 hover:text-slate-800",
                                                     ].join(" ")}
                                                 >
-                                                    <div className="flex items-center justify-between gap-2">
-                                                        <span
-                                                            className={[
-                                                                "text-sm font-bold",
-                                                                isActive ? "text-indigo-700" : "text-slate-800",
-                                                            ].join(" ")}
-                                                        >
-                                                            {profile.label}
-                                                        </span>
+                                                    <span className="block truncate text-[12px] font-black leading-none">
+                                                        {profile.label}
+                                                    </span>
 
-                                                        <span
-                                                            className={[
-                                                                "text-xs font-semibold",
-                                                                isActive
-                                                                    ? "text-indigo-500"
-                                                                    : "text-slate-400",
-                                                            ].join(" ")}
-                                                        >
-                                                            {(profile.estimatedReturn * 100).toFixed(0)}%
-                                                        </span>
-                                                    </div>
-
-                                                    <p className="mt-1 text-xs leading-snug text-slate-500">
-                                                        {profile.description}
-                                                    </p>
+                                                    <span
+                                                        className={[
+                                                            "mt-1 block text-[11px] font-bold leading-none",
+                                                            isActive ? "text-indigo-500" : "text-slate-400",
+                                                        ].join(" ")}
+                                                    >
+                                                        {(profile.estimatedReturn * 100).toFixed(0)}%
+                                                    </span>
                                                 </button>
                                             );
                                         })}
+                                    </div>
+
+                                    <div className="mt-3 rounded-2xl border border-slate-200 bg-white px-4 py-3">
+                                        <div className="flex items-start gap-2">
+                                            <div className="mt-1 h-2 w-2 shrink-0 rounded-full bg-indigo-500" />
+
+                                            <div>
+                                                <p className="text-xs font-bold text-slate-700">
+                                                    Skenario {selectedRisk.label}
+                                                </p>
+
+                                                <p className="mt-1 text-xs leading-relaxed text-slate-500">
+                                                    {selectedRisk.description}. Estimasi return{" "}
+                                                    <span className="font-bold text-slate-700">
+                                                        {(selectedRisk.estimatedReturn * 100).toFixed(0)}%/tahun
+                                                    </span>{" "}
+                                                    digunakan sebagai asumsi ilustratif.
+                                                </p>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
