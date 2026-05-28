@@ -1,0 +1,16 @@
+{
+  "name": "Test User",
+  "age": 30,
+  "gender": "male",
+  "monthly_salary": 10000000,
+  "savings_rate": 0.2,
+  "retirement_age": 55,
+  "risk_profile": "moderate",
+  "sector": "Rata-rata",
+  "include_pandemic_risk": false,
+  "current_assets": 50000000,
+  "annual_bonus_months": 1.0,
+  "replacement_ratio": 0.7,
+  "has_health_insurance": true,
+  "monthly_expense": 8000000
+}

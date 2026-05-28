@@ -16,10 +16,8 @@ export interface WizardData {
     gender:             "male" | "female" | null;
     monthlyIncome:      number | null;
     annualBonusMonths:  number | null;
-    monthlyExpense:     number | null;
     savingsPercentage:  number | null;
     currentSavings:     number | null;
-    totalDebt:          number | null;
     retirementAge:      number | null;
     lifestylePercent:   number | null;
     riskProfile:        "conservative" | "moderate" | "aggressive" | null;
@@ -36,10 +34,8 @@ const INITIAL: WizardData = {
     gender:             null,
     monthlyIncome:      null,
     annualBonusMonths:  null,
-    monthlyExpense:     null,
     savingsPercentage:  null,
     currentSavings:     null,
-    totalDebt:          null,
     retirementAge:      null,
     lifestylePercent:   null,
     riskProfile:        null,
@@ -146,16 +142,24 @@ const RISK_RESULT = {
 };
 
 const SECTORS = [
-    { label: "Pemerintahan / PNS",          icon: "🏛️" },
-    { label: "BUMN / BUMD",                 icon: "🏢" },
-    { label: "Swasta — Keuangan",            icon: "🏦" },
-    { label: "Swasta — Teknologi",           icon: "💻" },
-    { label: "Swasta — Manufaktur",          icon: "🏭" },
-    { label: "Swasta — Kesehatan",           icon: "🏥" },
-    { label: "Swasta — Pendidikan",          icon: "🎓" },
-    { label: "Wiraswasta / Freelance",       icon: "💼" },
-    { label: "Profesional (Dokter/Pengacara)", icon: "👔" },
-    { label: "Lainnya",                      icon: "✨" },
+    { label: "Pertanian, Kehutanan, dan Perikanan", icon: "🌾" },
+    { label: "Pertambangan dan Penggalian", icon: "⛏️" },
+    { label: "Industri", icon: "🏭" },
+    { label: "Penyediaan Listrik, Gas, Uap/Air Panas, dan Udara Dingin", icon: "⚡" },
+    { label: "Penyediaan Air, Pengelolaan Air Limbah, Penanganan Limbah, dan Remediasi", icon: "💧" },
+    { label: "Konstruksi", icon: "🏗️" },
+    { label: "Perdagangan Besar dan Eceran", icon: "🛒" },
+    { label: "Transportasi dan Penyimpanan", icon: "🚚" },
+    { label: "Penyediaan Akomodasi dan Penyediaan Makan Minum", icon: "🏨" },
+    { label: "Aktivitas Penerbitan dan Telekomunikasi", icon: "📡" },
+    { label: "Aktivitas Keuangan dan Asuransi", icon: "🏦" },
+    { label: "Aktivitas Real Estat", icon: "🏢" },
+    { label: "Aktivitas Profesional, Ilmiah, dan Teknis dan Aktivitas Administratif dan Penunjang Usaha", icon: "💼" },
+    { label: "Administrasi Pemerintahan dan Pertahanan, serta Jaminan Sosial Wajib", icon: "🏛️" },
+    { label: "Pendidikan", icon: "🎓" },
+    { label: "Aktivitas Kesehatan Manusia dan Aktivitas Sosial", icon: "🏥" },
+    { label: "Kesenian, Aktivitas Jasa Lainnya, Aktivitas Rumah Tangga, dan Aktivitas Badan Internasional", icon: "🎨" },
+    { label: "Rata-rata", icon: "📊" },
 ];
 
 /* ── Slide animation variant ────────────────────────────────────────── */
@@ -358,8 +362,6 @@ function S0_Personal({ data, set }: { data: WizardData; set: (p: Partial<WizardD
 }
 
 function S1_Income({ data, set }: { data: WizardData; set: (p: Partial<WizardData>) => void }) {
-    const surplus = data.monthlyIncome !== null && data.monthlyExpense !== null
-        ? data.monthlyIncome - data.monthlyExpense : null;
     return (
         <div>
             <StepHeader emoji="💰" headline="Berapa gaji bersihmu per bulan?" sub="Pendapatan setelah pajak & potongan lainnya." />
@@ -393,42 +395,6 @@ function S2_Bonus({ data, set }: { data: WizardData; set: (p: Partial<WizardData
                     </Chip>
                 ))}
             </div>
-        </div>
-    );
-}
-
-function S3_Expense({ data, set }: { data: WizardData; set: (p: Partial<WizardData>) => void }) {
-    const surplus = data.monthlyIncome !== null && data.monthlyExpense !== null
-        ? data.monthlyIncome - data.monthlyExpense : null;
-    const pct = surplus !== null && data.monthlyIncome
-        ? Math.round((surplus / data.monthlyIncome) * 100) : null;
-
-    return (
-        <div>
-            <StepHeader emoji="🛒" headline="Rata-rata pengeluaranmu per bulan?" sub="Termasuk makan, transport, kos, tagihan, langganan, dan semua biaya rutin." />
-            <CurrencyField value={data.monthlyExpense} onChange={v => set({ monthlyExpense: v })} placeholder="3.000.000" autoFocus />
-            <AnimatePresence>
-                {surplus !== null && (
-                    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                        className="mt-4 p-4 rounded-2xl"
-                        style={{ background: surplus >= 0 ? "rgba(34,197,94,0.08)" : "rgba(239,68,68,0.08)" }}>
-                        {surplus >= 0 ? (
-                            <>
-                                <p className="text-sm font-semibold" style={{ color: T.success }}>
-                                    ✓ Sisa Rp {fmt(surplus)}/bulan ({pct}% dari penghasilan)
-                                </p>
-                                <p className="text-xs mt-1" style={{ color: T.muted }}>
-                                    {pct! >= 20 ? "Bagus! Kamu sudah memenuhi prinsip nabung 20%." : "Coba tingkatkan sisa hingga minimal 20% untuk masa depan yang lebih aman."}
-                                </p>
-                            </>
-                        ) : (
-                            <p className="text-sm font-semibold" style={{ color: T.danger }}>
-                                ⚠ Pengeluaran melebihi penghasilan sebesar Rp {fmt(Math.abs(surplus))}
-                            </p>
-                        )}
-                    </motion.div>
-                )}
-            </AnimatePresence>
         </div>
     );
 }
@@ -492,35 +458,6 @@ function S5_CurrentSavings({ data, set }: { data: WizardData; set: (p: Partial<W
     );
 }
 
-function S6_Debt({ data, set }: { data: WizardData; set: (p: Partial<WizardData>) => void }) {
-    const netWorth = (data.currentSavings ?? 0) - (data.totalDebt ?? 0);
-    const showSummary = data.totalDebt !== null;
-
-    return (
-        <div>
-            <StepHeader emoji="💳" headline="Ada utang atau cicilan aktif?" sub="KPR, cicilan motor/mobil, pinjol, kartu kredit. Isi 0 kalau tidak ada." />
-            <CurrencyField value={data.totalDebt} onChange={v => set({ totalDebt: v ?? 0 })} placeholder="0" autoFocus />
-            <AnimatePresence>
-                {showSummary && (
-                    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                        className="mt-4 p-4 rounded-2xl"
-                        style={{ background: netWorth >= 0 ? "rgba(34,197,94,0.08)" : "rgba(239,68,68,0.08)" }}>
-                        <p className="text-xs font-medium mb-1" style={{ color: T.muted }}>Net Worth kamu</p>
-                        <p className="text-2xl font-bold" style={{ color: netWorth >= 0 ? T.success : T.danger, letterSpacing: "-0.5px" }}>
-                            {netWorth >= 0 ? "" : "−"} Rp {fmt(Math.abs(netWorth))}
-                        </p>
-                        {netWorth < 0 && (
-                            <p className="text-xs mt-2" style={{ color: T.muted }}>
-                                Tidak perlu panik — dengan perencanaan yang baik, ini bisa diperbaiki 💪
-                            </p>
-                        )}
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </div>
-    );
-}
-
 function S7_RetirementAge({ data, set }: { data: WizardData; set: (p: Partial<WizardData>) => void }) {
     const ageOpts = [
         { age: 45, label: "Umur 45", sub: "Pensiun dini — butuh persiapan ekstra keras", emoji: "⚡" },
@@ -564,12 +501,12 @@ function S7_RetirementAge({ data, set }: { data: WizardData; set: (p: Partial<Wi
 
 function S8_Lifestyle({ data, set }: { data: WizardData; set: (p: Partial<WizardData>) => void }) {
     const opts = [
-        { val: 60, label: "Lebih hemat dari sekarang", sub: "~60% dari pengeluaran sekarang", emoji: "🧘" },
-        { val: 80, label: "Hampir sama seperti sekarang", sub: "~80% dari pengeluaran sekarang", emoji: "🏡" },
-        { val: 100, label: "Gaya hidup yang sama atau lebih baik", sub: "~100% dari pengeluaran sekarang", emoji: "✈️" },
+        { val: 60, label: "Lebih hemat dari sekarang", sub: "~60% dari gaji terakhir", emoji: "🧘" },
+        { val: 80, label: "Hampir sama seperti sekarang", sub: "~80% dari gaji terakhir", emoji: "🏡" },
+        { val: 100, label: "Gaya hidup yang sama atau lebih baik", sub: "~100% dari gaji terakhir", emoji: "✈️" },
     ];
-    const target = data.lifestylePercent && data.monthlyExpense
-        ? Math.round(data.monthlyExpense * data.lifestylePercent / 100) : null;
+    const target = data.lifestylePercent && data.monthlyIncome
+        ? Math.round(data.monthlyIncome * data.lifestylePercent / 100) : null;
 
     return (
         <div>
@@ -590,7 +527,7 @@ function S8_Lifestyle({ data, set }: { data: WizardData; set: (p: Partial<Wizard
                     style={{ background: T.blueLight }}>
                     <Target className="w-5 h-5 shrink-0" style={{ color: T.blue }} />
                     <p className="text-sm font-medium" style={{ color: T.blue }}>
-                        Target pengeluaran pensiun: Rp {fmt(target)}/bulan
+                        Target kebutuhan pensiun: Rp {fmt(target)}/bulan
                     </p>
                 </motion.div>
             )}
@@ -800,14 +737,12 @@ function Summary({ data, onEdit }: { data: WizardData; onEdit: (step: number) =>
         { step: 0,  icon: data.gender === "male" ? "👨" : "👩", label: "Jenis Kelamin", val: data.gender === "male" ? "Laki-laki" : data.gender === "female" ? "Perempuan" : "-" },
         { step: 1,  icon: "💰", label: "Penghasilan Bulanan",     val: data.monthlyIncome    ? `Rp ${fmt(data.monthlyIncome)}`    : "-" },
         { step: 2,  icon: "🎁", label: "Bonus/THR",               val: data.annualBonusMonths !== null ? (data.annualBonusMonths === 0 ? "Tidak ada" : `${data.annualBonusMonths}× gaji/tahun`) : "-" },
-        { step: 3,  icon: "🛒", label: "Pengeluaran Bulanan",     val: data.monthlyExpense   ? `Rp ${fmt(data.monthlyExpense)}`   : "-" },
-        { step: 4,  icon: "🐷", label: "Target Tabungan",         val: data.savingsPercentage !== null ? `${data.savingsPercentage}%/bulan` : "-" },
-        { step: 5,  icon: "🏦", label: "Tabungan & Investasi",    val: data.currentSavings   !== null ? `Rp ${fmt(data.currentSavings)}` : "-" },
-        { step: 6,  icon: "💳", label: "Total Utang",             val: data.totalDebt        !== null ? `Rp ${fmt(data.totalDebt)}` : "-" },
-        { step: 7,  icon: "🌴", label: "Target Pensiun",          val: data.retirementAge    ? `Usia ${data.retirementAge} tahun` : "-" },
-        { step: 8,  icon: "🏡", label: "Gaya Hidup Pensiun",      val: data.lifestylePercent ? `${data.lifestylePercent}% dari sekarang` : "-" },
-        { step: 9,  icon: "🧠", label: "Profil Risiko",           val: data.riskProfile      ? `${RISK_RESULT[data.riskProfile].emoji} ${RISK_RESULT[data.riskProfile].label}` : "-" },
-        { step: 10, icon: "🏢", label: "Sektor Pekerjaan",        val: data.sector           ?? "-" },
+        { step: 3,  icon: "🐷", label: "Target Tabungan",         val: data.savingsPercentage !== null ? `${data.savingsPercentage}%/bulan` : "-" },
+        { step: 4,  icon: "🏦", label: "Tabungan & Investasi",    val: data.currentSavings   !== null ? `Rp ${fmt(data.currentSavings)}` : "-" },
+        { step: 5,  icon: "🌴", label: "Target Pensiun",          val: data.retirementAge    ? `Usia ${data.retirementAge} tahun` : "-" },
+        { step: 6,  icon: "🏡", label: "Gaya Hidup Pensiun",      val: data.lifestylePercent ? `${data.lifestylePercent}% dari gaji terakhir` : "-" },
+        { step: 7,  icon: "🧠", label: "Profil Risiko",           val: data.riskProfile      ? `${RISK_RESULT[data.riskProfile].emoji} ${RISK_RESULT[data.riskProfile].label}` : "-" },
+        { step: 8,  icon: "🏢", label: "Sektor Pekerjaan",        val: data.sector           ?? "-" },
     ];
 
     return (
@@ -858,16 +793,14 @@ function TopProgress({ step, total }: { step: number; total: number }) {
 
 /* ══ Main Wizard ════════════════════════════════════════════════════════ */
 
-const TOTAL = 12; // steps 0-11 (0 = personal, 11 = assumptions), + summary
+const TOTAL = 10; // steps 0-9 (0 = personal, 9 = assumptions), + summary
 
 const STEP_CONFIG = [
     { label: "Data Diri",    validate: (d: WizardData) => d.fullName !== null && d.age !== null && d.gender !== null },
     { label: "Gaji",         validate: (d: WizardData) => d.monthlyIncome !== null },
     { label: "Bonus",        validate: (d: WizardData) => d.annualBonusMonths !== null },
-    { label: "Pengeluaran",  validate: (d: WizardData) => d.monthlyExpense !== null },
     { label: "Nabung",       validate: (d: WizardData) => d.savingsPercentage !== null },
     { label: "Tabungan",     validate: (d: WizardData) => d.currentSavings !== null },
-    { label: "Utang",        validate: (d: WizardData) => d.totalDebt !== null },
     { label: "Pensiun",      validate: (d: WizardData) => d.retirementAge !== null },
     { label: "Gaya Hidup",   validate: (d: WizardData) => d.lifestylePercent !== null },
     { label: "Risiko",       validate: (d: WizardData) => d.riskProfile !== null },
@@ -953,15 +886,13 @@ export function OnboardingWizard({
                                 {step === 0  && <S0_Personal        data={data} set={set} />}
                                 {step === 1  && <S1_Income          data={data} set={set} />}
                                 {step === 2  && <S2_Bonus           data={data} set={set} />}
-                                {step === 3  && <S3_Expense         data={data} set={set} />}
-                                {step === 4  && <S4_Savings         data={data} set={set} />}
-                                {step === 5  && <S5_CurrentSavings  data={data} set={set} />}
-                                {step === 6  && <S6_Debt            data={data} set={set} />}
-                                {step === 7  && <S7_RetirementAge   data={data} set={set} />}
-                                {step === 8  && <S8_Lifestyle       data={data} set={set} />}
-                                {step === 9  && <S9_Risk            data={data} set={set} />}
-                                {step === 10 && <S10_Sector         data={data} set={set} />}
-                                {step === 11 && <S11_Assumptions    data={data} set={set} />}
+                                {step === 3  && <S4_Savings         data={data} set={set} />}
+                                {step === 4  && <S5_CurrentSavings  data={data} set={set} />}
+                                {step === 5  && <S7_RetirementAge   data={data} set={set} />}
+                                {step === 6  && <S8_Lifestyle       data={data} set={set} />}
+                                {step === 7  && <S9_Risk            data={data} set={set} />}
+                                {step === 8  && <S10_Sector         data={data} set={set} />}
+                                {step === 9  && <S11_Assumptions    data={data} set={set} />}
                             </motion.div>
                         )}
                     </AnimatePresence>
@@ -997,21 +928,6 @@ export function OnboardingWizard({
                         )}
                     </button>
                 </div>
-            </div>
-
-            {/* Trust badges */}
-            <div className="grid grid-cols-3 gap-3 mt-6 text-center">
-                {[
-                    { icon: "🔒", title: "Aman & Privat",  desc: "Data terenkripsi" },
-                    { icon: "🤖", title: "Didukung AI",    desc: "Analisis cerdas" },
-                    { icon: "🎯", title: "Goal-Oriented",  desc: "Pantau progresmu" },
-                ].map(b => (
-                    <div key={b.title} className="py-3 px-2 rounded-2xl" style={{ background: T.blueLight }}>
-                        <div className="text-2xl mb-1">{b.icon}</div>
-                        <div className="text-xs font-semibold mb-0.5" style={{ color: T.blue }}>{b.title}</div>
-                        <div className="text-[10px]" style={{ color: T.muted }}>{b.desc}</div>
-                    </div>
-                ))}
             </div>
         </div>
     );

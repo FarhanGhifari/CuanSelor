@@ -16,7 +16,7 @@ export function ProjectionHero({ data }: ProjectionHeroProps) {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-50 via-white to-blue-50 border border-emerald-100/50 p-8 md:p-12"
+      className="relative overflow-hidden rounded-3xl bg-linear-to-br from-emerald-50 via-white to-blue-50 border border-emerald-100/50 p-8 md:p-12"
     >
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-5">
@@ -77,7 +77,7 @@ export function ProjectionHero({ data }: ProjectionHeroProps) {
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.4 }}
-          className="w-32 h-32 md:w-40 md:h-40 rounded-2xl bg-gradient-to-br from-emerald-400 to-blue-500 flex items-center justify-center text-white text-6xl"
+          className="w-32 h-32 md:w-40 md:h-40 rounded-2xl bg-linear-to-br from-emerald-400 to-blue-500 flex items-center justify-center text-white text-6xl"
         >
           🌅
         </motion.div>

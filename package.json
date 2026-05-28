@@ -6,7 +6,9 @@
   "scripts": {
     "dev:frontend": "npm run dev --prefix frontend",
     "dev:backend": "npm run dev --prefix backend",
-    "dev": "concurrently -n \"frontend,backend\" -c \"cyan,green\" \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "dev:calculator": "cd streamlit-ds && python api_server.py",
+    "dev": "concurrently -n \"frontend,backend,calculator\" -c \"cyan,green,magenta\" \"npm run dev:frontend\" \"npm run dev:backend\" \"npm run dev:calculator\"",
+    "dev:no-calculator": "concurrently -n \"frontend,backend\" -c \"cyan,green\" \"npm run dev:frontend\" \"npm run dev:backend\"",
     "start:frontend": "npm start --prefix frontend",
     "start:backend": "npm start --prefix backend",
     "start": "concurrently -n \"frontend,backend\" -c \"cyan,green\" \"npm run start:frontend\" \"npm run start:backend\"",

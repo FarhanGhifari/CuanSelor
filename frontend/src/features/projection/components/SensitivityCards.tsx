@@ -57,11 +57,11 @@ export function SensitivityCards({ data }: SensitivityCardsProps) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.7 + index * 0.1 }}
-              className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-50 to-white border border-gray-100 p-6 hover:shadow-lg hover:shadow-gray-200/50 transition-all duration-300"
+              className="group relative overflow-hidden rounded-2xl bg-linear-to-br from-gray-50 to-white border border-gray-100 p-6 hover:shadow-lg hover:shadow-gray-200/50 transition-all duration-300"
             >
               {/* Icon */}
               <div
-                className={`w-12 h-12 rounded-xl bg-gradient-to-br from-${scenario.color}-500 to-${scenario.color}-600 flex items-center justify-center text-white shadow-lg mb-4`}
+                className={`w-12 h-12 rounded-xl bg-linear-to-br from-${scenario.color}-500 to-${scenario.color}-600 flex items-center justify-center text-white shadow-lg mb-4`}
               >
                 <Icon className="w-6 h-6" />
               </div>

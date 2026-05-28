@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { 
   LayoutDashboard, 
   WalletCards, 
-  TrendingUp, 
+  MessageCircle, 
   Smile, 
   Menu,
   X,
@@ -30,9 +30,9 @@ const navItems = [
     icon: WalletCards,
   },
   {
-    name: "Proyeksi Pensiun",
+    name: "Tanya FindSor!",
     href: "/dashboard/projection",
-    icon: TrendingUp,
+    icon: MessageCircle,
   },
   {
     name: "Profile",

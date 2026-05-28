@@ -38,6 +38,11 @@ export function ScenarioTabs({ data }: ScenarioTabsProps) {
 
   const activeScenario = scenarios[activeTab];
   const Icon = activeScenario.icon;
+  
+  // Calculate duration
+  const retirementAge = data.user_profile.retirement_age;
+  const depletedAge = activeScenario.data.fund_depleted_age;
+  const duration = depletedAge ? depletedAge - retirementAge : null;
 
   return (
     <motion.div
@@ -86,46 +91,62 @@ export function ScenarioTabs({ data }: ScenarioTabsProps) {
           </div>
           <div>
             <h4 className="text-xl font-bold text-gray-900">{activeScenario.label}</h4>
-            <p className="text-sm text-gray-500">{activeScenario.data.note}</p>
+            <p className="text-sm text-gray-500">
+              Nilai dana saat pensiun usia {retirementAge} tahun
+            </p>
           </div>
         </div>
 
         {/* Metrics Grid */}
         <div className="grid grid-cols-2 gap-4">
           <div className="p-4 rounded-xl bg-gray-50">
-            <p className="text-xs text-gray-500 font-medium mb-1">Dana saat Pensiun (Nominal)</p>
+            <p className="text-xs text-gray-500 font-medium mb-1">Dana Pensiun (Nominal)</p>
             <p className="text-xl font-bold text-gray-900 tabular-nums">
               {formatCurrency(activeScenario.data.fund_at_retirement)}
             </p>
           </div>
 
           <div className="p-4 rounded-xl bg-gray-50">
-            <p className="text-xs text-gray-500 font-medium mb-1">Dana saat Pensiun (Riil)</p>
+            <p className="text-xs text-gray-500 font-medium mb-1">Dana Pensiun (Riil)</p>
             <p className="text-xl font-bold text-gray-900 tabular-nums">
               {formatCurrency(activeScenario.data.real_fund_at_retirement)}
             </p>
           </div>
 
           <div className="p-4 rounded-xl bg-gray-50">
-            <p className="text-xs text-gray-500 font-medium mb-1">Kapasitas Tarik/Tahun</p>
+            <p className="text-xs text-gray-500 font-medium mb-1">Penarikan/Bulan</p>
             <p className="text-xl font-bold text-gray-900 tabular-nums">
-              {formatCurrency(activeScenario.data.annual_withdrawal_capacity)}
+              {formatCurrency(activeScenario.data.annual_withdrawal_capacity / 12)}
             </p>
           </div>
 
           <div className="p-4 rounded-xl bg-gray-50">
             <p className="text-xs text-gray-500 font-medium mb-1">Ruin Probability</p>
-            <p className="text-xl font-bold text-gray-900 tabular-nums">
+            <p className={`text-xl font-bold tabular-nums ${
+              activeScenario.data.ruin_probability > 0.5 ? 'text-red-600' : 'text-emerald-600'
+            }`}>
               {formatPercentage(activeScenario.data.ruin_probability)}
             </p>
           </div>
 
           <div className="col-span-2 p-4 rounded-xl bg-gradient-to-br from-emerald-50 to-blue-50 border border-emerald-100">
-            <p className="text-xs text-gray-600 font-medium mb-1">Dana Habis di Usia</p>
+            <p className="text-xs text-gray-600 font-medium mb-1">Durasi Dana Pensiun</p>
             <p className="text-2xl font-bold text-gray-900">
-              {activeScenario.data.fund_depleted_age
-                ? `${activeScenario.data.fund_depleted_age} tahun`
-                : "Dana tidak habis 🎉"}
+              {duration ? (
+                <>
+                  {duration} tahun
+                  <span className="text-sm font-normal text-gray-600 ml-2">
+                    (habis usia {depletedAge})
+                  </span>
+                </>
+              ) : (
+                <>
+                  Dana Aman 🎉
+                  <span className="text-sm font-normal text-gray-600 ml-2">
+                    (mencukupi hingga planning age)
+                  </span>
+                </>
+              )}
             </p>
           </div>
         </div>

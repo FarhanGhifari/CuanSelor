@@ -1,5 +1,6 @@
 import { supabase } from "../../config/supabase.js";
 import { AppError } from "../../utils/app-error.js";
+import { clearUserCache } from "../../utils/cache.js";
 
 // ── Helpers validasi ──────────────────────────────────────────────────────────
 
@@ -78,8 +79,12 @@ export async function upsertProfile(userId, payload) {
   // ── Validasi input ──────────────────────────────────────────────────────────
   const age = toPositiveNumber(payload.age ?? 30, "Usia", { min: 17, max: 80 });
 
-  if (payload.gender && !VALID_GENDERS.includes(payload.gender)) {
-    throw new AppError(`Gender tidak valid. Gunakan salah satu: ${VALID_GENDERS.join(", ")}`, 400);
+  // Normalize gender to ensure it's always valid
+  let gender = "Laki-laki"; // default
+  if (payload.gender === "male" || payload.gender === "Laki-laki") {
+    gender = "Laki-laki";
+  } else if (payload.gender === "female" || payload.gender === "Perempuan") {
+    gender = "Perempuan";
   }
 
   const monthlyIncome = toPositiveNumber(payload.monthlyIncome ?? 0, "Pendapatan bulanan");
@@ -109,7 +114,7 @@ export async function upsertProfile(userId, payload) {
         {
           id: userId,
           full_name: payload.fullName || "User",
-          gender: payload.gender === "male" ? "Laki-laki" : "Perempuan",
+          gender: gender,
           date_of_birth: dateOfBirth,
           updated_at: new Date().toISOString(),
         },
@@ -183,6 +188,10 @@ export async function upsertProfile(userId, payload) {
   if (riskError) {
     throw new AppError("Gagal menyimpan profil risiko", 500, riskError.message);
   }
+
+  // Clear cache projection untuk user ini karena data sudah berubah
+  const clearedCount = clearUserCache(userId);
+  console.log(`[CACHE CLEAR] Cleared ${clearedCount} cache entries untuk user ${userId}`);
 
   return {
     profile: profileResult.data,

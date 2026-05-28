@@ -5,7 +5,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 export const apiClient = axios.create({
     baseURL: BASE_URL,
-    timeout: 10_000,
+    timeout: 30_000, // 30 seconds untuk projection calculation
     headers: { "Content-Type": "application/json" },
     // Cookie Better Auth otomatis di-forward ke backend
     withCredentials: true,

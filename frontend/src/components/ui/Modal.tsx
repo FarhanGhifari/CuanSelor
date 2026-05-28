@@ -31,16 +31,19 @@ export function Modal({
         aria-hidden="true"
       />
       <div className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-        <h3 className="text-xl font-semibold text-gray-900">{title}</h3>
+        {/* Illustration area - can be customized via children */}
+        {children && <div className="mb-4 flex justify-center">{children}</div>}
+        
+        <h3 className="text-xl font-semibold text-gray-900 text-center">{title}</h3>
         {description && (
-          <p className="mt-2 text-sm text-gray-600">{description}</p>
+          <p className="mt-2 text-sm text-gray-600 text-center">{description}</p>
         )}
-        {children && <div className="mt-4">{children}</div>}
+        
         <div className="mt-6 flex gap-3">
           <button
             type="button"
             onClick={onPrimary}
-            className="w-full rounded-xl bg-emerald-500 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-600"
+            className="w-full rounded-xl bg-emerald-500 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-600 transition-colors"
           >
             {primaryLabel}
           </button>

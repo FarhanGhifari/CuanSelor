@@ -10,38 +10,41 @@ interface KeyMetricCardsProps {
 }
 
 export function KeyMetricCards({ data }: KeyMetricCardsProps) {
-  const { projection, actuarial_summary, recommendations } = data;
+  const { projection, actuarial_summary, recommendations, user_profile } = data;
   const medianScenario = projection.median_p50;
   const optimisticScenario = projection.optimistic_p90;
+
+  // Calculate duration properly
+  const retirementAge = user_profile.retirement_age;
+  const depletedAge = medianScenario.fund_depleted_age;
+  const duration = depletedAge ? depletedAge - retirementAge : null;
 
   const metrics = [
     {
       label: "Dana saat Pensiun",
-      value: formatCurrency(medianScenario.real_fund_at_retirement),
-      subtitle: "Median (P50)",
+      value: formatCurrency(medianScenario.fund_at_retirement),
+      subtitle: `Median (P50) • Nominal`,
       icon: Wallet,
       color: "emerald",
     },
     {
       label: "Kapasitas Tarik/bulan",
       value: formatCurrency(medianScenario.annual_withdrawal_capacity / 12),
-      subtitle: "Nilai Riil",
+      subtitle: `Berdasarkan SWR ${((recommendations.portfolio_nominal_return_mean || 3.5) / 100).toFixed(1)}%`,
       icon: TrendingUp,
       color: "blue",
     },
     {
       label: "Durasi Pensiun",
-      value: optimisticScenario.fund_depleted_age
-        ? `${optimisticScenario.fund_depleted_age - data.user_profile.retirement_age} tahun`
-        : "Selamanya",
-      subtitle: "Skenario P90",
+      value: duration ? `${duration} tahun` : "Aman",
+      subtitle: duration ? `Dana habis usia ${depletedAge}` : "Dana mencukupi",
       icon: Calendar,
-      color: "purple",
+      color: duration && duration < 20 ? "red" : "purple",
     },
     {
       label: "Tabungan Bulanan",
       value: formatCurrency(recommendations.monthly_contribution_current),
-      subtitle: `${(data.user_profile.savings_rate * 100).toFixed(0)}% dari gaji`,
+      subtitle: `${(user_profile.savings_rate * 100).toFixed(0)}% dari gaji`,
       icon: PiggyBank,
       color: "amber",
     },
@@ -52,6 +55,7 @@ export function KeyMetricCards({ data }: KeyMetricCardsProps) {
     blue: "from-blue-500 to-blue-600",
     purple: "from-purple-500 to-purple-600",
     amber: "from-amber-500 to-amber-600",
+    red: "from-red-500 to-red-600",
   };
 
   return (
@@ -68,7 +72,7 @@ export function KeyMetricCards({ data }: KeyMetricCardsProps) {
           >
             {/* Icon Background */}
             <div
-              className={`absolute -top-6 -right-6 w-24 h-24 rounded-full bg-gradient-to-br ${
+              className={`absolute -top-6 -right-6 w-24 h-24 rounded-full bg-linear-to-br ${
                 colorMap[metric.color as keyof typeof colorMap]
               } opacity-10 group-hover:opacity-20 transition-opacity`}
             />
@@ -76,7 +80,7 @@ export function KeyMetricCards({ data }: KeyMetricCardsProps) {
             <div className="relative z-10">
               <div className="flex items-center justify-between mb-4">
                 <div
-                  className={`w-12 h-12 rounded-xl bg-gradient-to-br ${
+                  className={`w-12 h-12 rounded-xl bg-linear-to-br ${
                     colorMap[metric.color as keyof typeof colorMap]
                   } flex items-center justify-center text-white shadow-lg`}
                 >

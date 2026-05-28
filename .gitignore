@@ -21,6 +21,20 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+*.egg
+
+# Testing files (optional - bisa di-commit jika mau)
+# response.json
+# test_payload.json
+
 # Konfigurasi OS
 .DS_Store
 Thumbs.db

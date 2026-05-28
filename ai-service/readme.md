@@ -1,1 +1,1 @@
-# isinya perkakas AI
+# isinya perkakas AI (LLM, chatbot, dll)

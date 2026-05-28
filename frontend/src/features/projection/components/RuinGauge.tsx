@@ -62,7 +62,7 @@ export function RuinGauge({ data }: RuinGaugeProps) {
       {/* Gauge */}
       <div className="flex flex-col items-center">
         <div className="relative">
-          <svg width={size} height={size / 2 + 20} className="transform -rotate-0">
+          <svg width={size} height={size / 2 + 20} className="transform rotate-0">
             {/* Background arc */}
             <path
               d={`M ${strokeWidth / 2} ${size / 2} A ${radius} ${radius} 0 0 1 ${

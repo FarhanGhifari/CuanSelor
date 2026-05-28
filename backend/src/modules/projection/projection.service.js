@@ -1,7 +1,8 @@
 import { supabase } from "../../config/supabase.js";
 import { AppError } from "../../utils/app-error.js";
 import { mapSectorToBps } from "./sector.mapper.js";
-import { runPythonCalculator } from "./python-calculator.client.js";
+import { callFastAPICalculator } from "./fastapi-calculator.client.js";
+import { generateCacheKey, getCachedProjection, setCachedProjection } from "../../utils/cache.js";
 
 export async function calculateProjection(userId) {
   const [financialResult, pensionResult, riskResult, userResult] = await Promise.all([
@@ -50,8 +51,36 @@ export async function calculateProjection(userId) {
     annual_bonus_months: Number(financial.annual_bonus) || 1.0,
     replacement_ratio: Number(pension.post_retirement_lifestyle) / 100 || 0.7,
     has_health_insurance: riskAnswers.hasHealthInsurance || false,
-    monthly_expense: Number(financial.monthly_expenses) || null,
   };
 
-  return runPythonCalculator(calculatorInput);
+  // Debug logging untuk compare dengan Streamlit
+  console.log(`[PROJECTION] Calculator Input for user ${userId}:`, JSON.stringify(calculatorInput, null, 2));
+
+  // Generate cache key dari calculator input
+  const cacheKey = generateCacheKey(calculatorInput);
+
+  // Cek cache terlebih dahulu
+  const cachedResult = getCachedProjection(cacheKey);
+  if (cachedResult) {
+    console.log(`[CACHE HIT] Projection untuk user ${userId} (key: ${cacheKey})`);
+    return {
+      ...cachedResult,
+      cached: true,
+      cacheKey,
+    };
+  }
+
+  console.log(`[CACHE MISS] Menjalankan kalkulasi via FastAPI untuk user ${userId}`);
+
+  // Jalankan kalkulasi via FastAPI
+  const result = await callFastAPICalculator(calculatorInput);
+
+  // Simpan ke cache dengan TTL 1 jam
+  setCachedProjection(cacheKey, result);
+
+  return {
+    ...result,
+    cached: false,
+    cacheKey,
+  };
 }

@@ -357,21 +357,6 @@ export function PensionForm({ onSubmit, isPending, error }: PensionFormProps) {
           </div>
         </form>
       </div>
-
-      {/* Trust badges */}
-      <div className="grid grid-cols-3 gap-6 mt-10 text-center">
-        {[
-          { icon: "🔒", title: "Aman & Privat", desc: "Data kamu dienkripsi" },
-          { icon: "🤖", title: "Berbasis AI", desc: "Rekomendasi cerdas" },
-          { icon: "🎯", title: "Goal-Oriented", desc: "Pantau progres pensiunmu" },
-        ].map((b) => (
-          <div key={b.title}>
-            <div className="text-2xl mb-2">{b.icon}</div>
-            <div className="font-medium text-foreground text-sm mb-1">{b.title}</div>
-            <div className="text-xs text-muted-foreground">{b.desc}</div>
-          </div>
-        ))}
-      </div>
     </div>
   );
 }
