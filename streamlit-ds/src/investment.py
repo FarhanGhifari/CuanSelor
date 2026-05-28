@@ -126,6 +126,9 @@ def get_glide_path_profile(
     effective_idx = min(idx + shift, len(PROFILE_ORDER) - 1)
     return PROFILE_ORDER[effective_idx]
 
+def _as_percent_rate(rate: float) -> float:
+    return rate * 100 if 0 <= rate <= 1 else rate
+
 def get_portfolio_stats(profile: str, custom_deposit_rate: Optional[float] = None) -> dict:
     alloc = RISK_PROFILES[profile]["allocation"]
     instruments = INVESTMENT_INSTRUMENTS
@@ -143,8 +146,8 @@ def get_portfolio_stats(profile: str, custom_deposit_rate: Optional[float] = Non
         real_mean = inst["real_return_mean"]
 
         if inst_key == "deposito" and custom_deposit_rate is not None:
-            nom_mean  = custom_deposit_rate
-            real_mean = custom_deposit_rate - _AVG_INFLASI
+            nom_mean  = _as_percent_rate(custom_deposit_rate)
+            real_mean = nom_mean - _AVG_INFLASI
 
         w_nominal_mean += w * nom_mean
         w_real_mean    += w * real_mean

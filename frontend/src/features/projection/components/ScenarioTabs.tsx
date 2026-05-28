@@ -114,7 +114,7 @@ export function ScenarioTabs({ data }: ScenarioTabsProps) {
           </div>
 
           <div className="p-4 rounded-xl bg-gray-50">
-            <p className="text-xs text-gray-500 font-medium mb-1">Penarikan/Bulan</p>
+            <p className="text-xs text-gray-500 font-medium mb-1">Penarikan/Bulan (Nominal)</p>
             <p className="text-xl font-bold text-gray-900 tabular-nums">
               {formatCurrency(activeScenario.data.annual_withdrawal_capacity / 12)}
             </p>
@@ -141,7 +141,7 @@ export function ScenarioTabs({ data }: ScenarioTabsProps) {
                 </>
               ) : (
                 <>
-                  Dana Aman 🎉
+                  Dana Aman
                   <span className="text-sm font-normal text-gray-600 ml-2">
                     (mencukupi hingga planning age)
                   </span>

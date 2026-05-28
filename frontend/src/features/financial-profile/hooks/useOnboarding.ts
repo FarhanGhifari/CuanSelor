@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { financialProfileService } from "../services/financial-profile.service";
 import { financialProfileMock } from "../services/financial-profile.mock";
 import { ROUTES } from "@/lib/constants/routes";
-import type { OnboardingPayload } from "../types/financial-profile.types";
+import type { OnboardingPayload, FinancialProfile } from "../types/financial-profile.types";
 import type { WizardData } from "../components/OnBoardingWizard";
 
 const IS_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === "true";
@@ -104,4 +104,33 @@ export function useSubmitPension() {
   };
 
   return { submitPension, isPending, error };
+}
+
+// ── useFinancialProfile — fetch saved financial data for dashboard display ──
+export function useFinancialProfile() {
+  const [profile, setProfile] = useState<FinancialProfile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchProfile = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await svc.get();
+      setProfile(data);
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })
+        ?.response?.data?.message;
+      setError(msg ?? "Gagal memuat data finansial.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchProfile();
+  }, []);
+
+  return { profile, isLoading, error, refetch: fetchProfile };
 }

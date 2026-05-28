@@ -20,6 +20,25 @@ import { ProjectionLoader } from "@/components/ui/ProjectionLoader";
 
 export default function DashboardOverview() {
   const { data: projectionData, isLoading, error } = useProjection();
+  const ruinProbability = projectionData?.projection.median_p50.ruin_probability ?? 0;
+  const isFundingHighRisk = ruinProbability > 0.5;
+  const isFundingWarning = ruinProbability > 0.15 && ruinProbability <= 0.5;
+  const fundingStatus = isFundingHighRisk
+    ? "Risiko Tinggi"
+    : isFundingWarning
+      ? "Perlu Perhatian"
+      : "Aman";
+  const fundingStatusClass = isFundingHighRisk
+    ? "bg-red-50 text-red-700"
+    : isFundingWarning
+      ? "bg-amber-50 text-amber-700"
+      : "bg-emerald-50 text-emerald-700";
+  const fundingRingColor = isFundingHighRisk ? "#ef4444" : isFundingWarning ? "#f59e0b" : "#10b981";
+  const fundingTextClass = isFundingHighRisk
+    ? "text-red-600"
+    : isFundingWarning
+      ? "text-amber-600"
+      : "text-emerald-600";
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -118,18 +137,18 @@ export default function DashboardOverview() {
                 <p className="text-2xl font-bold text-gray-900 mb-1 tabular-nums">
                   {formatCurrency(projectionData.projection.median_p50.annual_withdrawal_capacity / 12)}
                 </p>
-                <p className="text-xs text-gray-400 font-medium">Nilai Riil</p>
+                <p className="text-xs text-gray-400 font-medium">Nominal saat pensiun</p>
               </div>
             </div>
 
-            {/* Durasi Pensiun */}
+            {/* Dana Bertahan */}
             <div className="group relative overflow-hidden rounded-2xl bg-white border border-gray-100 p-6 hover:shadow-lg hover:shadow-purple-100 transition-all duration-300">
               <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 opacity-10 group-hover:opacity-20 transition-opacity" />
               <div className="relative z-10">
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-white shadow-lg mb-4">
                   <Calendar className="w-6 h-6" />
                 </div>
-                <h3 className="text-sm font-medium text-gray-500 mb-2">Durasi Pensiun</h3>
+                <h3 className="text-sm font-medium text-gray-500 mb-2">Dana Bertahan</h3>
                 <p className="text-2xl font-bold text-gray-900 mb-1 tabular-nums">
                   {projectionData.projection.median_p50.fund_depleted_age
                     ? `${projectionData.projection.median_p50.fund_depleted_age - projectionData.user_profile.retirement_age} tahun`
@@ -181,17 +200,17 @@ export default function DashboardOverview() {
                       cx="96"
                       cy="96"
                       r="80"
-                      stroke={projectionData.projection.median_p50.ruin_probability > 0.5 ? "#ef4444" : "#10b981"}
+                      stroke={fundingRingColor}
                       strokeWidth="16"
                       fill="none"
-                      strokeDasharray={`${projectionData.projection.median_p50.ruin_probability * 502.4} 502.4`}
+                      strokeDasharray={`${ruinProbability * 502.4} 502.4`}
                       strokeLinecap="round"
                     />
                   </svg>
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="text-center">
-                      <p className={`text-4xl font-bold ${projectionData.projection.median_p50.ruin_probability > 0.5 ? 'text-red-600' : 'text-emerald-600'}`}>
-                        {formatPercentage(projectionData.projection.median_p50.ruin_probability)}
+                      <p className={`text-4xl font-bold ${fundingTextClass}`}>
+                        {formatPercentage(ruinProbability)}
                       </p>
                       <p className="text-xs text-gray-500 mt-1">Risiko</p>
                     </div>
@@ -225,10 +244,10 @@ export default function DashboardOverview() {
                     {projectionData.actuarial_summary.planning_horizon_post_retirement} tahun
                   </span>
                 </div>
-                <div className="flex items-center justify-between p-4 rounded-xl bg-emerald-50">
-                  <span className="text-sm font-medium text-emerald-700">Status Risiko</span>
-                  <span className="text-sm font-bold text-emerald-700">
-                    {projectionData.actuarial_summary.longevity_risk_flag ? "Risiko Tinggi" : "Aman"}
+                <div className={`flex items-center justify-between p-4 rounded-xl ${fundingStatusClass}`}>
+                  <span className="text-sm font-medium">Status Kecukupan Dana</span>
+                  <span className="text-sm font-bold">
+                    {fundingStatus}
                   </span>
                 </div>
               </div>

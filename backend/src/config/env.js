@@ -28,7 +28,8 @@ export const env = {
   googleClientId: process.env.GOOGLE_CLIENT_ID,
   googleClientSecret: process.env.GOOGLE_CLIENT_SECRET,
   pythonCommand: process.env.PYTHON_COMMAND || "python",
-  projectionTimeoutMs: Number(process.env.PROJECTION_TIMEOUT_MS || 30000),
+  projectionTimeoutMs: Number(process.env.PROJECTION_TIMEOUT_MS || 120000),
+  projectionServiceUrl: process.env.PROJECTION_SERVICE_URL || "http://127.0.0.1:8001",
   aiServiceUrl: process.env.AI_SERVICE_URL || "http://127.0.0.1:8001",
   aiServiceTimeoutMs: Number(process.env.AI_SERVICE_TIMEOUT_MS || 15000),
   // Rate limiting

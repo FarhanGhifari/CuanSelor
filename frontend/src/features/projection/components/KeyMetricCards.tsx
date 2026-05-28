@@ -10,10 +10,8 @@ interface KeyMetricCardsProps {
 }
 
 export function KeyMetricCards({ data }: KeyMetricCardsProps) {
-  const { projection, actuarial_summary, recommendations, user_profile } = data;
+  const { projection, recommendations, user_profile } = data;
   const medianScenario = projection.median_p50;
-  const optimisticScenario = projection.optimistic_p90;
-
   // Calculate duration properly
   const retirementAge = user_profile.retirement_age;
   const depletedAge = medianScenario.fund_depleted_age;
@@ -30,12 +28,12 @@ export function KeyMetricCards({ data }: KeyMetricCardsProps) {
     {
       label: "Kapasitas Tarik/bulan",
       value: formatCurrency(medianScenario.annual_withdrawal_capacity / 12),
-      subtitle: `Berdasarkan SWR ${((recommendations.portfolio_nominal_return_mean || 3.5) / 100).toFixed(1)}%`,
+      subtitle: "Nominal saat pensiun",
       icon: TrendingUp,
       color: "blue",
     },
     {
-      label: "Durasi Pensiun",
+      label: "Dana Bertahan",
       value: duration ? `${duration} tahun` : "Aman",
       subtitle: duration ? `Dana habis usia ${depletedAge}` : "Dana mencukupi",
       icon: Calendar,

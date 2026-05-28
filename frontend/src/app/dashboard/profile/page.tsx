@@ -5,8 +5,83 @@ import { apiClient } from "@/lib/api/axios.config";
 import { API } from "@/lib/constants/api-endpoints";
 import { User, Wallet, ShieldCheck, Umbrella, Loader2 } from "lucide-react";
 
+interface AiSuggestion {
+  message?: string;
+  segment?: string;
+  profile_segment?: string;
+  financial_profile_segment?: string;
+  risk_profile?: string;
+  risk_category?: string;
+  prediction?: string;
+  label?: string;
+  result?: {
+    segment?: string;
+    prediction?: string;
+  };
+}
+
+interface ProfileResponse {
+  personal?: {
+    name?: string;
+    email?: string;
+  } | null;
+  financial?: {
+    monthly_income?: number;
+    monthly_expenses?: number;
+  } | null;
+  pension?: {
+    target_retirement_age?: number;
+    post_retirement_lifestyle?: number;
+  } | null;
+  risk?: {
+    risk_category?: string;
+    ai_suggestion?: string | null;
+    assessed_at?: string;
+  } | null;
+}
+
+function formatRiskCategory(category?: string) {
+  const labels: Record<string, string> = {
+    conservative: "Conservative",
+    moderate: "Moderate",
+    aggressive: "Aggressive",
+  };
+
+  return labels[String(category || "").toLowerCase()] || category || "-";
+}
+
+function isAiSuggestion(value: unknown): value is AiSuggestion {
+  return typeof value === "object" && value !== null;
+}
+
+function parseAiSuggestion(value?: string | null): AiSuggestion | null {
+  if (!value) return null;
+
+  try {
+    const parsed: unknown = JSON.parse(value);
+    return isAiSuggestion(parsed) ? parsed : { message: String(parsed) };
+  } catch {
+    return { message: value };
+  }
+}
+
+function getAiSegment(aiSuggestion: AiSuggestion | null) {
+  return (
+    aiSuggestion?.segment ||
+    aiSuggestion?.profile_segment ||
+    aiSuggestion?.financial_profile_segment ||
+    aiSuggestion?.risk_profile ||
+    aiSuggestion?.risk_category ||
+    aiSuggestion?.prediction ||
+    aiSuggestion?.label ||
+    aiSuggestion?.result?.segment ||
+    aiSuggestion?.result?.prediction ||
+    null
+  );
+}
+
 export default function ProfilePage() {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<ProfileResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -34,6 +109,9 @@ export default function ProfilePage() {
   if (!data) {
     return <div className="text-gray-500">Gagal memuat profil.</div>;
   }
+
+  const aiSuggestion = parseAiSuggestion(data.risk?.ai_suggestion);
+  const aiSegment = getAiSegment(aiSuggestion);
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -104,7 +182,7 @@ export default function ProfilePage() {
               </div>
               <div>
                 <p className="text-sm text-gray-400 font-medium">Gaya Hidup Pensiun</p>
-                <p className="text-lg font-bold text-gray-900 capitalize">{data.pension.lifestyle_choice}</p>
+                <p className="text-lg font-bold text-gray-900">{data.pension.post_retirement_lifestyle}%</p>
               </div>
             </div>
           ) : (
@@ -122,12 +200,27 @@ export default function ProfilePage() {
             <div className="space-y-4">
               <div>
                 <p className="text-sm text-gray-400 font-medium">Tipe Investor</p>
-                <p className="text-lg font-bold text-gray-900 capitalize">{data.risk.risk_type}</p>
+                <p className="text-lg font-bold text-gray-900">
+                  {formatRiskCategory(data.risk.risk_category)}
+                </p>
               </div>
-              <div>
-                <p className="text-sm text-gray-400 font-medium">Skor</p>
-                <p className="text-lg font-bold text-gray-900">{data.risk.score}</p>
-              </div>
+              {aiSegment && (
+                <div>
+                  <p className="text-sm text-gray-400 font-medium">Segment AI</p>
+                  <p className="text-lg font-bold text-gray-900">{aiSegment}</p>
+                </div>
+              )}
+              {data.risk.assessed_at && (
+                <div>
+                  <p className="text-sm text-gray-400 font-medium">Terakhir Dinilai</p>
+                  <p className="text-sm font-semibold text-gray-700">
+                    {new Date(data.risk.assessed_at).toLocaleString("id-ID")}
+                  </p>
+                </div>
+              )}
+              {aiSuggestion?.message && (
+                <p className="text-sm text-gray-600 leading-relaxed">{aiSuggestion.message}</p>
+              )}
             </div>
           ) : (
             <p className="text-gray-500 text-sm">Profil risiko belum dinilai.</p>

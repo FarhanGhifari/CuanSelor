@@ -440,7 +440,7 @@ class RetirementCalculator:
 
         p50 = scenarios["median_p50"]
 
-        portfolio_stats = get_portfolio_stats(eff_risk)
+        portfolio_stats = get_portfolio_stats(eff_risk, custom_deposit_rate=profile.custom_deposit_rate)
         alloc = RISK_PROFILES[eff_risk]["allocation"]
 
         final_salary = profile.monthly_salary * (1 + get_salary_growth(profile)) ** years_to_ret

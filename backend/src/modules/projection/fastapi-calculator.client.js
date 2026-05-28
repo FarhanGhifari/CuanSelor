@@ -7,13 +7,13 @@ import { AppError } from "../../utils/app-error.js";
  * @returns {Promise<Object>} Hasil kalkulasi dari FastAPI
  */
 export async function callFastAPICalculator(inputPayload) {
-  const url = `${env.aiServiceUrl}/calculate`;
+  const url = `${env.projectionServiceUrl}/calculate`;
 
   console.log(`[FASTAPI CLIENT] Calling ${url}`);
 
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), env.aiServiceTimeoutMs);
+    const timeoutId = setTimeout(() => controller.abort(), env.projectionTimeoutMs);
 
     const response = await fetch(url, {
       method: "POST",
@@ -49,7 +49,7 @@ export async function callFastAPICalculator(inputPayload) {
   } catch (error) {
     if (error.name === "AbortError") {
       throw new AppError(
-        `FastAPI service timeout (> ${env.aiServiceTimeoutMs}ms)`,
+        `FastAPI service timeout (> ${env.projectionTimeoutMs}ms)`,
         504
       );
     }
@@ -60,7 +60,7 @@ export async function callFastAPICalculator(inputPayload) {
 
     // Network error atau connection refused
     throw new AppError(
-      `Gagal terhubung ke AI service: ${error.message}. Pastikan FastAPI service berjalan di ${env.aiServiceUrl}`,
+      `Gagal terhubung ke projection service: ${error.message}. Pastikan streamlit-ds FastAPI berjalan di ${env.projectionServiceUrl}`,
       503,
       error.message
     );

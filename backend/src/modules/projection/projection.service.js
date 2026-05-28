@@ -51,6 +51,7 @@ export async function calculateProjection(userId) {
     annual_bonus_months: Number(financial.annual_bonus) || 1.0,
     replacement_ratio: Number(pension.post_retirement_lifestyle) / 100 || 0.7,
     has_health_insurance: riskAnswers.hasHealthInsurance || false,
+    monthly_expense: Number(financial.monthly_expenses) || null,
   };
 
   // Debug logging untuk compare dengan Streamlit
@@ -70,9 +71,9 @@ export async function calculateProjection(userId) {
     };
   }
 
-  console.log(`[CACHE MISS] Menjalankan kalkulasi via FastAPI untuk user ${userId}`);
+  console.log(`[CACHE MISS] Menjalankan kalkulasi via streamlit-ds FastAPI untuk user ${userId}`);
 
-  // Jalankan kalkulasi via FastAPI
+  // Jalankan kalkulasi via FastAPI lokal streamlit-ds.
   const result = await callFastAPICalculator(calculatorInput);
 
   // Simpan ke cache dengan TTL 1 jam
