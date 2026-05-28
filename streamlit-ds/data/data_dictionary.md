@@ -1,5 +1,5 @@
 # Data Dictionary — AI Financial Advisor
-**Last Updated:** April 2026 | **Currency:** IDR
+**Last Updated:** Mei 2026 | **Currency:** IDR
 
 ---
 
@@ -40,7 +40,7 @@
 | `kappa` (κ) | Dikalibrasi dari BPS | Kecepatan mean-reversion model OU |
 | `sigma` (σ) | Dikalibrasi dari BPS | Volatilitas shock inflasi dalam model OU |
 | `inflation_paths` | Simulasi | ndarray (n_simulations × n_years): path inflasi per simulasi (%) |
-| `sectoral_multiplier` | Estimasi | Faktor pengganda inflasi per sektor (healthcare: 1.8×, education: 1.5×) |
+| `sectoral_multiplier` | Dikalibrasi dari BPS | Faktor pengganda inflasi per sektor vs CPI umum (food: 1.269×, healthcare: 0.895×, education: 0.987×) |
 
 ---
 
@@ -92,7 +92,7 @@
 | `inflation_adj_salary` | salary × (1 + avg_inflation)^years | Proyeksi gaji real |
 | `required_nest_egg` | annual_expense / SWR | Dana minimum yang dibutuhkan untuk pensiun |
 | `savings_rate_gap` | required_monthly - actual_monthly | Kekurangan kontribusi bulanan |
-| `health_inflation_burden` | extra cost akibat inflasi kesehatan 1.8× | Risiko biaya kesehatan usia lanjut |
+| `health_inflation_burden` | extra cost akibat inflasi kesehatan (multiplier BPS: 0.895× CPI umum) | Risiko biaya kesehatan usia lanjut |
 | `cum_inflation_factor` | Π(1 + inf_t) selama akumulasi | Faktor depresiasi daya beli |
 
 ---
@@ -101,7 +101,7 @@
 
 | File | Lokasi | Sumber | Deskripsi |
 |------|--------|--------|-----------|
-| `mortality_bpjs.csv` | `data/raw/` | BPJS Ketenagakerjaan | Tabel mortalitas per usia dan jenis kelamin (qx, lx) |
+| `mortality_bpjs.csv` | `data/raw/` | BPJS Kesehatan (TMPI JKN) | Tabel mortalitas per usia dan jenis kelamin (qx, lx) |
 | `cpi_bps_historical.csv` | `data/raw/` | BPS Indonesia | Data inflasi CPI tahunan historis Indonesia |
 | `salary_bps_sector_2015_2025.csv` | `data/raw/` | BPS Indonesia | Rata-rata gaji tahunan per sektor lapangan pekerjaan 2015–2025 (IDR). Digunakan untuk menghitung `SECTOR_SALARY_GROWTH` di `config.py`. Kolom: `Sektor`, `2015`–`2025`. |
 
