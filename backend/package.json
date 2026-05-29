@@ -13,6 +13,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@langchain/core": "^1.1.48",
+    "@langchain/google-genai": "^2.1.31",
     "@supabase/supabase-js": "^2.105.4",
     "better-auth": "^1.6.9",
     "cors": "^2.8.6",
@@ -20,6 +22,7 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "express-rate-limit": "^8.5.2",
+    "langchain": "^1.4.2",
     "node-cache": "^5.1.2",
     "nodemailer": "^8.0.9",
     "pg": "^8.16.3",
