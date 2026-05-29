@@ -4,6 +4,7 @@ import { onboardingRouter } from "../modules/onboarding/onboarding.routes.js";
 import { profileRouter } from "../modules/profile/profile.routes.js";
 import { projectionRouter } from "../modules/projection/projection.routes.js";
 import { riskRouter } from "../modules/risk/risk.routes.js";
+import { advisorRouter } from "../modules/advisor/advisor.routes.js";
 import { requireAuth, optionalAuth } from "../middlewares/auth.middleware.js";
 import { env } from "../config/env.js";
 
@@ -14,6 +15,7 @@ apiRouter.use("/onboarding", onboardingRouter);
 apiRouter.use("/profile", profileRouter);
 apiRouter.use("/projection", projectionRouter);
 apiRouter.use("/risk", riskRouter);
+apiRouter.use("/advisor", advisorRouter);
 
 // ── Endpoint debug - hanya aktif di luar production ──────────────────────────
 if (env.nodeEnv !== "production") {

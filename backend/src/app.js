@@ -90,6 +90,20 @@ export function createApp() {
   // Terapkan rate limit ketat khusus untuk projection
   app.use("/api/projection", projectionLimiter);
 
+  // Rate limit untuk AI advisor chat (max 20 req/menit per IP)
+  const advisorLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 20,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: {
+      success: false,
+      message:
+        "Terlalu banyak pesan chat. Tunggu sebentar sebelum mengirim lagi.",
+    },
+  });
+  app.use("/api/advisor", advisorLimiter);
+
   app.use("/api", apiRouter);
 
   app.use(notFoundHandler);
