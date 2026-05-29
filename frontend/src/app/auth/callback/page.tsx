@@ -3,26 +3,43 @@
 import { useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useSession } from "@/lib/auth/auth-client";
 import { apiClient } from "@/lib/api/axios.config";
 import { API } from "@/lib/constants/api-endpoints";
 import { ROUTES } from "@/lib/constants/routes";
+import { authClient } from "@/lib/auth/auth-client";
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+type BetterAuthSession = typeof authClient.$Infer.Session;
 
 export default function AuthCallbackPage() {
   const router = useRouter();
-  const { data: session, isPending } = useSession();
 
   useEffect(() => {
-    if (isPending) return;
-
-    if (!session?.user) {
-      router.replace(ROUTES.LOGIN);
-      return;
-    }
-
     let cancelled = false;
 
     async function redirectAfterAuth() {
+      let session: BetterAuthSession | null = null;
+
+      for (let attempt = 0; attempt < 6; attempt += 1) {
+        const { data } = await authClient.getSession({
+          query: { disableCookieCache: true },
+        });
+
+        if (data?.user) {
+          session = data;
+          break;
+        }
+
+        if (attempt < 5) await wait(250);
+      }
+
+      if (cancelled) return;
+
+      if (!session?.user) {
+        router.replace(ROUTES.LOGIN);
+        return;
+      }
+
       try {
         const statusRes = await apiClient.get(API.ONBOARDING.STATUS);
         const status = statusRes.data?.data ?? statusRes.data;
@@ -42,7 +59,7 @@ export default function AuthCallbackPage() {
     return () => {
       cancelled = true;
     };
-  }, [isPending, router, session?.user]);
+  }, [router]);
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-white px-6">

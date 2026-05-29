@@ -5,6 +5,7 @@ import { Brain, MessageCircle, TrendingUp, Users, ArrowRight, Sparkles, Lock, Ba
 import { T, FONT } from "./tokens";
 import { ROUTES } from "@/lib/constants/routes";
 import PillCTA from "./PillCTA";
+import AuthAwarePillCTA from "./AuthAwarePillCTA";
 
 export default function HeroSection() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -223,10 +224,19 @@ export default function HeroSection() {
 
             {/* ── CTA Buttons ── */}
             <div className="hero-fade-4" style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 48 }}>
-              <PillCTA href={ROUTES.REGISTER} style={{ padding: "14px 28px", fontSize: 15 }}>
+              <AuthAwarePillCTA
+                href={ROUTES.REGISTER}
+                dashboardChildren={
+                  <>
+                    Dashboard
+                    <ArrowRight className="transition-transform duration-300 group-hover:translate-x-1.5" style={{ width: 16, height: 16, marginLeft: 4 }} />
+                  </>
+                }
+                style={{ padding: "14px 28px", fontSize: 15 }}
+              >
                 Mulai Gratis Sekarang
                 <ArrowRight className="transition-transform duration-300 group-hover:translate-x-1.5" style={{ width: 16, height: 16, marginLeft: 4 }} />
-              </PillCTA>
+              </AuthAwarePillCTA>
               <PillCTA href={ROUTES.PROJECTION} variant="ghost" style={{ padding: "14px 28px", fontSize: 15 }}>
                 Coba Simulasi
               </PillCTA>

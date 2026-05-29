@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ROUTES } from "@/lib/constants/routes";
+import { useSession } from "@/lib/auth/auth-client";
 
 const NAV_LINK = [
     { label: "About", href: "/#about" },
@@ -14,6 +15,8 @@ const NAV_LINK = [
 
 export function Navbar() {
     const pathname = usePathname();
+    const { data: session, isPending } = useSession();
+    const isAuthenticated = Boolean(session?.user);
 
     return (
         <nav
@@ -90,43 +93,82 @@ export function Navbar() {
 
             {/* CTA */}
             <div className="flex items-center gap-4">
-                <Link
-                    href={ROUTES.LOGIN}
-                    style={{
-                        fontSize: 14,
-                        color: "rgba(15, 23, 42, 0.65)",
-                        textDecoration: "none",
-                        transition: "color 0.2s",
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.color = "#0F172A")}
-                    onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(15, 23, 42, 0.65)")}
-                >
-                    Login
-                </Link>
-                <Link
-                    href={ROUTES.REGISTER}
-                    className="transition-all duration-200"
-                    style={{
-                        background: "linear-gradient(135deg, #10B981, #14B8A6)",
-                        color: "#ffffff",
-                        borderRadius: 12,
-                        padding: "8px 18px",
-                        fontSize: 14,
-                        fontWeight: 600,
-                        textDecoration: "none",
-                        boxShadow: "0 4px 16px rgba(16,185,129,0.25)",
-                    }}
-                    onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = "translateY(-1px)";
-                        e.currentTarget.style.boxShadow = "0 6px 24px rgba(16,185,129,0.35)";
-                    }}
-                    onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = "translateY(0)";
-                        e.currentTarget.style.boxShadow = "0 4px 16px rgba(16,185,129,0.25)";
-                    }}
-                >
-                    Get Started
-                </Link>
+                {isPending ? (
+                    <span
+                        style={{
+                            fontSize: 14,
+                            color: "rgba(15, 23, 42, 0.5)",
+                            fontWeight: 500,
+                        }}
+                    >
+                        Memeriksa...
+                    </span>
+                ) : isAuthenticated ? (
+                    <Link
+                        href={ROUTES.DASHBOARD}
+                        className="transition-all duration-200"
+                        style={{
+                            background: "linear-gradient(135deg, #10B981, #14B8A6)",
+                            color: "#ffffff",
+                            borderRadius: 12,
+                            padding: "8px 18px",
+                            fontSize: 14,
+                            fontWeight: 600,
+                            textDecoration: "none",
+                            boxShadow: "0 4px 16px rgba(16,185,129,0.25)",
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = "translateY(-1px)";
+                            e.currentTarget.style.boxShadow = "0 6px 24px rgba(16,185,129,0.35)";
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = "translateY(0)";
+                            e.currentTarget.style.boxShadow = "0 4px 16px rgba(16,185,129,0.25)";
+                        }}
+                    >
+                        Dashboard
+                    </Link>
+                ) : (
+                    <>
+                        <Link
+                            href={ROUTES.LOGIN}
+                            style={{
+                                fontSize: 14,
+                                color: "rgba(15, 23, 42, 0.65)",
+                                textDecoration: "none",
+                                transition: "color 0.2s",
+                            }}
+                            onMouseEnter={(e) => (e.currentTarget.style.color = "#0F172A")}
+                            onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(15, 23, 42, 0.65)")}
+                        >
+                            Login
+                        </Link>
+                        <Link
+                            href={ROUTES.REGISTER}
+                            className="transition-all duration-200"
+                            style={{
+                                background: "linear-gradient(135deg, #10B981, #14B8A6)",
+                                color: "#ffffff",
+                                borderRadius: 12,
+                                padding: "8px 18px",
+                                fontSize: 14,
+                                fontWeight: 600,
+                                textDecoration: "none",
+                                boxShadow: "0 4px 16px rgba(16,185,129,0.25)",
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.transform = "translateY(-1px)";
+                                e.currentTarget.style.boxShadow = "0 6px 24px rgba(16,185,129,0.35)";
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.transform = "translateY(0)";
+                                e.currentTarget.style.boxShadow = "0 4px 16px rgba(16,185,129,0.25)";
+                            }}
+                        >
+                            Get Started
+                        </Link>
+                    </>
+                )}
             </div>
         </nav>
     );

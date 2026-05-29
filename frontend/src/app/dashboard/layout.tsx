@@ -36,6 +36,9 @@ const navItems = [
   },
 ];
 
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+type BetterAuthSession = typeof authClient.$Infer.Session;
+
 export default function DashboardLayout({
   children,
 }: {
@@ -43,14 +46,44 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { data: session, isPending } = useSession();
+  const { data: session, isPending, refetch } = useSession();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    if (!isPending && !session?.user) {
+    if (isPending || session?.user) return;
+
+    let cancelled = false;
+    const timeout = window.setTimeout(async () => {
+      let verifiedSession: BetterAuthSession | null = null;
+
+      for (let attempt = 0; attempt < 4; attempt += 1) {
+        const { data } = await authClient.getSession({
+          query: { disableCookieCache: true },
+        });
+
+        if (data?.user) {
+          verifiedSession = data;
+          break;
+        }
+
+        if (attempt < 3) await wait(250);
+      }
+
+      if (cancelled) return;
+
+      if (verifiedSession?.user) {
+        await refetch({ query: { disableCookieCache: true } });
+        return;
+      }
+
       router.replace(ROUTES.LOGIN);
-    }
-  }, [isPending, router, session?.user]);
+    }, 300);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeout);
+    };
+  }, [isPending, refetch, router, session?.user]);
 
   const handleLogout = async () => {
     await authClient.signOut({

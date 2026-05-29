@@ -1,18 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { RegisterForm } from "@/features/auth/components/RegisterForm";
 import { useRegister } from "@/features/auth/hooks/useAuth";
 import { Modal } from "@/components/ui/Modal";
-import { SuccessIllustration } from "@/components/ui/SuccessIllustration";
-import { ROUTES } from "@/lib/constants/routes";
 import type { PersonalInfoInput } from "@/features/auth/validations/auth.schema";
 import Link from "next/link";
+import { AuthPageGuard } from "@/features/auth/components/AuthPageGuard";
 
 export default function RegisterPage() {
-    const router = useRouter();
-    const { register, isPending, error } = useRegister();
+    const { register, error } = useRegister();
     const [showEmailSent, setShowEmailSent] = useState(false);
     const [userEmail, setUserEmail] = useState("");
 
@@ -25,6 +22,7 @@ export default function RegisterPage() {
     };
 
     return (
+        <AuthPageGuard>
         <>
             <div className="min-h-screen w-full flex bg-white relative">
             {/* Absolute Logo */}
@@ -95,5 +93,6 @@ export default function RegisterPage() {
                 </div>
             )}
         </>
+        </AuthPageGuard>
     );
 }

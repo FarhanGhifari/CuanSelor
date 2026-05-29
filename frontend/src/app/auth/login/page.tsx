@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import LoginForm from '@/features/auth/components/LoginForm';
 import Link from "next/link";
+import { AuthPageGuard } from "@/features/auth/components/AuthPageGuard";
 
 export const metadata: Metadata = {
     title: 'Login - CuanSelor',
@@ -9,6 +10,7 @@ export const metadata: Metadata = {
 
 export default function LoginPage() {
     return (
+        <AuthPageGuard>
         <div className="min-h-screen w-full flex bg-white relative">
             {/* Absolute Logo */}
             <div className="absolute top-6 left-6 lg:left-8 z-50">
@@ -60,6 +62,7 @@ export default function LoginPage() {
                     </div>
                 </div>
             </div>
+        </AuthPageGuard>
     )
 }
 

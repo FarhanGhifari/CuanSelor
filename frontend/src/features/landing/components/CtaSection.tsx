@@ -1,7 +1,7 @@
 import { ArrowRight, Sparkles } from "lucide-react";
 import { T, FONT } from "./tokens";
 import { ROUTES } from "@/lib/constants/routes";
-import PillCTA from "./PillCTA";
+import AuthAwarePillCTA from "./AuthAwarePillCTA";
 
 /** Final call-to-action section matching the light premium Hero style. */
 export default function CtaSection() {
@@ -99,10 +99,19 @@ export default function CtaSection() {
         </p>
 
         <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap", marginBottom: 28 }}>
-          <PillCTA href={ROUTES.REGISTER} style={{ padding: "14px 28px", fontSize: 15 }}>
+          <AuthAwarePillCTA
+            href={ROUTES.REGISTER}
+            dashboardChildren={
+              <>
+                Dashboard
+                <ArrowRight className="transition-transform duration-300 group-hover:translate-x-1.5" style={{ width: 16, height: 16, marginLeft: 4 }} />
+              </>
+            }
+            style={{ padding: "14px 28px", fontSize: 15 }}
+          >
             Start My Financial Journey
             <ArrowRight className="transition-transform duration-300 group-hover:translate-x-1.5" style={{ width: 16, height: 16, marginLeft: 4 }} />
-          </PillCTA>
+          </AuthAwarePillCTA>
         </div>
       </div>
     </section>

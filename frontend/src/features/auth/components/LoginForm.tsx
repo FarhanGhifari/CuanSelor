@@ -10,8 +10,6 @@ import { cn } from "@/lib/utils/cn";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ROUTES } from "@/lib/constants/routes";
-import { apiClient } from "@/lib/api/axios.config";
-import { API } from "@/lib/constants/api-endpoints";
 import { GoogleAuthButton } from "./GoogleAuthButton";
 import { getAuthErrorMessage } from "../utils/auth-errors";
 
@@ -50,6 +48,7 @@ export default function LoginForm() {
       const result = await authClient.signIn.email({
         email: data.email,
         password: data.password,
+        rememberMe: data.rememberMe,
       });
 
       if (result.error) {
@@ -57,19 +56,17 @@ export default function LoginForm() {
         return;
       }
 
-      try {
-        const statusRes = await apiClient.get(API.ONBOARDING.STATUS);
-        const status = statusRes.data?.data ?? statusRes.data;
+      const { data: session } = await authClient.getSession({
+        query: { disableCookieCache: true },
+      });
 
-        if (status.isFullyOnboarded) {
-          router.push(ROUTES.DASHBOARD);
-        } else {
-          router.push(ROUTES.ONBOARDING);
-        }
-      } catch {
-        // If status check fails, default to onboarding
-        router.push(ROUTES.ONBOARDING);
+      if (!session?.user) {
+        setLoginError("Login berhasil, tapi sesi belum terbaca. Coba refresh halaman.");
+        return;
       }
+
+      router.replace(ROUTES.AUTH_CALLBACK);
+      router.refresh();
     } catch {
       setLoginError("An error occurred during login");
     } finally {
@@ -86,7 +83,7 @@ export default function LoginForm() {
       const result = await authClient.signIn.social({
         provider: "google",
         callbackURL: ROUTES.AUTH_CALLBACK,
-        newUserCallbackURL: ROUTES.ONBOARDING,
+        newUserCallbackURL: ROUTES.AUTH_CALLBACK,
         errorCallbackURL: ROUTES.LOGIN,
       });
 

@@ -60,7 +60,7 @@ export function RegisterForm({ onSubmit }: RegisterFormProps) {
       const result = await authClient.signIn.social({
         provider: "google",
         callbackURL: ROUTES.AUTH_CALLBACK,
-        newUserCallbackURL: ROUTES.ONBOARDING,
+        newUserCallbackURL: ROUTES.AUTH_CALLBACK,
         errorCallbackURL: ROUTES.REGISTER,
       });
 

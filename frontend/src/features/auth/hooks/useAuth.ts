@@ -35,18 +35,27 @@ export function useLogin() {
       const { error: authErr } = await authClient.signIn.email({
         email,
         password,
-        callbackURL: ROUTES.DASHBOARD,
+        callbackURL: ROUTES.AUTH_CALLBACK,
         rememberMe: true,
         fetchOptions: {
           onError: (ctx) => setError(ctx.error.message ?? "Email atau password salah"),
-          onSuccess: () => {
-            router.push(ROUTES.DASHBOARD);
-            router.refresh();
-          },
         },
       });
 
       if (authErr) setError(authErr.message ?? "Email atau password salah");
+      else {
+        const { data: session } = await authClient.getSession({
+          query: { disableCookieCache: true },
+        });
+
+        if (!session?.user) {
+          setError("Login berhasil, tapi sesi belum terbaca. Coba refresh halaman.");
+          return;
+        }
+
+        router.replace(ROUTES.AUTH_CALLBACK);
+        router.refresh();
+      }
     } catch {
       setError("Terjadi kesalahan. Coba lagi.");
     } finally {
@@ -125,7 +134,7 @@ export function useGoogleLogin() {
       await authClient.signIn.social({
         provider: "google",
         callbackURL: ROUTES.AUTH_CALLBACK,
-        newUserCallbackURL: ROUTES.ONBOARDING,
+        newUserCallbackURL: ROUTES.AUTH_CALLBACK,
         errorCallbackURL: ROUTES.LOGIN,
       });
     } catch {
