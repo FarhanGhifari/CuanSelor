@@ -72,6 +72,7 @@ export default function TanyaFindSorPage() {
   } = useAdvisor();
 
   const [input, setInput] = useState("");
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
@@ -115,34 +116,7 @@ export default function TanyaFindSorPage() {
   }
 
   return (
-    <div className="h-[calc(100vh-7rem)] lg:h-[calc(100vh-10rem)] flex flex-col overflow-hidden">
-      {/* ── Header ─────────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between py-3 px-1 shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
-            <MessageCircle className="w-5 h-5" />
-          </div>
-          <div>
-            <h1 className="text-lg font-bold text-gray-900 leading-tight">Tanya FindSor!</h1>
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <p className="text-xs text-gray-400 font-medium">AI Financial Advisor</p>
-            </div>
-          </div>
-        </div>
-
-        {hasMessages && (
-          <button
-            onClick={clearConversation}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all duration-200"
-            title="Hapus percakapan"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Hapus Chat</span>
-          </button>
-        )}
-      </div>
-
+    <div className="h-[calc(100vh-4rem)] lg:h-[calc(100vh-5rem)] -mx-6 lg:-mx-10 -my-6 lg:-my-10 flex flex-col overflow-hidden bg-white">
       {/* ── Chat Area ──────────────────────────────────────────────────── */}
       <div
         ref={chatContainerRef}
@@ -165,7 +139,7 @@ export default function TanyaFindSorPage() {
                 transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
                 className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white mb-5 shadow-xl shadow-emerald-500/25"
               >
-                <Sparkles className="w-8 h-8" />
+                <MessageCircle className="w-8 h-8" />
               </motion.div>
 
               <motion.h2
@@ -212,7 +186,7 @@ export default function TanyaFindSorPage() {
               key="messages"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="p-4 space-y-5"
+              className="p-4 space-y-5 max-w-5xl mx-auto w-full"
             >
               {messages.map((message, index) => (
                 <motion.div
@@ -288,8 +262,23 @@ export default function TanyaFindSorPage() {
         </AnimatePresence>
       </div>
 
-      {/* ── Sticky Input ───────────────────────────────────────────────── */}
-      <div className="shrink-0 border-t border-gray-100 bg-white/80 backdrop-blur-xl px-4 py-3">
+      {/* ── Input Area ───────────────────────────────────────────────── */}
+      <div className="shrink-0 px-4 pb-2 pt-2 bg-transparent max-w-5xl mx-auto w-full flex flex-col gap-3">
+        {/* Quick Questions */}
+        {hasMessages && (
+          <div className="flex flex-wrap justify-start gap-2">
+            {quickQuestions.map((q, i) => (
+              <button
+                key={i}
+                onClick={() => handleQuickQuestion(q)}
+                className="px-3.5 py-1.5 rounded-full text-[11px] font-medium bg-white border border-gray-200 text-gray-600 hover:border-emerald-400 hover:text-emerald-600 hover:bg-emerald-50 transition-all shadow-sm"
+              >
+                {q}
+              </button>
+            ))}
+          </div>
+        )}
+
         <div className="flex gap-2 items-end">
           <div className="flex-1 relative">
             <input
@@ -298,14 +287,56 @@ export default function TanyaFindSorPage() {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Tanyakan seputar keuanganmu..."
-              className="w-full px-4 py-3 pr-4 rounded-xl bg-gray-50 border border-gray-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 focus:bg-white outline-none transition-all text-sm placeholder:text-gray-400"
+              className="w-full px-4 py-3.5 pr-4 rounded-xl bg-gray-50 border border-gray-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 focus:bg-white outline-none transition-all text-sm placeholder:text-gray-400"
               disabled={isLoading}
             />
           </div>
+          
+          {hasMessages && (
+            <div className="relative shrink-0">
+              <AnimatePresence>
+                {showDeleteConfirm && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    className="absolute bottom-full mb-3 right-0 w-52 bg-white border border-gray-200 shadow-xl rounded-xl p-3 z-50 origin-bottom-right"
+                  >
+                    <p className="text-xs font-semibold text-gray-800 mb-2 text-center">Yakin ingin menghapus chat?</p>
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => setShowDeleteConfirm(false)}
+                        className="flex-1 px-2 py-1.5 rounded-lg bg-gray-100 text-gray-600 text-xs font-medium hover:bg-gray-200 transition-colors"
+                      >
+                        Batal
+                      </button>
+                      <button 
+                        onClick={() => {
+                          clearConversation();
+                          setShowDeleteConfirm(false);
+                        }}
+                        className="flex-1 px-2 py-1.5 rounded-lg bg-red-500 text-white text-xs font-medium hover:bg-red-600 transition-colors shadow-sm shadow-red-500/20"
+                      >
+                        Hapus
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              <button
+                onClick={() => setShowDeleteConfirm(!showDeleteConfirm)}
+                className="w-[50px] h-[50px] flex items-center justify-center rounded-xl bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-600 transition-colors border border-red-100"
+                title="Hapus percakapan"
+              >
+                <Trash2 className="w-5 h-5" />
+              </button>
+            </div>
+          )}
+
           <button
             onClick={handleSend}
             disabled={!input.trim() || isLoading}
-            className="p-3 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 shadow-lg shadow-emerald-600/20 hover:shadow-emerald-600/30 active:scale-95 shrink-0"
+            className="w-[50px] h-[50px] flex items-center justify-center rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 shadow-lg shadow-emerald-600/20 active:scale-95 shrink-0"
           >
             {isLoading ? (
               <Loader2 className="w-5 h-5 animate-spin" />
@@ -314,7 +345,7 @@ export default function TanyaFindSorPage() {
             )}
           </button>
         </div>
-        <p className="text-[10px] text-gray-300 mt-2 text-center">
+        <p className="text-[10px] text-gray-400 mt-2 mb-1 text-center font-medium">
           FindSor menggunakan AI untuk memberikan edukasi keuangan. Bukan pengganti financial planner profesional.
         </p>
       </div>
