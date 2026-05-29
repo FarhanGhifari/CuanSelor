@@ -46,6 +46,7 @@ export const env = {
     process.env.PROJECTION_SERVICE_URL || "http://127.0.0.1:8001",
   aiServiceUrl: process.env.AI_SERVICE_URL || "http://127.0.0.1:8001",
   aiServiceTimeoutMs: Number(process.env.AI_SERVICE_TIMEOUT_MS || 15000),
+  geminiApiKey: process.env.GEMINI_API_KEY,
   // Rate limiting
   rateLimitWindowMs: Number(process.env.RATE_LIMIT_WINDOW_MS || 15 * 60 * 1000),
   rateLimitMax: Number(process.env.RATE_LIMIT_MAX || 100),
