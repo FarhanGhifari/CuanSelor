@@ -6,6 +6,9 @@ import { Send, MessageCircle, User, Loader2, Sparkles, Trash2 } from "lucide-rea
 import { useAdvisor } from "@/features/advisor/hooks/useAdvisor";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import "katex/dist/katex.min.css";
 
 // ── Markdown component with styled elements ───────────────────────────────────
 const markdownComponents: ComponentProps<typeof ReactMarkdown>["components"] = {
@@ -49,6 +52,18 @@ const markdownComponents: ComponentProps<typeof ReactMarkdown>["components"] = {
       {children}
     </a>
   ),
+  table: ({ children }) => (
+    <div className="overflow-x-auto my-3 rounded-lg border border-gray-200">
+      <table className="w-full text-left border-collapse text-xs">
+        {children}
+      </table>
+    </div>
+  ),
+  thead: ({ children }) => <thead className="bg-emerald-50 text-emerald-800">{children}</thead>,
+  tbody: ({ children }) => <tbody className="divide-y divide-gray-100">{children}</tbody>,
+  tr: ({ children }) => <tr>{children}</tr>,
+  th: ({ children }) => <th className="px-3 py-2.5 font-semibold border-b border-gray-200">{children}</th>,
+  td: ({ children }) => <td className="px-3 py-2 text-gray-700">{children}</td>,
 };
 
 // ── Quick Questions ───────────────────────────────────────────────────────────
@@ -216,7 +231,8 @@ export default function TanyaFindSorPage() {
                     <div className="text-[13px] leading-relaxed prose-sm">
                       {message.role === "assistant" ? (
                         <ReactMarkdown
-                          remarkPlugins={[remarkGfm]}
+                          remarkPlugins={[remarkGfm, remarkMath]}
+                          rehypePlugins={[rehypeKatex]}
                           components={markdownComponents}
                         >
                           {message.content || ""}
