@@ -15,7 +15,7 @@ apiClient.interceptors.response.use(
     (res) => res,
     async (err) => {
         if (err.response?.status === 401) {
-            // Session expired — redirect ke login
+            // Session expired - redirect ke login
             if (typeof window !== "undefined") {
                 window.location.href = ROUTES.LOGIN;
             }

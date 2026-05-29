@@ -20,7 +20,7 @@ export function StepIndicator({ current }: { current: 1 | 2 }) {
   return (
     <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-4">
       <span className="text-primary text-sm font-medium">
-        Step {current} of 2 — {steps[current - 1].label}
+        Step {current} of 2 - {steps[current - 1].label}
       </span>
     </div>
   );
@@ -43,7 +43,6 @@ export function RegisterForm({ onSubmit }: RegisterFormProps) {
     <div className="w-full max-w-2xl">
       {/* Step badge */}
       <div className="text-center mb-8">
-        <StepIndicator current={1} />
         <h1 className="text-4xl font-bold text-foreground mb-4">
           Buat Akun CuanSelor
         </h1>

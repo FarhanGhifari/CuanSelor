@@ -16,7 +16,7 @@ const QUICK_STATS = [
 
 const PRINCIPLES = [
   { icon: Users,    title: "Aksesibel untuk semua",       desc: "Perencanaan keuangan tidak seharusnya berbayar. Semua fitur inti CuanSelor gratis tanpa paywall." },
-  { icon: BarChart3,title: "Berbasis data, bukan asumsi", desc: "Setiap proyeksi didukung data aktuaria nyata — Tabel Mortalitas Penduduk Indonesia 2023." },
+  { icon: BarChart3,title: "Berbasis data, bukan asumsi", desc: "Setiap proyeksi didukung data aktuaria nyata - Tabel Mortalitas Penduduk Indonesia 2023." },
   { icon: Shield,   title: "Privasi adalah prioritas",    desc: "Data finansialmu adalah milikmu. Kami tidak pernah menjual atau menggunakannya untuk iklan." },
   { icon: Brain,    title: "Dirancang untuk non-expert",  desc: "Matematika finansial yang kompleks diterjemahkan menjadi langkah konkret yang bisa diikuti siapa saja." },
 ];
@@ -24,7 +24,7 @@ const PRINCIPLES = [
 /** About / mission section on parchment background. */
 export default function AboutSection() {
   return (
-    <section id="about" className="py-[60px] md:py-[120px] px-6 md:px-[5%]" style={{ background: T.parchment }}>
+    <section className="py-[60px] md:py-[120px] px-6 md:px-[5%]" style={{ background: T.parchment }}>
       <div className="w-full max-w-[1400px] mx-auto">
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: 64 }}>
@@ -45,7 +45,7 @@ export default function AboutSection() {
             Lebih dari sekadar kalkulator keuangan
           </h2>
           <p style={{ fontFamily: FONT, fontSize: 21, fontWeight: 300, lineHeight: 1.5, color: T.inkMuted, maxWidth: 560, margin: "0 auto" }}>
-            CuanSelor lahir dari satu keyakinan — setiap anak muda Indonesia berhak mendapatkan panduan keuangan yang cerdas, berbasis data, dan personal.
+            CuanSelor lahir dari satu keyakinan - setiap anak muda Indonesia berhak mendapatkan panduan keuangan yang cerdas, berbasis data, dan personal.
           </p>
         </div>
 

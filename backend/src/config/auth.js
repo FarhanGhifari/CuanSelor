@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth";
 import { Pool } from "pg";
 import { env, requireEnv } from "./env.js";
+import { sendVerificationEmail, sendResetPasswordEmail } from "../utils/email.js";
 
 requireEnv(["databaseUrl", "betterAuthSecret"]);
 
@@ -23,10 +24,56 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
-    // CATATAN: Set REQUIRE_EMAIL_VERIFICATION=true di .env production setelah
-    // mengkonfigurasi email provider (Resend, Nodemailer, dll) di better-auth.
-    // Dokumentasi: https://www.better-auth.com/docs/plugins/email-verification
     requireEmailVerification: env.requireEmailVerification,
+    sendResetPassword: async ({ user, url, token }) => {
+      console.log(`[Better Auth] ========================================`);
+      console.log(`[Better Auth] PASSWORD RESET TRIGGERED`);
+      console.log(`[Better Auth] User: ${user.email}`);
+      console.log(`[Better Auth] Original URL: ${url}`);
+      console.log(`[Better Auth] Token: ${token}`);
+      
+      // Create custom URL that points to frontend
+      const frontendResetUrl = `${env.frontendUrl}/auth/reset-password?token=${token}`;
+      console.log(`[Better Auth] Frontend URL: ${frontendResetUrl}`);
+      
+      try {
+        const result = await sendResetPasswordEmail({ user, url: frontendResetUrl });
+        console.log(`[Better Auth] Email send result:`, result);
+        console.log(`[Better Auth] ========================================`);
+      } catch (error) {
+        console.error(`[Better Auth] ERROR sending reset password email:`, error);
+        console.log(`[Better Auth] ========================================`);
+        throw error;
+      }
+    },
+  },
+  emailVerification: {
+    sendOnSignUp: true, // Selalu kirim email saat sign up
+    autoSignInAfterVerification: false, // Jangan auto sign-in, biar user manual login
+    expiresIn: 60 * 60 * 24, // 24 jam
+    sendVerificationEmail: async ({ user, url, token }) => {
+      console.log(`[Better Auth] ========================================`);
+      console.log(`[Better Auth] EMAIL VERIFICATION TRIGGERED`);
+      console.log(`[Better Auth] User: ${user.email}`);
+      console.log(`[Better Auth] User ID: ${user.id}`);
+      console.log(`[Better Auth] Original URL: ${url}`);
+      console.log(`[Better Auth] Token: ${token}`);
+      
+      // Create custom URL that points to frontend
+      // Frontend will call Better Auth API to verify
+      const frontendVerifyUrl = `${env.frontendUrl}/auth/verify-email?token=${token}`;
+      console.log(`[Better Auth] Frontend URL: ${frontendVerifyUrl}`);
+      
+      try {
+        const result = await sendVerificationEmail({ user, url: frontendVerifyUrl });
+        console.log(`[Better Auth] Email send result:`, result);
+        console.log(`[Better Auth] ========================================`);
+      } catch (error) {
+        console.error(`[Better Auth] ERROR sending verification email:`, error);
+        console.log(`[Better Auth] ========================================`);
+        throw error;
+      }
+    },
   },
   socialProviders:
     env.googleClientId && env.googleClientSecret

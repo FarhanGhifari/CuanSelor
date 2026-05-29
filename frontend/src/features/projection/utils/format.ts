@@ -1,7 +1,7 @@
 /**
- * Format number to Indonesian Rupiah currency
+ * Format number to Indonesian Rupiah currency (Short abbreviation)
  */
-export function formatCurrency(value: number): string {
+export function formatCurrencyShort(value: number): string {
   if (value >= 1_000_000_000) {
     return `Rp ${(value / 1_000_000_000).toFixed(1)}M`;
   }
@@ -12,6 +12,18 @@ export function formatCurrency(value: number): string {
     return `Rp ${(value / 1_000).toFixed(0)}rb`;
   }
   return `Rp ${value.toFixed(0)}`;
+}
+
+/**
+ * Format number to full Indonesian Rupiah currency (No abbreviation)
+ */
+export function formatCurrency(value: number): string {
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(value);
 }
 
 /**

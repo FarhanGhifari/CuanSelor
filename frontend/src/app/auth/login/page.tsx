@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import LoginForm from '@/features/auth/components/LoginForm';
-import { TrendingUp } from "lucide-react";
 import Link from "next/link";
 
 export const metadata: Metadata = {
@@ -10,56 +9,57 @@ export const metadata: Metadata = {
 
 export default function LoginPage() {
     return (
-        <div className="min-h-screen w-full flex bg-white">
-            {/* Left Side */}
-            <div className="hidden lg:flex w-1/2 relative p-12 flex-col justify-between overflow-hidden text-white" 
-                 style={{ background: 'linear-gradient(135deg, #1A2E35 0%, #294A52 40%, #87B9B4 100%)' }}>
-                <div className="absolute top-1 left-8 z-10">
-                    <img src="/logo.png" alt="CuanSelor Logo" className="h-40 w-auto" />
+        <div className="min-h-screen w-full flex bg-white relative">
+            {/* Absolute Logo */}
+            <div className="absolute top-6 left-6 lg:left-8 z-50">
+                <Link href="/" className="flex items-center relative h-12 w-48 overflow-hidden">
+                    <img
+                        src="/logo.png"
+                        alt="CuanSelor Logo"
+                        className="absolute left-0 top-1/2 -translate-y-1/2 h-24 w-auto object-cover max-w-none"
+                    />
+                </Link>
+            </div>
+
+                {/* Left Side - Illustration */}
+                <div className="hidden lg:flex w-1/2 relative flex-col items-center justify-center overflow-hidden"
+                     style={{ background: 'linear-gradient(160deg, #f0fdf9 0%, #e0f7f0 40%, #d1fae5 100%)' }}>
+                    <div className="relative z-10 flex flex-col items-center px-12">
+                        <img
+                            src="/illustration-login.svg"
+                            alt="Financial Analysis Illustration"
+                            className="w-full max-w-md h-auto drop-shadow-lg"
+                        />
+                        <div className="mt-8 text-center max-w-md">
+                            <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                                Pantau Keuanganmu dengan Mudah
+                            </h2>
+                            <p className="text-gray-600 text-sm leading-relaxed">
+                                Analisis data finansial, proyeksi pensiun, dan rekomendasi personal semua dalam satu platform.
+                            </p>
+                        </div>
+                    </div>
+                    {/* Decorative circles */}
+                    <div className="absolute top-10 right-10 w-40 h-40 rounded-full bg-emerald-200/30 blur-2xl"></div>
+                    <div className="absolute bottom-20 left-10 w-60 h-60 rounded-full bg-teal-200/20 blur-3xl"></div>
                 </div>
 
-                <div className="relative z-10 mt-auto mb-20">
-                    <h1 className="text-5xl font-bold leading-[1.15] mb-6">
-                        Your Financial Future Starts<br/>Here
-                    </h1>
-                    <p className="text-[#B6D6D3] text-lg max-w-md leading-relaxed mb-12 font-medium">
-                        Join thousands of Gen Z users who are taking control of their financial future with AI-powered insights and personalized recommendations.
-                    </p>
-
-                    <div className="flex gap-6">
-                        <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-[20px] p-6 w-48 shadow-sm">
-                            <h3 className="text-[2.5rem] font-bold mb-1 leading-none">50K+</h3>
-                            <p className="text-white/80 text-sm font-medium">Active Users</p>
+                {/* Right Side - Form */}
+                <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-8 pt-20 lg:pt-8 relative">
+                    <div className="w-full max-w-lg">
+                        <div className="mb-8 text-center">
+                            <h2 className="text-[2.8rem] font-bold text-[#111827] tracking-tight mb-2">Selamat Datang!</h2>
+                            <p className="text-[#6B7280] text-[1.1rem]">Masuk untuk melanjutkan ke dashboard kamu</p>
                         </div>
-                        <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-[20px] p-6 w-48 shadow-sm">
-                            <h3 className="text-[2.5rem] font-bold mb-1 leading-none">$2M+</h3>
-                            <p className="text-white/80 text-sm font-medium">Managed Assets</p>
-                        </div>
+                        
+                        <LoginForm/>
+                        
+                        <p className="text-center text-sm text-[#6B7280] mt-8">
+                            Dengan masuk, kamu menyetujui <Link href="/terms" className="text-[#10B981] hover:underline font-medium">Ketentuan Layanan</Link> dan <Link href="/privacy" className="text-[#10B981] hover:underline font-medium">Kebijakan Privasi</Link> kami
+                        </p>
                     </div>
                 </div>
             </div>
-
-            {/* Right Side */}
-            <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-8 relative">
-                <div className="w-full max-w-lg">
-                    <div className="mb-8 text-center">
-                        <h2 className="text-[2.8rem] font-bold text-[#111827] tracking-tight mb-2">Welcome Back</h2>
-                        <p className="text-[#6B7280] text-[1.1rem]">Sign in to continue to your dashboard</p>
-                    </div>
-                    
-                    <LoginForm/>
-                    
-                    <p className="text-center text-sm text-[#6B7280] mt-8">
-                        By signing in, you agree to our <Link href="#" className="text-[#10B981] hover:underline font-medium">Terms of Service</Link> and <Link href="#" className="text-[#10B981] hover:underline font-medium">Privacy Policy</Link>
-                    </p>
-                </div>
-                
-                <button 
-                    suppressHydrationWarning
-                    className="absolute bottom-6 right-6 w-10 h-10 bg-white border border-gray-200 rounded-full shadow-sm flex items-center justify-center text-gray-500 hover:text-gray-700 transition-colors">
-                    <span className="text-lg font-medium">?</span>
-                </button>
-            </div>
-        </div>
     )
 }
+

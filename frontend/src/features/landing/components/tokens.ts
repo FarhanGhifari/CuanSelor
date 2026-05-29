@@ -1,6 +1,6 @@
 /**
  * Design tokens for the landing page.
- * "Light Premium Fintech" — White, emerald accents, soft indigo secondary.
+ * "Light Premium Fintech" - White, emerald accents, soft indigo secondary.
  */
 export const T = {
   // ── Backgrounds ──
@@ -16,12 +16,12 @@ export const T = {
   onDark:     "#ffffff",
   mutedDark:  "rgba(255, 255, 255, 0.70)",
 
-  // ── Primary (Emerald / Teal — Finance, Growth, Trust) ──
+  // ── Primary (Emerald / Teal - Finance, Growth, Trust) ──
   emerald:    "#10B981",
   emeraldDim: "rgba(16,185,129,0.08)",
   teal:       "#14B8A6",
 
-  // ── Secondary (Indigo / Violet — AI, Futuristic, Intelligence) ──
+  // ── Secondary (Indigo / Violet - AI, Futuristic, Intelligence) ──
   indigo:     "#6366F1",
   violet:     "#8B5CF6",
   indigoDim:  "rgba(99,102,241,0.08)",

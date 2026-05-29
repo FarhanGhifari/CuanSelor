@@ -28,7 +28,7 @@
   },
   "projection": {
     "pessimistic_p10": {
-      "percentile": "P10 — Pesimistis",
+      "percentile": "P10 - Pesimistis",
       "fund_at_retirement": 1907635696.0,
       "real_fund_at_retirement": 800236374.0,
       "annual_withdrawal_capacity": 66767249.0,
@@ -37,7 +37,7 @@
       "note": "Nilai dana dalam IDR nominal saat pensiun usia 55"
     },
     "median_p50": {
-      "percentile": "P50 — Median",
+      "percentile": "P50 - Median",
       "fund_at_retirement": 2314006659.0,
       "real_fund_at_retirement": 970705415.0,
       "annual_withdrawal_capacity": 80990233.0,
@@ -46,7 +46,7 @@
       "note": "Nilai dana dalam IDR nominal saat pensiun usia 55"
     },
     "optimistic_p90": {
-      "percentile": "P90 — Optimistis",
+      "percentile": "P90 - Optimistis",
       "fund_at_retirement": 2813174917.0,
       "real_fund_at_retirement": 1180102103.0,
       "annual_withdrawal_capacity": 98461122.0,

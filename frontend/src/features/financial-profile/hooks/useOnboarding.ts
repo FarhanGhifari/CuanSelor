@@ -19,10 +19,10 @@ function sanitize(raw: WizardData): OnboardingPayload {
     gender:             (raw.gender as "male" | "female") ?? "male",
     monthlyIncome:      Number(raw.monthlyIncome)      || 0,
     annualBonusMonths:  Number(raw.annualBonusMonths)  || 0,
-    monthlyExpense:     Number(raw.monthlyExpense)     || 0,
+    monthlyExpense:     Number(raw.riskAnswers?.monthly_expenses) || 0,
     savingsPercentage:  Number(raw.savingsPercentage)  || 0,
     currentSavings:     Number(raw.currentSavings)     || 0,
-    totalDebt:          Number(raw.totalDebt)          || 0,
+    totalDebt:          Number(raw.riskAnswers?.loan_amount) || 0,
     retirementAge:      Number(raw.retirementAge)      || 55,
     lifestylePercent:   Number(raw.lifestylePercent)   || 80,
     riskProfile:        (raw.riskProfile as OnboardingPayload["riskProfile"]) ?? "moderate",
@@ -34,7 +34,7 @@ function sanitize(raw: WizardData): OnboardingPayload {
   };
 }
 
-// ── useOnboarding — for post-registration flow ───────────────────────
+// ── useOnboarding - for post-registration flow ───────────────────────
 export function useOnboarding() {
   const router = useRouter();
   const [isPending, setIsPending] = useState(false);
@@ -58,7 +58,7 @@ export function useOnboarding() {
   return { submit, isPending, error };
 }
 
-// ── useSubmitFinancial — for dashboard/financial update flow ─────────
+// ── useSubmitFinancial - for dashboard/financial update flow ─────────
 export function useSubmitFinancial() {
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -82,7 +82,7 @@ export function useSubmitFinancial() {
   return { submitFinancial, isPending, error };
 }
 
-// ── useSubmitPension — for dashboard/pension update flow ─────────────
+// ── useSubmitPension - for dashboard/pension update flow ─────────────
 export function useSubmitPension() {
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -106,7 +106,7 @@ export function useSubmitPension() {
   return { submitPension, isPending, error };
 }
 
-// ── useFinancialProfile — fetch saved financial data for dashboard display ──
+// ── useFinancialProfile - fetch saved financial data for dashboard display ──
 export function useFinancialProfile() {
   const [profile, setProfile] = useState<FinancialProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);

@@ -91,8 +91,33 @@ CORS_ORIGINS=http://localhost:3000,http://localhost:5000
 
 ### 3. Run Application
 
+#### Recommended: Manual (3 Terminals)
+
+Lebih mudah untuk debugging dan melihat error messages:
+
 ```bash
-# Dari root folder - jalankan semua services
+# Terminal 1 - Calculator Service
+cd streamlit-ds
+python api_server.py
+# Wait until you see: "Ready to accept requests"
+
+# Terminal 2 - Backend API
+cd backend
+npm run dev
+# Wait until you see: "Server running on port 8000"
+
+# Terminal 3 - Frontend
+cd frontend
+npm run dev
+# Wait until you see: "Ready on http://localhost:3000"
+```
+
+#### Alternative: All at Once (1 Terminal)
+
+Jika ingin run semua sekaligus (log akan tercampur):
+
+```bash
+# Dari root folder
 npm run dev
 ```
 

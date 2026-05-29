@@ -126,7 +126,7 @@ class RetirementCalculator:
             r_m = monthly_returns[:, m] if m < monthly_returns.shape[1] else np.zeros(self.n_sims)
             fund = fund * (1 + r_m) + monthly_contribution
 
-        # Menambahkan kontribusi bonus tahunan (THR) — dihitung per tahun dari gaji tahun ke-yr
+        # Menambahkan kontribusi bonus tahunan (THR) - dihitung per tahun dari gaji tahun ke-yr
         for yr in range(years_to_ret):
             months_remaining = (years_to_ret - yr - 1) * 12
             # Gaji riil di tahun ke-yr (unit Rupiah hari ini)
@@ -203,7 +203,7 @@ class RetirementCalculator:
             # Artinya: biaya_hidup_dasar + biaya_kesehatan_extra (proporsi dari expense)
             # Contoh: expense Rp67.2jt, health_premium 10% → tambahan Rp6.72jt
             # Berbeda dari sebelumnya (eksponensial): (1 + health_premium*0.5)^max(yr-10,0)
-            # yang bisa mencapai 31× lipat di usia 95 — tidak realistis.
+            # yang bisa mencapai 31× lipat di usia 95 - tidak realistis.
 
             r_yr = post_ret_returns[:, yr]
             fund = fund * (1 + r_yr) - total_expense
@@ -315,13 +315,13 @@ class RetirementCalculator:
         # ── Akumulasi: IDENTIK untuk keduanya (pakai profil user) ──────────────
         fund_base = self._simulate_accumulation(profile, profile.risk_profile, inflation_paths)
 
-        # Strategi A: Fixed Allocation — fase penarikan pakai profil user (tidak bergeser)
+        # Strategi A: Fixed Allocation - fase penarikan pakai profil user (tidak bergeser)
         ruin_A, _ = self._simulate_decumulation(
             fund_base, profile, planning_age, inflation_paths,
             conservative_risk=profile.risk_profile  # ← tidak bergeser
         )
 
-        # Strategi B: Adaptive Glide Path — fase penarikan 1 tingkat lebih konservatif
+        # Strategi B: Adaptive Glide Path - fase penarikan 1 tingkat lebih konservatif
         b_risk = _conservative_step(profile.risk_profile)
         ruin_B, _ = self._simulate_decumulation(
             fund_base, profile, planning_age, inflation_paths,
@@ -498,9 +498,9 @@ class RetirementCalculator:
 
         # 6. Bangun 3 skenario hasil (Pesimis P10, Median P50, Optimis P90)
         scenarios = {
-            "pessimistic_p10": build_scenario(10, "P10 — Pesimistis"),
-            "median_p50":      build_scenario(50, "P50 — Median"),
-            "optimistic_p90":  build_scenario(90, "P90 — Optimistis"),
+            "pessimistic_p10": build_scenario(10, "P10 - Pesimistis"),
+            "median_p50":      build_scenario(50, "P50 - Median"),
+            "optimistic_p90":  build_scenario(90, "P90 - Optimistis"),
         }
 
         p50 = scenarios["median_p50"]
@@ -508,7 +508,7 @@ class RetirementCalculator:
         alloc = RISK_PROFILES[eff_risk]["allocation"]
 
         # Hitung target dana pensiun yang dibutuhkan (required nest egg)
-        # Expense dalam unit RIIL (Rupiah hari ini) — konsisten dengan fund hasil simulasi
+        # Expense dalam unit RIIL (Rupiah hari ini) - konsisten dengan fund hasil simulasi
         annual_expense_real = profile.monthly_salary * 12 * profile.replacement_ratio
         required_nest_egg   = annual_expense_real / SAFE_WITHDRAWAL_RATES.get(profile.risk_profile, 0.035)
         gap = round(p50.fund_at_retirement - required_nest_egg)

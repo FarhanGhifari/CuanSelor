@@ -24,12 +24,12 @@ export const HOW_IT_WORKS = [
   {
     icon: TrendingUp,
     title: "Lihat proyeksi pensiunmu",
-    desc: "Visualisasikan berapa yang kamu butuhkan untuk pensiun — disesuaikan inflasi, kenaikan gaji, dan harapan hidup riil.",
+    desc: "Visualisasikan berapa yang kamu butuhkan untuk pensiun - disesuaikan inflasi, kenaikan gaji, dan harapan hidup riil.",
   },
   {
     icon: MessageCircle,
     title: "Tanya AI advisor-mu",
-    desc: "Chat dengan AI yang tahu datamu. Tanya apapun — 'Bisakah saya pensiun di usia 50?' atau 'Prioritas bayar utang atau investasi?'",
+    desc: "Chat dengan AI yang tahu datamu. Tanya apapun - 'Bisakah saya pensiun di usia 50?' atau 'Prioritas bayar utang atau investasi?'",
   },
 ];
 
@@ -37,17 +37,17 @@ export const FEATURES = [
   {
     icon: Brain,
     title: "Proyeksi pensiun aktuaria",
-    desc: "Dibangun berdasarkan Tabel Mortalitas Indonesia 2023 — bukan asumsi usia sembarangan. Proyeksimu menyesuaikan gaya hidup dan faktor risikomu.",
+    desc: "Dibangun berdasarkan Tabel Mortalitas Indonesia 2023 - bukan asumsi usia sembarangan. Proyeksimu menyesuaikan gaya hidup dan faktor risikomu.",
   },
   {
     icon: Zap,
     title: "Portofolio personal",
-    desc: "Dapatkan alokasi konkret — deposito, obligasi negara, reksa dana, atau saham — sesuai toleransi risiko dan horizon waktumu.",
+    desc: "Dapatkan alokasi konkret - deposito, obligasi negara, reksa dana, atau saham - sesuai toleransi risiko dan horizon waktumu.",
   },
   {
     icon: Target,
     title: "Simulasi what-if",
-    desc: "Ubah usia pensiun, besaran tabungan, atau jenis investasi — lihat dampaknya pada proyeksimu secara real-time.",
+    desc: "Ubah usia pensiun, besaran tabungan, atau jenis investasi - lihat dampaknya pada proyeksimu secara real-time.",
   },
   {
     icon: MessageCircle,
@@ -91,7 +91,7 @@ export const TESTIMONIALS = [
   },
   {
     initials: "SR",
-    quote: "AI advisornya bisa jawab pertanyaan spesifik gue — langsung tau kalau invest Rp 500k/bulan ke reksa dana saham, kapan gue bisa pensiun.",
+    quote: "AI advisornya bisa jawab pertanyaan spesifik gue - langsung tau kalau invest Rp 500k/bulan ke reksa dana saham, kapan gue bisa pensiun.",
     name: "Sinta R.",
     role: "Freelancer, 27 thn",
   },
@@ -136,22 +136,22 @@ export const TESTIMONIALS = [
 export const FAQS = [
   {
     q: "Apakah CuanSelor benar-benar gratis?",
-    a: "Ya, sepenuhnya gratis. Tidak ada biaya langganan, tidak ada fitur berbayar. Semua fitur inti — proyeksi pensiun, rekomendasi portofolio, dan AI advisor — bisa diakses tanpa biaya.",
+    a: "Ya, sepenuhnya gratis. Tidak ada biaya langganan, tidak ada fitur berbayar. Semua fitur inti - proyeksi pensiun, rekomendasi portofolio, dan AI advisor - bisa diakses tanpa biaya.",
   },
   {
     q: "Apakah data finansial saya aman?",
-    a: "Data kamu dienkripsi dan tidak pernah dijual atau dibagikan ke pihak ketiga. CuanSelor tidak menyimpan data kartu kredit atau rekening bank — kami hanya menggunakan data yang kamu input sendiri.",
+    a: "Data kamu dienkripsi dan tidak pernah dijual atau dibagikan ke pihak ketiga. CuanSelor tidak menyimpan data kartu kredit atau rekening bank - kami hanya menggunakan data yang kamu input sendiri.",
   },
   {
     q: "Apakah ini menggantikan financial advisor sungguhan?",
-    a: "CuanSelor adalah alat perencanaan berbasis data, bukan pengganti financial advisor berlisensi. Rekomendasi kami bersifat edukatif — untuk keputusan investasi besar, konsultasi dengan profesional tetap disarankan.",
+    a: "CuanSelor adalah alat perencanaan berbasis data, bukan pengganti financial advisor berlisensi. Rekomendasi kami bersifat edukatif - untuk keputusan investasi besar, konsultasi dengan profesional tetap disarankan.",
   },
   {
     q: "Seberapa akurat proyeksi pensiun CuanSelor?",
-    a: "Proyeksi kami menggunakan Tabel Mortalitas dan Morbiditas Penduduk Indonesia 2023 dan model deep learning untuk prediksi inflasi dan return investasi — jauh lebih akurat dari kalkulator konvensional yang pakai asumsi statis.",
+    a: "Proyeksi kami menggunakan Tabel Mortalitas dan Morbiditas Penduduk Indonesia 2023 dan model deep learning untuk prediksi inflasi dan return investasi - jauh lebih akurat dari kalkulator konvensional yang pakai asumsi statis.",
   },
   {
     q: "Siapa yang cocok pakai CuanSelor?",
-    a: "Siapa saja yang ingin memahami kondisi finansial mereka — terutama Gen Z (18–30 tahun) yang baru mulai bekerja dan ingin merencanakan masa depan sejak dini.",
+    a: "Siapa saja yang ingin memahami kondisi finansial mereka - terutama Gen Z (18–30 tahun) yang baru mulai bekerja dan ingin merencanakan masa depan sejak dini.",
   },
 ];

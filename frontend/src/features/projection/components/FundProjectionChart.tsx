@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import type { CalculatorOutput } from "../types/projection.types";
-import { formatCurrency } from "../utils/format";
+import { formatCurrency, formatCurrencyShort } from "../utils/format";
 
 interface FundProjectionChartProps {
   data: CalculatorOutput;
@@ -105,7 +105,7 @@ export function FundProjectionChart({ data }: FundProjectionChartProps) {
           <YAxis
             stroke="#9ca3af"
             style={{ fontSize: "12px" }}
-            tickFormatter={(value) => formatCurrency(value)}
+            tickFormatter={(value) => formatCurrencyShort(value)}
           />
           <Tooltip
             contentStyle={{

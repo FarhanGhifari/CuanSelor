@@ -12,11 +12,11 @@ export const ARTICLES: BlogArticle[] = [
         content: [
             {
                 type: "paragraph",
-                text: "Kalkulator pensiun konvensional punya satu asumsi fatal — mereka mematok usia meninggal pada angka arbitrer, biasanya 80 tahun. Jika kamu ternyata hidup sampai 90, dana pensiunmu bisa habis 10 tahun lebih cepat dari rencana.",
+                text: "Kalkulator pensiun konvensional punya satu asumsi fatal - mereka mematok usia meninggal pada angka arbitrer, biasanya 80 tahun. Jika kamu ternyata hidup sampai 90, dana pensiunmu bisa habis 10 tahun lebih cepat dari rencana.",
             },
             {
                 type: "callout",
-                text: "Longevity risk — risiko hidup lebih lama dari ketersediaan dana — adalah ancaman finansial terbesar yang paling sering diabaikan oleh perencanaan keuangan konvensional.",
+                text: "Longevity risk - risiko hidup lebih lama dari ketersediaan dana - adalah ancaman finansial terbesar yang paling sering diabaikan oleh perencanaan keuangan konvensional.",
             },
             {
                 type: "heading",
@@ -24,7 +24,7 @@ export const ARTICLES: BlogArticle[] = [
             },
             {
                 type: "paragraph",
-                text: "Ilmu aktuaria menggunakan data statistik populasi untuk menghitung probabilitas seseorang masih hidup di usia tertentu. CuanSelor menggunakan Tabel Mortalitas dan Morbiditas Penduduk Indonesia 2023 sebagai baseline — bukan asumsi sembarangan. Hasilnya jauh lebih akurat dan personal.",
+                text: "Ilmu aktuaria menggunakan data statistik populasi untuk menghitung probabilitas seseorang masih hidup di usia tertentu. CuanSelor menggunakan Tabel Mortalitas dan Morbiditas Penduduk Indonesia 2023 sebagai baseline - bukan asumsi sembarangan. Hasilnya jauh lebih akurat dan personal.",
             },
             {
                 type: "heading",
@@ -32,7 +32,7 @@ export const ARTICLES: BlogArticle[] = [
             },
             {
                 type: "paragraph",
-                text: "Kebutuhan dana pensiun = pengeluaran bulanan saat pensiun × 12 × estimasi lama pensiun, disesuaikan dengan tingkat inflasi dan return investasi. Angka ini kemudian di-adjust dengan Hazard Multiplier berdasarkan gaya hidupmu — apakah kamu merokok, berolahraga rutin, pola makan sehat, dan sebagainya.",
+                text: "Kebutuhan dana pensiun = pengeluaran bulanan saat pensiun × 12 × estimasi lama pensiun, disesuaikan dengan tingkat inflasi dan return investasi. Angka ini kemudian di-adjust dengan Hazard Multiplier berdasarkan gaya hidupmu - apakah kamu merokok, berolahraga rutin, pola makan sehat, dan sebagainya.",
             },
             {
                 type: "heading",
@@ -55,7 +55,7 @@ export const ARTICLES: BlogArticle[] = [
     {
         slug: "reksa-dana-vs-saham-untuk-pemula",
         title: "Reksa Dana vs Saham: Mana yang Cocok untuk Pemula?",
-        excerpt: "Perbandingan risiko, return, dan likuiditas — lengkap dengan rekomendasi untuk tiap profil risiko investasi.",
+        excerpt: "Perbandingan risiko, return, dan likuiditas - lengkap dengan rekomendasi untuk tiap profil risiko investasi.",
         category: "Investasi",
         readTime: 5,
         publishedAt: "2026-01-08",
@@ -102,7 +102,7 @@ export const ARTICLES: BlogArticle[] = [
     {
         slug: "metode-50-30-20-atur-gaji",
         title: "Metode 50/30/20: Cara Atur Gaji Pertama agar Tidak Habis Sebelum Tanggal",
-        excerpt: "Bukan soal berhemat ekstrem — tapi soal sistem yang bikin uangmu bekerja lebih keras untuk masa depanmu.",
+        excerpt: "Bukan soal berhemat ekstrem - tapi soal sistem yang bikin uangmu bekerja lebih keras untuk masa depanmu.",
         category: "Budgeting",
         readTime: 4,
         publishedAt: "2026-01-05",
@@ -110,7 +110,7 @@ export const ARTICLES: BlogArticle[] = [
         content: [
             {
                 type: "paragraph",
-                text: "Gaji pertama terasa seperti kebebasan — sampai tiba-tiba tanggal 20 dan saldo tinggal receh. Bukan karena gajimu kecil, tapi karena tidak ada sistem yang mengatur ke mana uangmu pergi.",
+                text: "Gaji pertama terasa seperti kebebasan - sampai tiba-tiba tanggal 20 dan saldo tinggal receh. Bukan karena gajimu kecil, tapi karena tidak ada sistem yang mengatur ke mana uangmu pergi.",
             },
             {
                 type: "heading",
@@ -122,7 +122,7 @@ export const ARTICLES: BlogArticle[] = [
             },
             {
                 type: "callout",
-                text: "20% untuk tabungan dan investasi bukan pilihan — ini adalah 'gaji' yang kamu bayarkan untuk dirimu di masa depan. Bayar dirimu sendiri terlebih dahulu.",
+                text: "20% untuk tabungan dan investasi bukan pilihan - ini adalah 'gaji' yang kamu bayarkan untuk dirimu di masa depan. Bayar dirimu sendiri terlebih dahulu.",
             },
             {
                 type: "heading",
@@ -131,8 +131,8 @@ export const ARTICLES: BlogArticle[] = [
             {
                 type: "list",
                 items: [
-                    "50% kebutuhan: sewa kos, makan, transport, tagihan — hal-hal yang tidak bisa ditunda",
-                    "30% keinginan: makan di restoran, hiburan, belanja non-esensial — boleh, tapi dalam batas",
+                    "50% kebutuhan: sewa kos, makan, transport, tagihan - hal-hal yang tidak bisa ditunda",
+                    "30% keinginan: makan di restoran, hiburan, belanja non-esensial - boleh, tapi dalam batas",
                     "20% masa depan: dana darurat dulu (3-6 bulan pengeluaran), baru investasi untuk pensiun",
                 ],
             },
@@ -157,7 +157,7 @@ export const ARTICLES: BlogArticle[] = [
         content: [
             {
                 type: "paragraph",
-                text: "Di sekolah, kita diajarkan cara menghitung bunga, cara membaca neraca keuangan, bahkan cara menghitung luas trapesium. Tapi tidak ada yang mengajarkan tentang longevity risk — risiko yang bisa menghancurkan rencana pensiun jutaan orang.",
+                text: "Di sekolah, kita diajarkan cara menghitung bunga, cara membaca neraca keuangan, bahkan cara menghitung luas trapesium. Tapi tidak ada yang mengajarkan tentang longevity risk - risiko yang bisa menghancurkan rencana pensiun jutaan orang.",
             },
             {
                 type: "heading",
@@ -165,7 +165,7 @@ export const ARTICLES: BlogArticle[] = [
             },
             {
                 type: "paragraph",
-                text: "Longevity risk adalah risiko seseorang hidup lebih lama dari ketersediaan dana yang dimilikinya. Dengan meningkatnya kualitas kesehatan, harapan hidup rata-rata Indonesia terus meningkat. Ini kabar baik — kecuali kamu tidak punya cukup dana untuk membiayai masa tua yang lebih panjang.",
+                text: "Longevity risk adalah risiko seseorang hidup lebih lama dari ketersediaan dana yang dimilikinya. Dengan meningkatnya kualitas kesehatan, harapan hidup rata-rata Indonesia terus meningkat. Ini kabar baik - kecuali kamu tidak punya cukup dana untuk membiayai masa tua yang lebih panjang.",
             },
             {
                 type: "callout",
@@ -177,7 +177,7 @@ export const ARTICLES: BlogArticle[] = [
             },
             {
                 type: "paragraph",
-                text: "Generasi Z saat ini berusia 18–27 tahun. Pensiun terasa jauh — tapi justru itulah masalahnya. Waktu adalah aset paling berharga dalam investasi karena compound interest membutuhkan waktu untuk bekerja. Setiap tahun yang terlewat tanpa investasi adalah biaya opportunity yang sangat besar.",
+                text: "Generasi Z saat ini berusia 18–27 tahun. Pensiun terasa jauh - tapi justru itulah masalahnya. Waktu adalah aset paling berharga dalam investasi karena compound interest membutuhkan waktu untuk bekerja. Setiap tahun yang terlewat tanpa investasi adalah biaya opportunity yang sangat besar.",
             },
             {
                 type: "heading",
@@ -186,7 +186,7 @@ export const ARTICLES: BlogArticle[] = [
             {
                 type: "list",
                 items: [
-                    "Mulai investasi sesegera mungkin — bahkan Rp 100.000 per bulan lebih baik dari tidak sama sekali",
+                    "Mulai investasi sesegera mungkin - bahkan Rp 100.000 per bulan lebih baik dari tidak sama sekali",
                     "Hitung proyeksi pensiun dengan asumsi harapan hidup yang realistis, bukan 80 tahun flat",
                     "Diversifikasi portofolio untuk memastikan ada sumber pendapatan pasif saat pensiun",
                 ],
@@ -212,7 +212,7 @@ export const ARTICLES: BlogArticle[] = [
             },
             {
                 type: "paragraph",
-                text: "Tabel mortalitas adalah kumpulan data statistik yang menunjukkan probabilitas kematian dan kelangsungan hidup untuk setiap kelompok usia dalam suatu populasi. CuanSelor menggunakan Tabel Mortalitas dan Morbiditas Penduduk Indonesia 2023 — versi terbaru yang merepresentasikan populasi Indonesia tanpa bias seleksi dari asuransi komersial.",
+                text: "Tabel mortalitas adalah kumpulan data statistik yang menunjukkan probabilitas kematian dan kelangsungan hidup untuk setiap kelompok usia dalam suatu populasi. CuanSelor menggunakan Tabel Mortalitas dan Morbiditas Penduduk Indonesia 2023 - versi terbaru yang merepresentasikan populasi Indonesia tanpa bias seleksi dari asuransi komersial.",
             },
             {
                 type: "callout",
@@ -255,7 +255,7 @@ export const ARTICLES: BlogArticle[] = [
             },
             {
                 type: "callout",
-                text: "Waktu adalah variabel paling kuat dalam persamaan investasi — jauh lebih kuat dari besaran setoran bulanan.",
+                text: "Waktu adalah variabel paling kuat dalam persamaan investasi - jauh lebih kuat dari besaran setoran bulanan.",
             },
             {
                 type: "heading",
@@ -266,12 +266,12 @@ export const ARTICLES: BlogArticle[] = [
                 items: [
                     "Minimal 10–15% dari pendapatan bersih untuk investasi jangka panjang",
                     "Sisihkan dulu sebelum bayar kebutuhan lain (pay yourself first)",
-                    "Naikkan persentase setiap kali gaji naik — minimal tambah 1% per tahun",
+                    "Naikkan persentase setiap kali gaji naik - minimal tambah 1% per tahun",
                 ],
             },
             {
                 type: "paragraph",
-                text: "Gunakan fitur simulasi CuanSelor untuk melihat proyeksi pensiunmu secara real-time. Coba ubah usia mulai investasi dan lihat dampaknya — hasilnya akan mengejutkan kamu.",
+                text: "Gunakan fitur simulasi CuanSelor untuk melihat proyeksi pensiunmu secara real-time. Coba ubah usia mulai investasi dan lihat dampaknya - hasilnya akan mengejutkan kamu.",
             },
         ],
     },

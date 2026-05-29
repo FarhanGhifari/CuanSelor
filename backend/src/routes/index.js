@@ -15,7 +15,7 @@ apiRouter.use("/profile", profileRouter);
 apiRouter.use("/projection", projectionRouter);
 apiRouter.use("/risk", riskRouter);
 
-// ── Endpoint debug — hanya aktif di luar production ──────────────────────────
+// ── Endpoint debug - hanya aktif di luar production ──────────────────────────
 if (env.nodeEnv !== "production") {
   apiRouter.get("/protected", requireAuth, (req, res) => {
     res.json({

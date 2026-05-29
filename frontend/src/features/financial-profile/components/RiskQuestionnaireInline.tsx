@@ -110,7 +110,7 @@ export function RiskQuestionnaireInline({ onComplete, initialProfile }: RiskQues
 
   return (
     <div className="rounded-xl border border-border overflow-hidden">
-      {/* Header — always visible */}
+      {/* Header - always visible */}
       <button
         type="button"
         onClick={() => setIsOpen((v) => !v)}
@@ -134,7 +134,7 @@ export function RiskQuestionnaireInline({ onComplete, initialProfile }: RiskQues
         />
       </button>
 
-      {/* Body — expandable */}
+      {/* Body - expandable */}
       {isOpen && (
         <div className="p-4 pt-0 space-y-4 border-t border-border">
           {QUESTIONS.map((q, qi) => (
@@ -178,7 +178,7 @@ export function RiskQuestionnaireInline({ onComplete, initialProfile }: RiskQues
         </div>
       )}
 
-      {/* Result badge — shown when submitted */}
+      {/* Result badge - shown when submitted */}
       {submitted && currentProfile && !isOpen && (
         <div className={`mx-4 mb-4 p-3 rounded-lg border ${PROFILE_LABELS[currentProfile].color}`}>
           <p className="text-sm font-medium">

@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CuanSelor — AI Financial Planning",
+  title: "CuanSelor - AI Financial Planning",
   description: "Platform perencanaan keuangan pensiun berbasis AI. Analisis, proyeksi, dan rekomendasi investasi personal.",
 };
 

@@ -16,10 +16,10 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug }  = await params;
   const article   = getArticleBySlug(slug);
-  if (!article) return { title: "Artikel tidak ditemukan — CuanSelor" };
+  if (!article) return { title: "Artikel tidak ditemukan - CuanSelor" };
 
   return {
-    title:       `${article.title} — CuanSelor`,
+    title:       `${article.title} - CuanSelor`,
     description: article.excerpt,
   };
 }

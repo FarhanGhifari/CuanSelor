@@ -33,7 +33,7 @@ export function BlogListPage() {
                     </p>
                 </div>
 
-                {/* Category tabs — Apple-style pill tabs */}
+                {/* Category tabs - Apple-style pill tabs */}
                 <div className="max-w-screen-xl mx-auto px-6 lg:px-12 pb-1">
                     <CategoryFilter
                         active={activeCategory}
@@ -44,7 +44,7 @@ export function BlogListPage() {
 
             <div className="max-w-screen-xl mx-auto px-6 lg:px-12 py-14">
 
-                {/* ── Featured hero — only show on "Semua" ──────────── */}
+                {/* ── Featured hero - only show on "Semua" ──────────── */}
                 {activeCategory === "Semua" && (
                     <div className="mb-16">
                         <ArticleCard article={featured} featured />

@@ -4,7 +4,7 @@ import { mapSectorToBps } from "./sector.mapper.js";
 import { callFastAPICalculator } from "./fastapi-calculator.client.js";
 import { generateCacheKey, getCachedProjection, setCachedProjection } from "../../utils/cache.js";
 
-export async function calculateProjection(userId) {
+export async function calculateProjection(userId, customPlanningAge = null) {
   const [financialResult, pensionResult, riskResult, userResult] = await Promise.all([
     supabase.from("financial_records").select("*").eq("user_id", userId).maybeSingle(),
     supabase.from("retirement_plans").select("*").eq("user_id", userId).maybeSingle(),
@@ -46,7 +46,7 @@ export async function calculateProjection(userId) {
     custom_deposit_rate: financial.expected_annual_return
       ? Number(financial.expected_annual_return) / 100
       : null,
-    custom_planning_age: null,
+    custom_planning_age: customPlanningAge ? Number(customPlanningAge) : null,
     current_assets: Number(financial.cold_cash) || 0,
     annual_bonus_months: Number(financial.annual_bonus) || 1.0,
     replacement_ratio: Number(pension.post_retirement_lifestyle) / 100 || 0.7,

@@ -5,16 +5,16 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Mail, Loader2, ArrowLeft, CheckCircle2 } from "lucide-react";
 import { forgotPasswordSchema, type ForgotPasswordInput } from "../validations/auth.schema";
-import { authMock } from "../services/auth.mock";
 import { cn } from "@/lib/utils/cn";
 import Link from "next/link";
 import { ROUTES } from "@/lib/constants/routes";
 
-type Step = "idle" | "loading" | "success";
+type Step = "idle" | "loading" | "success" | "error";
 
 export default function ForgotPasswordForm() {
   const [step, setStep] = useState<Step>("idle");
   const [submittedEmail, setSubmittedEmail] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   const {
     register,
@@ -27,9 +27,34 @@ export default function ForgotPasswordForm() {
 
   const onSubmit = async (data: ForgotPasswordInput) => {
     setStep("loading");
-    await authMock.forgotPassword(data.email);
-    setSubmittedEmail(data.email);
-    setStep("success");
+    setErrorMessage("");
+    
+    try {
+      // Better Auth forget password API
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/auth/forgot-password`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: data.email,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || result.error) {
+        setErrorMessage(result.error?.message || result.message || "Gagal mengirim email reset password");
+        setStep("error");
+        return;
+      }
+
+      setSubmittedEmail(data.email);
+      setStep("success");
+    } catch (error) {
+      setErrorMessage("Terjadi kesalahan. Silakan coba lagi.");
+      setStep("error");
+    }
   };
 
   if (step === "success") {
@@ -45,23 +70,23 @@ export default function ForgotPasswordForm() {
           </div>
         </div>
 
-        <h3 className="text-2xl font-bold text-gray-900 mb-3">Check your inbox</h3>
+        <h3 className="text-2xl font-bold text-gray-900 mb-3">Cek Email Anda</h3>
         <p className="text-gray-500 text-sm leading-relaxed mb-2">
-          We&apos;ve sent a password reset link to:
+          Kami sudah mengirim link reset password ke:
         </p>
         <p className="text-[#10B981] font-semibold text-base mb-8 break-all">
           {submittedEmail}
         </p>
         <p className="text-gray-400 text-xs leading-relaxed mb-8">
-          Didn&apos;t receive the email? Check your spam folder or{" "}
+          Tidak menerima email? Cek folder spam atau{" "}
           <button
             type="button"
             onClick={() => setStep("idle")}
             className="text-[#10B981] hover:text-[#059669] font-medium underline underline-offset-2 transition-colors"
           >
-            try again
+            kirim ulang
           </button>
-          . The link will expire in 15 minutes.
+          . Link akan kedaluwarsa dalam 1 jam.
         </p>
 
         <Link
@@ -69,7 +94,7 @@ export default function ForgotPasswordForm() {
           className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-800 transition-colors font-medium"
         >
           <ArrowLeft size={16} />
-          Back to Sign In
+          Kembali ke Login
         </Link>
       </div>
     );
@@ -85,17 +110,24 @@ export default function ForgotPasswordForm() {
         >
           <Mail className="w-7 h-7 text-[#10B981]" strokeWidth={1.5} />
         </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Forgot your password?</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Lupa Password?</h2>
         <p className="text-sm text-gray-500 leading-relaxed">
-          No worries! Enter the email address linked to your account and we&apos;ll send
-          you a reset link.
+          Tidak masalah! Masukkan email yang terdaftar dan kami akan kirimkan link untuk reset password Anda.
         </p>
       </div>
+
+      {/* Error Message */}
+      {step === "error" && errorMessage && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3 text-red-600 animate-in fade-in slide-in-from-top-2 duration-300">
+          <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+          <p className="text-sm font-medium">{errorMessage}</p>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <div className="space-y-2">
           <label htmlFor="email" className="text-[14px] font-medium text-gray-700 block">
-            Email Address
+            Alamat Email
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
@@ -133,10 +165,10 @@ export default function ForgotPasswordForm() {
           {step === "loading" ? (
             <>
               <Loader2 className="animate-spin" size={18} />
-              Sending reset link...
+              Mengirim link...
             </>
           ) : (
-            "Send Reset Link"
+            "Kirim Link Reset"
           )}
         </button>
       </form>
@@ -147,7 +179,7 @@ export default function ForgotPasswordForm() {
           className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-800 transition-colors font-medium"
         >
           <ArrowLeft size={15} />
-          Back to Sign In
+          Kembali ke Login
         </Link>
       </div>
     </div>

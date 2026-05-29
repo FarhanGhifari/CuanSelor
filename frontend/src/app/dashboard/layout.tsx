@@ -25,11 +25,6 @@ const navItems = [
     icon: LayoutDashboard,
   },
   {
-    name: "Data Finansial",
-    href: "/dashboard/financial",
-    icon: WalletCards,
-  },
-  {
     name: "Tanya FindSor!",
     href: "/dashboard/projection",
     icon: MessageCircle,

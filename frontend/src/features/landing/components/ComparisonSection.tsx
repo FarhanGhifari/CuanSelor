@@ -11,7 +11,7 @@ const WHY_US_PILLARS = [
 /** Comparison table + 3-pillar section on parchment background. */
 export default function ComparisonSection() {
   return (
-    <section id="why-us" style={{ background: T.parchment, padding: "120px 5%" }}>
+    <section style={{ background: T.parchment, padding: "120px 5%" }}>
       <div style={{ maxWidth: 1400, margin: "0 auto", textAlign: "center" }}>
         <h2
           style={{

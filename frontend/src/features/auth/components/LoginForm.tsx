@@ -56,13 +56,12 @@ export default function LoginForm() {
         } else {
           router.push(ROUTES.ONBOARDING);
         }
-      } catch (err) {
-        console.error("Failed to check onboarding status:", err);
+      } catch {
+        // If status check fails, default to onboarding
         router.push(ROUTES.ONBOARDING);
       }
-    } catch (error) {
+    } catch {
       setLoginError("An error occurred during login");
-      console.error(error);
     } finally {
       setIsLoading(false);
     }

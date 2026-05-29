@@ -109,7 +109,7 @@ export default function HeroSection() {
         }}
       />
 
-      {/* Glow behind dashboard — hardware accelerated soft ambient orbs */}
+      {/* Glow behind dashboard - hardware accelerated soft ambient orbs */}
       <div
         ref={orbRef1}
         className="absolute pointer-events-none"
@@ -161,7 +161,7 @@ export default function HeroSection() {
               </span>
             </div>
 
-            {/* ── Headline — Short, bold, and punchy ── */}
+            {/* ── Headline - Short, bold, and punchy ── */}
             <h1
               className="hero-fade-2"
               style={{
@@ -200,7 +200,7 @@ export default function HeroSection() {
                 maxWidth: 580,
               }}
             >
-              Analisis kondisi keuangan, proyeksi masa depan pensiun, dan dapatkan rekomendasi investasi personal — diperkuat oleh kecerdasan buatan.
+              Analisis kondisi keuangan, proyeksi masa depan pensiun, dan dapatkan rekomendasi investasi personal - diperkuat oleh kecerdasan buatan.
             </p>
 
             {/* ── Emotional Statement ── */}
@@ -233,7 +233,7 @@ export default function HeroSection() {
             </div>
           </div>
 
-          {/* ══════════ RIGHT COLUMN — Dashboard — Hardware Accelerated ══════════ */}
+          {/* ══════════ RIGHT COLUMN - Dashboard - Hardware Accelerated ══════════ */}
           <div
             ref={dashboardRef}
             className="lg:col-span-6 lg:col-start-7 relative hidden lg:block hero-fade-7"
@@ -465,7 +465,7 @@ function FloatingDashboard() {
   return (
     <div className="relative w-full h-full">
 
-      {/* ── Main Dashboard Card — Depth & Inner Glow ── */}
+      {/* ── Main Dashboard Card - Depth & Inner Glow ── */}
       <div
         className="absolute lp-float-dashboard"
         style={{
@@ -547,7 +547,7 @@ function FloatingDashboard() {
             />
           </div>
 
-          {/* Chart Section — Glowing Centerpiece */}
+          {/* Chart Section - Glowing Centerpiece */}
           <div
             style={{
               flex: 1,
@@ -583,24 +583,24 @@ function FloatingDashboard() {
         </div>
       </div>
 
-      {/* ═══ FLOATING CARDS (Layer 3) — Interactive Hover Depth ═══ */}
+      {/* ═══ FLOATING CARDS (Layer 3) - Interactive Hover Depth ═══ */}
 
-      {/* AI Insight Card — top-left */}
+      {/* AI Insight Card - top-left */}
       <div className="absolute lp-float-a" style={{ top: "5%", left: "-12%", zIndex: 20 }}>
         <AIInsightBubble />
       </div>
 
-      {/* Portfolio Card — mid-left */}
+      {/* Portfolio Card - mid-left */}
       <div className="absolute lp-float-b" style={{ top: "38%", left: "-15%", zIndex: 20 }}>
         <PortfolioMini />
       </div>
 
-      {/* Return Metric — bottom-right */}
+      {/* Return Metric - bottom-right */}
       <div className="absolute lp-float-c" style={{ bottom: "15%", right: "-8%", zIndex: 20 }}>
         <ReturnBubble />
       </div>
 
-      {/* AI Chat — bottom-left */}
+      {/* AI Chat - bottom-left */}
       <div className="absolute lp-float-d" style={{ bottom: "2%", left: "-10%", zIndex: 20 }}>
         <AIChatBubble />
       </div>
@@ -669,7 +669,7 @@ function AnimatedNumber({ value, color }: { value: string; color: string }) {
 }
 
 
-/*  Animated SVG Chart — Glowing Centerpiece */
+/*  Animated SVG Chart - Glowing Centerpiece */
 
 function AnimatedChart() {
   const pathRef = useRef<SVGPathElement | null>(null);

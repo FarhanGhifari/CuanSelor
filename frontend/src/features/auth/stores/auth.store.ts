@@ -1,10 +1,10 @@
-// via cookie httpOnly — Zustand hanya dipakai untuk UI state tambahan
+// via cookie httpOnly - Zustand hanya dipakai untuk UI state tambahan
 // BUKAN untuk menyimpan token / user secara manual
 
 import { create } from "zustand";
 
 interface AuthUIState {
-  // State UI saja — bukan session (session dari authClient.useSession())
+  // State UI saja - bukan session (session dari authClient.useSession())
   isLoginModalOpen: boolean;
   redirectAfterLogin: string;
   setRedirectAfterLogin: (path: string) => void;

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useLayoutEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     Wallet, TrendingUp, TrendingDown, Target, Shield,
@@ -51,9 +52,9 @@ const fmt = (n: number) => new Intl.NumberFormat("id-ID").format(n);
 
 /* ── Design Tokens ──────────────────────────────────────────────────── */
 const T = {
-    blue:     "#0066cc",
-    blueLight:"rgba(0,102,204,0.08)",
-    blueMid:  "rgba(0,102,204,0.15)",
+    blue:     "#10B981", // CuanSelor Emerald Green
+    blueLight:"rgba(16, 185, 129, 0.08)",
+    blueMid:  "rgba(16, 185, 129, 0.15)",
     ink:      "#1d1d1f",
     muted:    "#6e6e73",
     hairline: "#e0e0e0",
@@ -63,70 +64,128 @@ const T = {
     warning:  "#f59e0b",
 };
 
-/* ── Risk data ──────────────────────────────────────────────────────── */
-const RISK_QUESTIONS = [
+/* ── Risk Assessment Definitions ───────────────────────────────────── */
+export const RISK_QUESTIONS = [
     {
-        id: "q1",
-        q: "Berapa lama kamu berencana berinvestasi?",
-        emoji: "⏳",
-        opts: [
-            { label: "Kurang dari 2 tahun", sub: "Jangka pendek", score: 1 },
-            { label: "2 – 5 tahun",         sub: "Jangka menengah", score: 2 },
-            { label: "Lebih dari 5 tahun",  sub: "Jangka panjang", score: 3 },
-        ],
+        id: "age",
+        q: "Berapa usia kamu saat ini?",
+        emoji: "🎂",
+        type: "number",
+        placeholder: "Contoh: 32",
+        unit: "tahun",
     },
     {
-        id: "q2",
-        q: "Portofolio kamu tiba-tiba turun 20%. Kamu akan…",
-        emoji: "📉",
-        opts: [
-            { label: "Jual semuanya",             sub: "Daripada rugi lebih banyak", score: 1 },
-            { label: "Tahan dan tunggu pulih",    sub: "Market pasti naik lagi", score: 2 },
-            { label: "Beli lebih banyak",          sub: "Ini kesempatan emas!", score: 3 },
-        ],
+        id: "annual_income",
+        q: "Berapa total pendapatan kamu dalam 1 tahun?",
+        emoji: "💰",
+        type: "currency",
+        placeholder: "Contoh: 120000000",
+        hint: "Termasuk gaji, bonus, dan pendapatan lainnya",
     },
     {
-        id: "q3",
-        q: "Tujuan utama kamu berinvestasi?",
-        emoji: "🎯",
-        opts: [
-            { label: "Jaga modal tetap aman",          sub: "Prioritas keamanan", score: 1 },
-            { label: "Tumbuh stabil",                   sub: "Risiko terkontrol", score: 2 },
-            { label: "Maksimalkan return",              sub: "Siap ambil risiko lebih", score: 3 },
-        ],
+        id: "loan_amount",
+        q: "Berapa jumlah pinjaman yang ingin kamu ajukan atau analisis?",
+        emoji: "💳",
+        type: "currency",
+        placeholder: "Contoh: 35000000",
+        hint: "Total pinjaman yang sedang berjalan atau yang direncanakan",
     },
     {
-        id: "q4",
-        q: "Seberapa besar pengalaman investasimu?",
+        id: "loan_duration_months",
+        q: "Berapa lama durasi pinjaman?",
+        emoji: "📅",
+        type: "number",
+        placeholder: "Contoh: 24",
+        unit: "bulan",
+    },
+    {
+        id: "interest_rate",
+        q: "Berapa bunga pinjaman per tahun?",
         emoji: "📊",
+        type: "percentage",
+        placeholder: "Contoh: 8.5",
+        hint: "Masukkan dalam persen, contoh: 8.5 untuk 8.5%",
+        unit: "%",
+    },
+    {
+        id: "debt_to_income_ratio",
+        q: "Berapa porsi cicilan/hutang bulanan dibanding pendapatan bulanan?",
+        emoji: "⚖️",
+        type: "percentage",
+        placeholder: "Contoh: 30",
+        hint: "Dihitung dari total cicilan bulanan dibagi pendapatan bulanan, dalam persen",
+        unit: "%",
+    },
+    {
+        id: "monthly_expenses",
+        q: "Berapa total pengeluaran rutin kamu per bulan?",
+        emoji: "🛒",
+        type: "currency",
+        placeholder: "Contoh: 4500000",
+        hint: "Termasuk kebutuhan sehari-hari, transportasi, dll",
+    },
+    {
+        id: "savings_balance",
+        q: "Berapa total tabungan atau dana darurat kamu saat ini?",
+        emoji: "🏦",
+        type: "currency",
+        placeholder: "Contoh: 25000000",
+        hint: "Dana yang bisa diakses sewaktu-waktu",
+    },
+    {
+        id: "employment_stability_years",
+        q: "Sudah berapa tahun kamu memiliki pekerjaan atau penghasilan yang stabil?",
+        emoji: "💼",
+        type: "number",
+        placeholder: "Contoh: 6",
+        unit: "tahun",
+    },
+    {
+        id: "previous_default_count",
+        q: "Berapa kali kamu pernah gagal bayar atau telat berat membayar pinjaman/tagihan?",
+        emoji: "⚠️",
+        type: "select",
         opts: [
-            { label: "Belum pernah investasi",          sub: "Masih belajar", score: 1 },
-            { label: "Reksa dana atau deposito",        sub: "Sudah familiar", score: 2 },
-            { label: "Saham, ETF, atau crypto",         sub: "Cukup berpengalaman", score: 3 },
+            { label: "Tidak pernah", sub: "Selalu bayar tepat waktu", score: 0 },
+            { label: "1 kali", sub: "Pernah telat sekali", score: 1 },
+            { label: "2 kali atau lebih", sub: "Beberapa kali telat", score: 2 },
         ],
     },
 ];
 
-function calcRisk(ans: Record<string, number>): "conservative" | "moderate" | "aggressive" {
-    const total = Object.values(ans).reduce((s, v) => s + v, 0);
-    if (total <= 5) return "conservative";
-    if (total <= 9) return "moderate";
-    return "aggressive";
+export function calcRisk(ans: Record<string, number>): "conservative" | "moderate" | "aggressive" {
+    // Calculate based on financial health indicators
+    const debtRatio = ans.debt_to_income_ratio || 0;
+    const defaultCount = ans.previous_default_count || 0;
+    const stabilityYears = ans.employment_stability_years || 0;
+    
+    // High risk indicators
+    if (debtRatio > 40 || defaultCount >= 2 || stabilityYears < 2) {
+        return "conservative";
+    }
+    
+    // Low risk indicators  
+    if (debtRatio < 30 && defaultCount === 0 && stabilityYears >= 5) {
+        return "aggressive";
+    }
+    
+    // Medium risk
+    return "moderate";
 }
 
 const RISK_RESULT = {
     conservative: {
         emoji: "🛡️",
         label: "Konservatif",
-        desc: "Kamu prioritaskan keamanan modal. Deposito dan obligasi adalah teman terbaikmu.",
+        desc: "Profil finansial kamu menunjukkan perlu kehati-hatian ekstra. Fokus pada stabilitas dan kurangi beban hutang.",
         color: T.blue,
         bg: T.blueLight,
-        border: "rgba(0,102,204,0.2)",
+        border: "rgba(16, 185, 129, 0.2)",
     },
     moderate: {
         emoji: "⚖️",
         label: "Moderat",
-        desc: "Kamu mencari keseimbangan antara risiko dan imbal hasil. Reksa dana campuran cocok untukmu.",
+        desc: "Profil finansial kamu cukup seimbang. Kamu bisa mengambil risiko investasi dengan bijak sambil menjaga stabilitas.",
         color: "#d97706",
         bg: "rgba(245,158,11,0.08)",
         border: "rgba(245,158,11,0.2)",
@@ -134,14 +193,14 @@ const RISK_RESULT = {
     aggressive: {
         emoji: "🚀",
         label: "Agresif",
-        desc: "Kamu siap ambil risiko lebih besar untuk return maksimal. Saham dan ETF bisa jadi pilihanmu.",
+        desc: "Profil finansial kamu sangat solid! Kamu punya ruang untuk investasi agresif dan mengambil peluang lebih besar.",
         color: "#dc2626",
         bg: "rgba(239,68,68,0.08)",
         border: "rgba(239,68,68,0.2)",
     },
 };
 
-const SECTORS = [
+export const SECTORS = [
     { label: "Pertanian, Kehutanan, dan Perikanan", icon: "🌾" },
     { label: "Pertambangan dan Penggalian", icon: "⛏️" },
     { label: "Industri", icon: "🏭" },
@@ -234,7 +293,7 @@ function Chip({
         <button
             type="button"
             onClick={onClick}
-            className="w-full text-left flex items-center gap-4 px-5 py-4 rounded-2xl border-2 transition-all duration-200 active:scale-[0.98]"
+            className="w-full text-left flex items-center gap-4 px-4 py-3 rounded-2xl border-2 transition-all duration-200 active:scale-[0.98]"
             style={{
                 borderColor:  selected ? activeColor : T.hairline,
                 background:   selected ? `${activeColor}0d` : T.canvas,
@@ -242,7 +301,7 @@ function Chip({
             }}
         >
             {icon && (
-                <div className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-lg"
+                <div className="shrink-0 w-9 h-9 rounded-xl flex items-center justify-center text-lg"
                     style={{ background: selected ? `${activeColor}15` : "rgba(0,0,0,0.04)" }}>
                     {icon}
                 </div>
@@ -269,18 +328,18 @@ function Chip({
 function StepHeader({
     emoji, headline, sub,
 }: {
-    emoji: string;
+    emoji?: string;
     headline: string;
     sub?: string;
 }) {
     return (
-        <div className="mb-8">
-            <div className="text-4xl mb-4">{emoji}</div>
-            <h2 className="text-2xl font-bold leading-snug mb-2" style={{ color: T.ink }}>
+        <div className="mb-5">
+            {emoji ? <div className="text-3xl mb-2">{emoji}</div> : null}
+            <h2 className="text-lg font-bold leading-snug mb-1.5" style={{ color: T.ink }}>
                 {headline}
             </h2>
             {sub && (
-                <p className="text-base leading-relaxed" style={{ color: T.muted }}>{sub}</p>
+                <p className="text-sm leading-relaxed" style={{ color: T.muted }}>{sub}</p>
             )}
         </div>
     );
@@ -291,7 +350,7 @@ function StepHeader({
 function S0_Personal({ data, set }: { data: WizardData; set: (p: Partial<WizardData>) => void }) {
     return (
         <div>
-            <StepHeader emoji="👋" headline="Kenalan dulu, yuk!" sub="Data ini penting untuk kalkulasi aktuaria yang akurat." />
+            <StepHeader headline="Kenalan dulu, yuk 👋" sub="Data ini penting untuk kalkulasi aktuaria yang akurat." />
             
             {/* Nama */}
             <div className="mb-6">
@@ -319,12 +378,14 @@ function S0_Personal({ data, set }: { data: WizardData; set: (p: Partial<WizardD
                 </label>
                 <div className="flex items-center gap-3">
                     <input
-                        type="number"
-                        min={18}
-                        max={65}
+                        type="text"
+                        inputMode="numeric"
                         placeholder="30"
                         value={data.age ?? ""}
-                        onChange={e => set({ age: e.target.value ? Number(e.target.value) : null })}
+                        onChange={e => {
+                            const val = e.target.value.replace(/\D/g, "");
+                            set({ age: val === "" ? null : Number(val) });
+                        }}
                         className="w-28 py-4 px-4 border-2 rounded-2xl text-lg font-bold text-center outline-none transition-all"
                         style={{ borderColor: data.age ? T.blue : T.hairline, color: T.ink }}
                     />
@@ -353,9 +414,10 @@ function S0_Personal({ data, set }: { data: WizardData; set: (p: Partial<WizardD
                         Perempuan
                     </Chip>
                 </div>
-                <p className="text-xs mt-3" style={{ color: T.muted }}>
-                    💡 Data ini digunakan untuk kalkulasi harapan hidup berdasarkan tabel mortalitas Indonesia
-                </p>
+                <div className="flex items-center gap-1.5 mt-3 text-xs" style={{ color: T.muted }}>
+                    <Info size={14} className="shrink-0 text-blue-500" />
+                    <span>Data ini digunakan untuk kalkulasi harapan hidup berdasarkan tabel mortalitas Indonesia</span>
+                </div>
             </div>
         </div>
     );
@@ -401,8 +463,8 @@ function S2_Bonus({ data, set }: { data: WizardData; set: (p: Partial<WizardData
 
 function S4_Savings({ data, set }: { data: WizardData; set: (p: Partial<WizardData>) => void }) {
     const savingsOpts = [
-        { pct: 10, label: "10% penghasilan", sub: "Baru mulai — setiap rupiah penting!", color: "#64748b" },
-        { pct: 20, label: "20% penghasilan", sub: "Standar emas — prinsip 50/30/20", color: T.blue },
+        { pct: 10, label: "10% penghasilan", sub: "Baru mulai - setiap rupiah penting!", color: "#64748b" },
+        { pct: 20, label: "20% penghasilan", sub: "Standar emas - prinsip 50/30/20", color: T.blue },
         { pct: 30, label: "30% penghasilan", sub: "Bagus! Kamu serius dengan masa depan", color: "#7c3aed" },
         { pct: 50, label: "50% penghasilan", sub: "Wow, kamu sudah hidup hemat total!", color: "#059669" },
     ];
@@ -411,7 +473,7 @@ function S4_Savings({ data, set }: { data: WizardData; set: (p: Partial<WizardDa
 
     return (
         <div>
-            <StepHeader emoji="🐷" headline="Berapa % yang kamu alokasikan untuk nabung?" sub="Pilih target yang realistis — bisa kamu ubah kapan saja." />
+            <StepHeader emoji="🐷" headline="Berapa % yang kamu alokasikan untuk nabung?" sub="Pilih persentase dari gaji bulanan Anda yang disisihkan untuk ditabung/investasi (contoh: 20% dari gaji bulanan)." />
             <div className="space-y-3">
                 {savingsOpts.map(o => (
                     <Chip key={o.pct} selected={data.savingsPercentage === o.pct}
@@ -440,12 +502,12 @@ function S4_Savings({ data, set }: { data: WizardData; set: (p: Partial<WizardDa
 function S5_CurrentSavings({ data, set }: { data: WizardData; set: (p: Partial<WizardData>) => void }) {
     return (
         <div>
-            <StepHeader emoji="🏦" headline="Total tabungan & investasimu saat ini?" sub="Rekening, deposito, reksa dana, saham, emas — semuanya. Kalau belum ada, isi 0." />
+            <StepHeader emoji="🏦" headline="Total tabungan & investasimu saat ini?" sub="Rekening, deposito, reksa dana, saham, emas - semuanya. Kalau belum ada, isi 0." />
             <CurrencyField value={data.currentSavings} onChange={v => set({ currentSavings: v ?? 0 })} placeholder="0" autoFocus />
             {data.currentSavings !== null && data.currentSavings > 0 && (
                 <motion.p initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
                     className="mt-3 text-sm font-medium" style={{ color: T.success }}>
-                    🎉 Sudah punya modal Rp {fmt(data.currentSavings)} — mantap!
+                    🎉 Sudah punya modal Rp {fmt(data.currentSavings)} - mantap!
                 </motion.p>
             )}
             {data.currentSavings === 0 && (
@@ -460,15 +522,15 @@ function S5_CurrentSavings({ data, set }: { data: WizardData; set: (p: Partial<W
 
 function S7_RetirementAge({ data, set }: { data: WizardData; set: (p: Partial<WizardData>) => void }) {
     const ageOpts = [
-        { age: 45, label: "Umur 45", sub: "Pensiun dini — butuh persiapan ekstra keras", emoji: "⚡" },
-        { age: 50, label: "Umur 50", sub: "Cukup agresif — masih sangat bisa dicapai", emoji: "💪" },
-        { age: 55, label: "Umur 55", sub: "Rata-rata kebanyakan orang — realistis", emoji: "✅" },
-        { age: 60, label: "Umur 60", sub: "Usia pensiun normal — lebih banyak waktu menabung", emoji: "🎯" },
+        { age: 45, label: "Umur 45", sub: "Pensiun dini - butuh persiapan ekstra keras", emoji: "⚡" },
+        { age: 50, label: "Umur 50", sub: "Cukup agresif - masih sangat bisa dicapai", emoji: "💪" },
+        { age: 55, label: "Umur 55", sub: "Rata-rata kebanyakan orang - realistis", emoji: "✅" },
+        { age: 60, label: "Umur 60", sub: "Usia pensiun normal - lebih banyak waktu menabung", emoji: "🎯" },
     ];
 
     return (
         <div>
-            <StepHeader emoji="🌴" headline="Kapan kamu ingin pensiun?" sub="Tidak harus angka pasti. Estimasi sudah cukup — bisa diubah nanti." />
+            <StepHeader emoji="🌴" headline="Kapan kamu ingin pensiun?" sub="Tidak harus angka pasti. Estimasi sudah cukup - bisa diubah nanti." />
             <div className="space-y-3 mb-5">
                 {ageOpts.map(o => (
                     <Chip key={o.age} selected={data.retirementAge === o.age}
@@ -483,12 +545,14 @@ function S7_RetirementAge({ data, set }: { data: WizardData; set: (p: Partial<Wi
                 <p className="text-xs font-medium mb-2" style={{ color: T.muted }}>Atau ketik usia tertentu</p>
                 <div className="flex items-center gap-3">
                     <input
-                        type="number"
-                        min={30}
-                        max={75}
+                        type="text"
+                        inputMode="numeric"
                         placeholder="55"
                         value={data.retirementAge ?? ""}
-                        onChange={e => set({ retirementAge: e.target.value ? Number(e.target.value) : null })}
+                        onChange={e => {
+                            const val = e.target.value.replace(/\D/g, "");
+                            set({ retirementAge: val === "" ? null : Number(val) });
+                        }}
                         className="w-28 py-3 px-4 border-2 rounded-2xl text-lg font-bold text-center outline-none transition-all"
                         style={{ borderColor: data.retirementAge ? T.blue : T.hairline, color: T.ink }}
                     />
@@ -500,26 +564,34 @@ function S7_RetirementAge({ data, set }: { data: WizardData; set: (p: Partial<Wi
 }
 
 function S8_Lifestyle({ data, set }: { data: WizardData; set: (p: Partial<WizardData>) => void }) {
-    const opts = [
-        { val: 60, label: "Lebih hemat dari sekarang", sub: "~60% dari gaji terakhir", emoji: "🧘" },
-        { val: 80, label: "Hampir sama seperti sekarang", sub: "~80% dari gaji terakhir", emoji: "🏡" },
-        { val: 100, label: "Gaya hidup yang sama atau lebih baik", sub: "~100% dari gaji terakhir", emoji: "✈️" },
-    ];
     const target = data.lifestylePercent && data.monthlyIncome
         ? Math.round(data.monthlyIncome * data.lifestylePercent / 100) : null;
 
     return (
         <div>
-            <StepHeader emoji="🏡" headline="Gaya hidup saat pensiun?" sub="Bayangkan dirimu di masa pensiun — seberapa besar kebutuhan bulananmu?" />
-            <div className="space-y-3">
-                {opts.map(o => (
-                    <Chip key={o.val} selected={data.lifestylePercent === o.val}
-                        onClick={() => set({ lifestylePercent: o.val })}
-                        icon={<span className="text-xl">{o.emoji}</span>}
-                        sub={o.sub}>
-                        {o.label}
-                    </Chip>
-                ))}
+            <StepHeader emoji="🏡" headline="Gaya hidup saat pensiun?" sub="Masukkan persentase dari gaji terakhir yang kamu butuhkan per bulan." />
+            <div className="mb-4">
+                <label className="block text-sm font-semibold mb-2" style={{ color: T.ink }}>
+                    Persentase kebutuhan
+                </label>
+                <div className="flex items-center gap-3">
+                    <input
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="80"
+                        value={data.lifestylePercent ?? ""}
+                        onChange={e => {
+                            const val = e.target.value.replace(/\D/g, "");
+                            set({ lifestylePercent: val === "" ? null : Number(val) });
+                        }}
+                        className="w-28 py-3 px-4 border-2 rounded-2xl text-lg font-bold text-center outline-none transition-all"
+                        style={{ borderColor: data.lifestylePercent ? T.blue : T.hairline, color: T.ink }}
+                    />
+                    <span className="text-base font-medium" style={{ color: T.muted }}>% dari gaji terakhir</span>
+                </div>
+                <p className="text-xs mt-2" style={{ color: T.muted }}>
+                    Contoh: 80 berarti kebutuhanmu 80% dari gaji terakhir.
+                </p>
             </div>
             {target && (
                 <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
@@ -545,8 +617,8 @@ function S9_Risk({ data, set }: { data: WizardData; set: (p: Partial<WizardData>
     const allDone = RISK_QUESTIONS.every(q => answers[q.id] !== undefined);
     const current = RISK_QUESTIONS[qIdx];
 
-    const handleSelect = useCallback((score: number) => {
-        const next = { ...answers, [current.id]: score };
+    const handleSelect = useCallback((value: number) => {
+        const next = { ...answers, [current.id]: value };
         set({ riskAnswers: next });
         if (qIdx < RISK_QUESTIONS.length - 1) {
             setTimeout(() => setQIdx(i => i + 1), 260);
@@ -555,13 +627,30 @@ function S9_Risk({ data, set }: { data: WizardData; set: (p: Partial<WizardData>
         }
     }, [answers, current.id, qIdx, set]);
 
+    const handleInputChange = useCallback((value: number | null) => {
+        if (value !== null) {
+            const next = { ...answers, [current.id]: value };
+            set({ riskAnswers: next });
+        }
+    }, [answers, current.id, set]);
+
+    const handleNext = useCallback(() => {
+        if (answers[current.id] !== undefined) {
+            if (qIdx < RISK_QUESTIONS.length - 1) {
+                setQIdx(i => i + 1);
+            } else {
+                set({ riskProfile: calcRisk(answers) });
+            }
+        }
+    }, [answers, current.id, qIdx, set]);
+
     const profile = data.riskProfile;
 
     return (
         <div>
-            <StepHeader emoji="🧠" headline="Kenali profil risikomu" sub={`${RISK_QUESTIONS.length} pertanyaan singkat — jawab jujur sesuai dirimu ya!`} />
+            <StepHeader emoji="🧠" headline="Analisis Profil Finansial" sub={`${RISK_QUESTIONS.length} pertanyaan untuk menentukan profil risiko kamu`} />
 
-            {/* Dots */}
+            {/* Progress Dots */}
             <div className="flex gap-2 mb-6">
                 {RISK_QUESTIONS.map((q, i) => (
                     <div key={i} className="h-1.5 flex-1 rounded-full transition-all duration-300"
@@ -579,20 +668,89 @@ function S9_Risk({ data, set }: { data: WizardData; set: (p: Partial<WizardData>
                     <motion.div key={qIdx}
                         initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -24 }} transition={{ duration: 0.22 }}>
-                        <p className="text-base font-semibold mb-5" style={{ color: T.ink }}>
+                        <p className="text-base font-semibold mb-2" style={{ color: T.ink }}>
                             <span className="text-2xl mr-2">{current.emoji}</span>
                             {current.q}
                         </p>
-                        <div className="space-y-3">
-                            {current.opts.map(o => (
-                                <Chip key={o.score}
-                                    selected={answers[current.id] === o.score}
-                                    onClick={() => handleSelect(o.score)}
-                                    sub={o.sub}>
-                                    {o.label}
-                                </Chip>
-                            ))}
-                        </div>
+                        {current.hint && (
+                            <p className="text-xs mb-4" style={{ color: T.muted }}>
+                                {current.hint}
+                            </p>
+                        )}
+
+                        {/* Render based on question type */}
+                        {current.type === "select" && current.opts ? (
+                            <div className="space-y-3">
+                                {current.opts.map(o => (
+                                    <Chip key={o.score}
+                                        selected={answers[current.id] === o.score}
+                                        onClick={() => handleSelect(o.score)}
+                                        sub={o.sub}>
+                                        {o.label}
+                                    </Chip>
+                                ))}
+                            </div>
+                        ) : current.type === "currency" ? (
+                            <div>
+                                <CurrencyField
+                                    value={answers[current.id] ?? null}
+                                    onChange={handleInputChange}
+                                    placeholder={current.placeholder}
+                                    autoFocus={true}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={handleNext}
+                                    disabled={answers[current.id] === undefined}
+                                    className="mt-4 w-full py-3 rounded-xl font-semibold transition-all disabled:opacity-50"
+                                    style={{
+                                        background: answers[current.id] !== undefined ? T.blue : T.hairline,
+                                        color: answers[current.id] !== undefined ? "white" : T.muted,
+                                    }}>
+                                    Lanjut
+                                </button>
+                            </div>
+                        ) : current.type === "number" || current.type === "percentage" ? (
+                            <div>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        inputMode="numeric"
+                                        value={answers[current.id] !== undefined ? String(answers[current.id]) : ""}
+                                        onChange={(e) => {
+                                            const val = e.target.value.replace(/\D/g, "");
+                                            handleInputChange(val === "" ? null : Number(val));
+                                        }}
+                                        placeholder={current.placeholder}
+                                        autoFocus
+                                        className="w-full px-5 py-4 text-lg font-semibold rounded-2xl border-2 transition-all outline-none"
+                                        style={{
+                                            borderColor: answers[current.id] !== undefined ? T.blue : T.hairline,
+                                            background: T.canvas,
+                                            color: T.ink,
+                                        }}
+                                    />
+                                    {current.unit && (
+                                        <span className="absolute right-5 top-1/2 -translate-y-1/2 text-lg font-semibold pointer-events-none"
+                                            style={{ color: T.muted }}>
+                                            {current.unit}
+                                        </span>
+                                    )}
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={handleNext}
+                                    disabled={answers[current.id] === undefined}
+                                    className="mt-4 w-full py-3 rounded-xl font-semibold transition-all disabled:opacity-50"
+                                    style={{
+                                        background: answers[current.id] !== undefined ? T.blue : T.hairline,
+                                        color: answers[current.id] !== undefined ? "white" : T.muted,
+                                    }}>
+                                    Lanjut
+                                </button>
+                            </div>
+                        ) : null}
+
                         {qIdx > 0 && (
                             <button type="button" onClick={() => setQIdx(i => i - 1)}
                                 className="mt-4 text-xs flex items-center gap-1 transition-colors hover:opacity-70"
@@ -608,7 +766,7 @@ function S9_Risk({ data, set }: { data: WizardData; set: (p: Partial<WizardData>
                     style={{ background: RISK_RESULT[profile].bg, border: `2px solid ${RISK_RESULT[profile].border}` }}>
                     <div className="text-5xl mb-3">{RISK_RESULT[profile].emoji}</div>
                     <p className="text-xl font-bold mb-2" style={{ color: RISK_RESULT[profile].color }}>
-                        Investor {RISK_RESULT[profile].label}
+                        Profil Risiko: {RISK_RESULT[profile].label}
                     </p>
                     <p className="text-sm leading-relaxed" style={{ color: T.muted }}>
                         {RISK_RESULT[profile].desc}
@@ -626,24 +784,87 @@ function S9_Risk({ data, set }: { data: WizardData; set: (p: Partial<WizardData>
 }
 
 function S10_Sector({ data, set }: { data: WizardData; set: (p: Partial<WizardData>) => void }) {
+    const [isOpen, setIsOpen] = useState(false);
+    const triggerRef = useRef<HTMLButtonElement>(null);
+    const [menuPos, setMenuPos] = useState<{ top: number; left: number; width: number } | null>(null);
+
+    useLayoutEffect(() => {
+        if (!isOpen) return;
+        const rect = triggerRef.current?.getBoundingClientRect();
+        if (!rect) return;
+        setMenuPos({ top: rect.bottom + 8, left: rect.left, width: rect.width });
+    }, [isOpen]);
+
+    useEffect(() => {
+        if (!isOpen) return;
+        const handleResize = () => setIsOpen(false);
+        window.addEventListener("resize", handleResize);
+        return () => window.removeEventListener("resize", handleResize);
+    }, [isOpen]);
+
     return (
         <div>
             <StepHeader emoji="🏢" headline="Kamu kerja di sektor apa?" sub="Ini membantu kami menyesuaikan proyeksi dengan kondisi nyata Indonesia." />
-            <div className="grid grid-cols-2 gap-2.5">
-                {SECTORS.map(s => (
-                    <button key={s.label} type="button"
-                        onClick={() => set({ sector: s.label })}
-                        className="flex items-center gap-2.5 px-4 py-3.5 rounded-2xl border-2 text-left transition-all duration-200 active:scale-[0.97]"
-                        style={{
-                            borderColor: data.sector === s.label ? T.blue : T.hairline,
-                            background:  data.sector === s.label ? T.blueLight : T.canvas,
-                        }}>
-                        <span className="text-xl">{s.icon}</span>
-                        <span className="text-xs font-medium leading-tight" style={{ color: data.sector === s.label ? T.blue : T.ink }}>
-                            {s.label}
+            <div className="mb-4">
+                <label className="block text-sm font-semibold mb-2" style={{ color: T.ink }}>
+                    Pilih sektor pekerjaan
+                </label>
+                <div className="relative">
+                    <button
+                        type="button"
+                        onClick={() => setIsOpen(v => !v)}
+                        ref={triggerRef}
+                        className="w-full flex items-center justify-between px-4 py-3 rounded-2xl border-2 outline-none transition-all font-semibold text-sm text-left"
+                        style={{ borderColor: data.sector ? T.blue : T.hairline, color: T.ink, background: T.canvas }}
+                    >
+                        <span className="truncate mr-2">
+                            {data.sector ? (
+                                <>
+                                    <span className="mr-2">{SECTORS.find(s => s.label === data.sector)?.icon || "🏢"}</span>
+                                    {data.sector}
+                                </>
+                            ) : (
+                                "Pilih sektor"
+                            )}
                         </span>
+                        <span className="text-xs" style={{ color: T.muted }}>▼</span>
                     </button>
-                ))}
+
+                    {isOpen && menuPos && createPortal(
+                        <>
+                            <div
+                                className="fixed inset-0 z-30"
+                                onClick={() => setIsOpen(false)}
+                            />
+                            <div
+                                className="fixed z-40 bg-white border border-gray-100 rounded-2xl shadow-xl max-h-60 overflow-y-auto overflow-x-auto py-1"
+                                style={{ top: menuPos.top, left: menuPos.left, width: menuPos.width }}
+                            >
+                                {SECTORS.map(s => (
+                                    <button
+                                        key={s.label}
+                                        type="button"
+                                        onClick={() => {
+                                            set({ sector: s.label });
+                                            setIsOpen(false);
+                                        }}
+                                        className={`w-full text-left px-4 py-2.5 font-semibold text-sm flex items-center gap-2.5 whitespace-nowrap transition-colors ${
+                                            data.sector === s.label
+                                                ? "bg-emerald-50/50 text-emerald-600"
+                                                : "text-gray-700 hover:bg-emerald-50 hover:text-emerald-700"
+                                        }`}
+                                    >
+                                        <span className="text-base shrink-0">{s.icon}</span>
+                                        <span>{s.label}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </>
+                    , document.body)}
+                </div>
+                <p className="text-xs mt-2" style={{ color: T.muted }}>
+                    Kamu bisa pilih sektor yang paling mendekati pekerjaanmu.
+                </p>
             </div>
         </div>
     );
@@ -730,7 +951,17 @@ function S11_Assumptions({ data, set }: { data: WizardData; set: (p: Partial<Wiz
 }
 
 /* ── Summary ────────────────────────────────────────────────────────── */
-function Summary({ data, onEdit }: { data: WizardData; onEdit: (step: number) => void }) {
+function Summary({
+    data,
+    onEdit,
+    confirmAccuracy,
+    onConfirmChange,
+}: {
+    data: WizardData;
+    onEdit: (step: number) => void;
+    confirmAccuracy: boolean;
+    onConfirmChange: (next: boolean) => void;
+}) {
     const summaryItems = [
         { step: 0,  icon: "👤", label: "Nama Lengkap",            val: data.fullName         ?? "-" },
         { step: 0,  icon: "🎂", label: "Usia",                    val: data.age              ? `${data.age} tahun` : "-" },
@@ -747,30 +978,60 @@ function Summary({ data, onEdit }: { data: WizardData; onEdit: (step: number) =>
 
     return (
         <div>
-            <div className="text-center mb-8">
-                <div className="text-5xl mb-3">✅</div>
-                <h2 className="text-2xl font-bold mb-2" style={{ color: T.ink }}>Semuanya sudah diisi!</h2>
-                <p className="text-base" style={{ color: T.muted }}>
+            <div className="text-center mb-5">
+                <div className="text-4xl mb-2">✅</div>
+                <h2 className="text-xl font-bold mb-1.5" style={{ color: T.ink }}>Semuanya sudah diisi!</h2>
+                <p className="text-sm" style={{ color: T.muted }}>
                     Periksa sekali lagi sebelum kami menghitung proyeksi pensiunmu.
                 </p>
             </div>
-            <div className="rounded-3xl border overflow-hidden" style={{ borderColor: T.hairline }}>
-                {summaryItems.map((item, i) => (
-                    <div key={item.label}
-                        className="flex items-center gap-3 px-5 py-4 hover:bg-gray-50 transition-colors cursor-default"
-                        style={{ borderTop: i > 0 ? `1px solid ${T.hairline}` : "none" }}>
-                        <span className="text-xl shrink-0">{item.icon}</span>
-                        <div className="flex-1 min-w-0">
-                            <p className="text-xs" style={{ color: T.muted }}>{item.label}</p>
-                            <p className="text-sm font-semibold truncate" style={{ color: T.ink }}>{item.val}</p>
+            <div className="max-h-72 overflow-y-auto pr-1">
+                <div className="space-y-2">
+                    {summaryItems.map(item => (
+                        <div key={item.label}
+                            className="flex items-center gap-3 px-4 py-3 rounded-2xl border hover:bg-gray-50 transition-colors cursor-default"
+                            style={{ borderColor: T.hairline }}>
+                            <span className="text-base shrink-0">{item.icon}</span>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-xs font-medium" style={{ color: T.muted }}>{item.label}</p>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                                <span className="text-xs font-semibold truncate" style={{ color: T.ink, maxWidth: 150 }}>
+                                    {item.val}
+                                </span>
+                                <button type="button" onClick={() => onEdit(item.step)}
+                                    className="text-[11px] px-2.5 py-1 rounded-full border transition-all"
+                                    style={{ color: T.blue, borderColor: "rgba(16, 185, 129, 0.25)" }}>
+                                    Ubah
+                                </button>
+                            </div>
                         </div>
-                        <button type="button" onClick={() => onEdit(item.step)}
-                            className="shrink-0 text-xs px-3 py-1.5 rounded-full border transition-all hover:bg-blue-50"
-                            style={{ color: T.blue, borderColor: "rgba(0,102,204,0.25)" }}>
-                            Ubah
-                        </button>
+                    ))}
+                </div>
+
+                <label className="flex items-start gap-3 mt-4 px-4 py-3 rounded-2xl border cursor-pointer"
+                    style={{ borderColor: confirmAccuracy ? T.blue : T.hairline, background: confirmAccuracy ? T.blueLight : T.canvas }}>
+                    <div className="relative mt-0.5">
+                        <input
+                            type="checkbox"
+                            className="sr-only"
+                            checked={confirmAccuracy}
+                            onChange={e => onConfirmChange(e.target.checked)}
+                        />
+                        <div className="w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all"
+                            style={{ borderColor: confirmAccuracy ? T.blue : T.hairline, background: confirmAccuracy ? T.blue : "transparent" }}>
+                            {confirmAccuracy && <Check className="w-3 h-3 text-white" />}
+                        </div>
                     </div>
-                ))}
+                    <div>
+                        <p className="text-sm font-semibold" style={{ color: T.ink }}>
+                            Saya memastikan data yang saya isi sudah benar.
+                        </p>
+                        <p className="text-xs mt-0.5" style={{ color: T.muted }}>
+                            Data ini akan digunakan untuk perhitungan proyeksi finansial.
+                        </p>
+                    </div>
+                </label>
             </div>
         </div>
     );
@@ -782,7 +1043,7 @@ function TopProgress({ step, total }: { step: number; total: number }) {
         <div className="w-full h-1 bg-gray-100 rounded-full overflow-hidden mb-1">
             <motion.div
                 className="h-full rounded-full"
-                style={{ background: `linear-gradient(90deg, ${T.blue}, #0091ff)` }}
+                style={{ background: `linear-gradient(90deg, ${T.blue}, #34d399)` }}
                 initial={false}
                 animate={{ width: `${(step / total) * 100}%` }}
                 transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
@@ -819,6 +1080,7 @@ export function OnboardingWizard({
     const [showSummary, setShowSummary] = useState(false);
     const [dir, setDir]     = useState<1 | -1>(1);
     const [data, setDataRaw] = useState<WizardData>(INITIAL);
+    const [confirmAccuracy, setConfirmAccuracy] = useState(false);
     const topRef = useRef<HTMLDivElement>(null);
 
     const set = useCallback((patch: Partial<WizardData>) =>
@@ -828,7 +1090,11 @@ export function OnboardingWizard({
         topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, [step, showSummary]);
 
-    const canNext = showSummary ? true : STEP_CONFIG[step]?.validate(data) ?? true;
+    useEffect(() => {
+        if (!showSummary) setConfirmAccuracy(false);
+    }, [showSummary]);
+
+    const canNext = showSummary ? confirmAccuracy : STEP_CONFIG[step]?.validate(data) ?? true;
 
     const goNext = () => {
         if (showSummary) { onComplete(data); return; }
@@ -851,9 +1117,13 @@ export function OnboardingWizard({
     const currentStepLabel = showSummary ? "Ringkasan" : STEP_CONFIG[step]?.label ?? "";
 
     return (
-        <div ref={topRef} className="w-full max-w-lg mx-auto">
+        <div
+            ref={topRef}
+            className="w-full max-w-lg mx-auto"
+            style={{ maxHeight: "calc(100vh - 260px)" }}
+        >
             {/* Top progress */}
-            <div className="mb-4 px-1">
+            <div className="mb-2 px-1">
                 <TopProgress step={showSummary ? TOTAL : step + 1} total={TOTAL} />
                 <div className="flex justify-between mt-1.5">
                     <span className="text-xs font-medium" style={{ color: T.blue }}>{currentStepLabel}</span>
@@ -864,7 +1134,7 @@ export function OnboardingWizard({
             </div>
 
             {/* Card */}
-            <div className="bg-white rounded-3xl shadow-lg border px-7 py-8 min-h-[420px] flex flex-col" style={{ borderColor: T.hairline }}>
+            <div className="bg-white rounded-3xl shadow-lg border px-5 py-5 min-h-80 max-h-full flex flex-col" style={{ borderColor: T.hairline }}>
 
                 {error && (
                     <div className="mb-5 flex items-center gap-2.5 p-4 rounded-2xl text-sm"
@@ -875,11 +1145,16 @@ export function OnboardingWizard({
                 )}
 
                 {/* Step content */}
-                <div className="flex-1">
+                <div className="flex-1 overflow-y-auto pr-1">
                     <AnimatePresence mode="wait" custom={dir}>
                         {showSummary ? (
                             <motion.div key="summary" variants={v} initial="initial" animate="animate" exit="exit">
-                                <Summary data={data} onEdit={handleEdit} />
+                                <Summary
+                                    data={data}
+                                    onEdit={handleEdit}
+                                    confirmAccuracy={confirmAccuracy}
+                                    onConfirmChange={setConfirmAccuracy}
+                                />
                             </motion.div>
                         ) : (
                             <motion.div key={step} variants={v} initial="initial" animate="animate" exit="exit">
@@ -899,7 +1174,7 @@ export function OnboardingWizard({
                 </div>
 
                 {/* Nav */}
-                <div className="flex gap-3 mt-8 pt-6 border-t" style={{ borderColor: T.hairline }}>
+                <div className="flex gap-3 mt-5 pt-4 border-t" style={{ borderColor: T.hairline }}>
                     {(step > 0 || showSummary) && (
                         <button type="button" onClick={goBack}
                             className="flex items-center gap-1.5 px-5 py-3.5 rounded-2xl border text-sm font-medium transition-all hover:bg-gray-50 active:scale-[0.97]"
@@ -910,7 +1185,7 @@ export function OnboardingWizard({
                     <button type="button" onClick={goNext}
                         disabled={!canNext || (isPending && showSummary)}
                         className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl text-sm font-semibold text-white transition-all active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed"
-                        style={{ background: canNext ? `linear-gradient(135deg, ${T.blue}, #0091ff)` : "#d1d5db" }}>
+                        style={{ background: canNext ? `linear-gradient(135deg, ${T.blue}, #34d399)` : "#d1d5db" }}>
                         {isPending && showSummary ? (
                             <>
                                 <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">

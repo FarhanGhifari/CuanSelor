@@ -13,12 +13,12 @@ from src.config import (
 _ROOT = Path(__file__).parents[1]
 _PROC = _ROOT / "data" / "processed"
 
-#! Pemuatan data empiris historis IHSG dari data bulanan (ihsg_monthly.csv — lebih akurat)
+#! Pemuatan data empiris historis IHSG dari data bulanan (ihsg_monthly.csv - lebih akurat)
 def _load_ihsg_monthly_empirical() -> dict:
     """
     Kalibrasi return IHSG dari ihsg_monthly.csv.
     Mengannualisasi return bulanan menggunakan compound dan square-root-of-time untuk std.
-    Exclude: 2020 (COVID shock — anomali ekstrem, bukan siklus normal).
+    Exclude: 2020 (COVID shock - anomali ekstrem, bukan siklus normal).
     2025 diikutsertakan karena data sudah lengkap satu tahun penuh.
     """
     fp = _PROC / "ihsg_monthly.csv"

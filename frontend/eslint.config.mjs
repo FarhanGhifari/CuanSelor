@@ -13,6 +13,19 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+  {
+    rules: {
+      // Prevent console statements in production code
+      "no-console": "error",
+    },
+  },
+  {
+    // Allow console in mock files (development only)
+    files: ["**/*.mock.ts", "**/*.mock.tsx"],
+    rules: {
+      "no-console": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;

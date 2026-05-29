@@ -43,7 +43,7 @@ def _filter_sectoral_cpi(df: pd.DataFrame) -> pd.DataFrame:
 #! Muat YoY bulanan CPI UMUM dari cpi_monthly.csv
 def _load_monthly_cpi_yoy() -> Optional[np.ndarray]:
     """
-    Sumber: cpi_monthly.csv — CPI agregat nasional (semua kelompok).
+    Sumber: cpi_monthly.csv - CPI agregat nasional (semua kelompok).
     Filter: dropna (buang 2015 NaN otomatis) + cutoff Des 2025 + exclude COVID.
     Hasil: ~96 obs bersih (Jan 2016 – Des 2025, tanpa COVID window).
     """
@@ -73,10 +73,10 @@ def _load_monthly_cpi_yoy() -> Optional[np.ndarray]:
 #! Muat YoY bulanan CPI SEKTORAL dari cpi_sektor_monthly.csv
 def _load_sectoral_cpi_yoy(sector: str) -> Optional[np.ndarray]:
     """
-    Sumber: cpi_sektor_monthly.csv — CPI per kelompok pengeluaran.
+    Sumber: cpi_sektor_monthly.csv - CPI per kelompok pengeluaran.
     Sektor: 'makanan'/'food', 'kesehatan'/'healthcare', 'pendidikan'/'education'.
     Filter: IDENTIK dengan _load_monthly_cpi_yoy (exclude 2015, COVID, cutoff Des 2025).
-    Hasil: ~96 obs bersih per sektor — sama dengan CPI umum.
+    Hasil: ~96 obs bersih per sektor - sama dengan CPI umum.
 
     Keunggulan vs multiplier statis:
       - theta berbeda per sektor (makanan ~4-5%, kesehatan ~3-4%, pendidikan ~2-3%)
@@ -124,7 +124,7 @@ def calibrate_ou_params(
     source_label: str = "",
 ) -> dict:
     """
-    Kalibrasi OU — urutan prioritas:
+    Kalibrasi OU - urutan prioritas:
       1. series_array (np.ndarray)          → langsung dari loader monthly/sektoral
       2. Auto-load cpi_monthly.csv           → _load_monthly_cpi_yoy()
       3. historical_data (dict {year: pct}) → fallback lama
@@ -198,7 +198,7 @@ def calibrate_ou_params(
         _fallback["calibrated_from"] = f"config_fallback ({e})"
         return _fallback
 
-#! Simulasi jalur inflasi acak — Ornstein-Uhlenbeck, kalibrasi per sektor dari data historis
+#! Simulasi jalur inflasi acak - Ornstein-Uhlenbeck, kalibrasi per sektor dari data historis
 def simulate_inflation_paths(
     n_years: int,
     n_simulations: int = 10_000,
@@ -210,7 +210,7 @@ def simulate_inflation_paths(
     """
     Hasilkan matriks (n_simulations × n_years) jalur inflasi stokastik (OU).
 
-    Untuk sektor 'healthcare', 'food', 'education' — kalibrasi dari cpi_sektor_monthly.csv:
+    Untuk sektor 'healthcare', 'food', 'education' - kalibrasi dari cpi_sektor_monthly.csv:
       → theta, kappa, sigma mencerminkan dinamika inflasi sektor tersebut secara independen
       → TIDAK lagi hanya multiplier statis × inflasi umum
     Untuk 'general' / tidak dikenal → kalibrasi dari cpi_monthly.csv (inflasi agregat).

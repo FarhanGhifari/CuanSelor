@@ -26,7 +26,7 @@ for cell in nb1["cells"]:
         cell["source"] = new_source
 
 if patched_count == 0:
-    print("WARNING: Pattern not found in Part 1 — might already be fixed or changed.")
+    print("WARNING: Pattern not found in Part 1 - might already be fixed or changed.")
 else:
     print(f"Part 1: patched {patched_count} line(s)")
 

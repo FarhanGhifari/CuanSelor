@@ -64,7 +64,7 @@ export const personalInfoSchema = z.object({
 
 export type PersonalInfoInput = z.infer<typeof personalInfoSchema>;
 
-// Alias — agar mock services yang import RegisterInput tetap kompatibel
+// Alias - agar mock services yang import RegisterInput tetap kompatibel
 export type RegisterInput = PersonalInfoInput;
 
 export const financialOnboardingSchema = z.object({

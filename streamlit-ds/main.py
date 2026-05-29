@@ -118,7 +118,7 @@ def main():
     print(f"  Signifikan              : {'[OK] YA (p<0.05)' if ab['statistically_significant'] else '[X] TIDAK'}")
 
     #! 10. Jalankan & Tampilkan uji Stress Testing krisis makro ekonomi
-    print_section("9. Stress Testing — Skenario Krisis")
+    print_section("9. Stress Testing - Skenario Krisis")
     print("  Menjalankan 4 skenario terburuk dalam sejarah ekonomi Indonesia...\n")
 
     stress_scenarios = [

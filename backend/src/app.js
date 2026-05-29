@@ -6,7 +6,10 @@ import { auth } from "./config/auth.js";
 import { env } from "./config/env.js";
 import { authRouter } from "./modules/auth/auth.routes.js";
 import { apiRouter } from "./routes/index.js";
-import { errorHandler, notFoundHandler } from "./middlewares/error.middleware.js";
+import {
+  errorHandler,
+  notFoundHandler,
+} from "./middlewares/error.middleware.js";
 
 export function createApp() {
   const app = express();
@@ -27,7 +30,8 @@ export function createApp() {
     legacyHeaders: false,
     message: {
       success: false,
-      message: "Terlalu banyak request dari IP ini. Coba lagi setelah beberapa saat.",
+      message:
+        "Terlalu banyak request dari IP ini. Coba lagi setelah beberapa saat.",
     },
   });
 
@@ -39,7 +43,8 @@ export function createApp() {
     legacyHeaders: false,
     message: {
       success: false,
-      message: "Terlalu banyak kalkulasi proyeksi. Tunggu 1 menit sebelum mencoba lagi.",
+      message:
+        "Terlalu banyak kalkulasi proyeksi. Tunggu 1 menit sebelum mencoba lagi.",
     },
   });
 
@@ -54,13 +59,14 @@ export function createApp() {
     }),
   );
 
+  // Parse JSON body BEFORE any routes
+  app.use(express.json({ limit: "1mb" }));
+
   // Compatibility endpoint untuk respons user yang dinormalisasi.
   app.use("/api/auth", authRouter);
 
-  // Better Auth butuh raw request body — mount sebelum express.json().
+  // Better Auth butuh raw request body - mount sebelum express.json().
   app.all("/api/auth/*splat", toNodeHandler(auth));
-
-  app.use(express.json({ limit: "1mb" }));
 
   // ── Health check root ───────────────────────────────────────────────────────
   app.get("/", (req, res) => {

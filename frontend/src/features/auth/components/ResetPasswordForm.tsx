@@ -36,6 +36,7 @@ export default function ResetPasswordForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [watchedPassword, setWatchedPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   const {
     register,
@@ -61,18 +62,45 @@ export default function ResetPasswordForm() {
       setStep("invalid");
       return;
     }
-    authMock.verifyResetToken(token).then(({ error }) => {
-      setStep(error ? "invalid" : "form");
-    });
+    // Token will be verified when user submits the form
+    // Better Auth doesn't have a separate verify endpoint
+    setStep("form");
   }, [token]);
 
   const onSubmit = async (data: ResetPasswordInput) => {
-    const { error } = await authMock.resetPassword(token, data.password);
-    if (error) {
+    setErrorMessage("");
+    
+    try {
+      // Better Auth reset password API
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/auth/reset-password`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          newPassword: data.password,
+          token: token,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || result.error) {
+        // Check if it's a "same password" error
+        if (result.message?.includes("sama dengan password lama")) {
+          setErrorMessage(result.message);
+          return;
+        }
+        
+        // Token invalid or expired
+        setStep("invalid");
+        return;
+      }
+
+      setStep("success");
+    } catch {
       setStep("invalid");
-      return;
     }
-    setStep("success");
   };
 
   const strength = getStrengthLevel(watchedPassword);
@@ -82,7 +110,7 @@ export default function ResetPasswordForm() {
     return (
       <div className="w-full bg-white rounded-[24px] shadow-[0_12px_40px_rgb(0,0,0,0.06)] border border-gray-100 p-10 flex flex-col items-center gap-4">
         <Loader2 className="animate-spin w-8 h-8 text-[#10B981]" />
-        <p className="text-gray-500 text-sm">Verifying your reset link...</p>
+        <p className="text-gray-500 text-sm">Memverifikasi link reset...</p>
       </div>
     );
   }
@@ -95,24 +123,25 @@ export default function ResetPasswordForm() {
             <XCircle className="w-10 h-10 text-red-400" strokeWidth={1.5} />
           </div>
         </div>
-        <h3 className="text-2xl font-bold text-gray-900 mb-3">Link Invalid or Expired</h3>
+        <h3 className="text-2xl font-bold text-gray-900 mb-3">Link Tidak Valid atau Sudah Digunakan</h3>
         <p className="text-gray-500 text-sm leading-relaxed mb-8">
-          This password reset link is no longer valid. Reset links expire after 15 minutes.
-          Please request a new one.
+          Link reset password ini sudah tidak valid. Kemungkinan link sudah digunakan atau sudah kedaluwarsa (expired setelah 1 jam).
+          <br /><br />
+          Silakan request link reset password baru.
         </p>
         <Link
           href={ROUTES.FORGOT_PASSWORD}
           className="inline-flex items-center justify-center w-full py-3.5 px-6 text-white font-semibold text-sm rounded-xl transition-all duration-200"
           style={{ background: "linear-gradient(90deg, #10b981, #14b8a6)" }}
         >
-          Request New Link
+          Request Link Baru
         </Link>
         <div className="mt-5">
           <Link
             href={ROUTES.LOGIN}
             className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-gray-700 transition-colors"
           >
-            <ArrowLeft size={14} /> Back to Sign In
+            <ArrowLeft size={14} /> Kembali ke Login
           </Link>
         </div>
       </div>
@@ -131,16 +160,16 @@ export default function ResetPasswordForm() {
             <CheckCircle2 className="w-10 h-10 text-[#10B981]" strokeWidth={1.5} />
           </div>
         </div>
-        <h3 className="text-2xl font-bold text-gray-900 mb-3">Password Updated!</h3>
+        <h3 className="text-2xl font-bold text-gray-900 mb-3">Password Berhasil Diubah!</h3>
         <p className="text-gray-500 text-sm leading-relaxed mb-8">
-          Your password has been reset successfully. You can now sign in with your new password.
+          Password Anda sudah berhasil direset. Sekarang Anda bisa login dengan password baru.
         </p>
         <Link
           href={ROUTES.LOGIN}
           className="inline-flex items-center justify-center w-full py-3.5 px-6 text-white font-semibold text-sm rounded-xl transition-all duration-200 hover:opacity-90"
           style={{ background: "linear-gradient(90deg, #10b981, #14b8a6)" }}
         >
-          Sign In
+          Login Sekarang
         </Link>
       </div>
     );
@@ -157,11 +186,19 @@ export default function ResetPasswordForm() {
         >
           <ShieldCheck className="w-7 h-7 text-[#10B981]" strokeWidth={1.5} />
         </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Create new password</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Buat Password Baru</h2>
         <p className="text-sm text-gray-500 leading-relaxed">
-          Your new password must be different from your previous password.
+          Password baru Anda harus berbeda dari password sebelumnya.
         </p>
       </div>
+
+      {/* Error Message */}
+      {errorMessage && (
+        <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3 text-amber-800 animate-in fade-in slide-in-from-top-2 duration-300">
+          <AlertCircle size={20} className="shrink-0 mt-0.5" />
+          <p className="text-sm font-medium leading-relaxed">{errorMessage}</p>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         {/* New Password */}

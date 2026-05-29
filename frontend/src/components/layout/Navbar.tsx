@@ -5,9 +5,10 @@ import { usePathname } from "next/navigation";
 import { ROUTES } from "@/lib/constants/routes";
 
 const NAV_LINK = [
+    { label: "About", href: "/#about" },
     { label: "Features", href: "/#features" },
     { label: "Why Us", href: "/#why-us" },
-    { label: "About", href: "/#about" },
+    { label: "FAQ", href: "/#faq" },
     { label: "Blog", href: "/blog" },
 ];
 

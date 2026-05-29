@@ -46,8 +46,8 @@ export const financialProfileService = {
     // Trigger AI Risk Assessment after profile is saved so that AI analyzes the new data
     try {
       await apiClient.post(API.RISK.SUBMIT);
-    } catch (error) {
-      console.error("Failed to trigger AI risk assessment:", error);
+    } catch {
+      // Silently fail - risk assessment is not critical for profile save
     }
 
     // Since backend upsert returns { profile, financial, pension, risk },

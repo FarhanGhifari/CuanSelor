@@ -85,7 +85,7 @@ export function ScenarioTabs({ data }: ScenarioTabsProps) {
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <div
-            className={`w-12 h-12 rounded-xl bg-gradient-to-br from-${activeScenario.color}-500 to-${activeScenario.color}-600 flex items-center justify-center text-white shadow-lg`}
+            className={`w-12 h-12 rounded-xl bg-linear-to-br from-${activeScenario.color}-500 to-${activeScenario.color}-600 flex items-center justify-center text-white shadow-lg`}
           >
             <Icon className="w-6 h-6" />
           </div>
@@ -129,7 +129,7 @@ export function ScenarioTabs({ data }: ScenarioTabsProps) {
             </p>
           </div>
 
-          <div className="col-span-2 p-4 rounded-xl bg-gradient-to-br from-emerald-50 to-blue-50 border border-emerald-100">
+          <div className="col-span-2 p-4 rounded-xl bg-linear-to-br from-emerald-50 to-blue-50 border border-emerald-100">
             <p className="text-xs text-gray-600 font-medium mb-1">Durasi Dana Pensiun</p>
             <p className="text-2xl font-bold text-gray-900">
               {duration ? (

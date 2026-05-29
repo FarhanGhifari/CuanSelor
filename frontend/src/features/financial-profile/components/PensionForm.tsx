@@ -25,13 +25,13 @@ import { RiskQuestionnaireInline } from "./RiskQuestionnaireInline";
 const SECTORS = [
   "Pemerintahan / PNS",
   "BUMN / BUMD",
-  "Swasta — Keuangan & Perbankan",
-  "Swasta — Teknologi",
-  "Swasta — Manufaktur",
-  "Swasta — Perdagangan & Retail",
-  "Swasta — Kesehatan",
-  "Swasta — Pendidikan",
-  "Swasta — Lainnya",
+  "Swasta - Keuangan & Perbankan",
+  "Swasta - Teknologi",
+  "Swasta - Manufaktur",
+  "Swasta - Perdagangan & Retail",
+  "Swasta - Kesehatan",
+  "Swasta - Pendidikan",
+  "Swasta - Lainnya",
   "Wiraswasta / Freelance",
   "Profesional (Dokter, Pengacara, dll)",
   "Lainnya",
@@ -88,7 +88,7 @@ export function PensionForm({ onSubmit, isPending, error }: PensionFormProps) {
           Proyeksi Pensiun
         </h1>
         <p className="text-lg text-muted-foreground">
-          Langkah terakhir — atur target pensiun dan profil risikomu
+          Langkah terakhir - atur target pensiun dan profil risikomu
         </p>
       </div>
 

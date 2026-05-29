@@ -391,7 +391,7 @@ Kapasitas Penarikan Bulanan: Rp {res.projection['median_p50']['annual_withdrawal
         st.markdown("""
 **Bagaimana perhitungannya?**
 
-Stress test ini menggunakan pendekatan **Deterministik Sensitif** — bukan simulasi ulang penuh (untuk kecepatan), 
+Stress test ini menggunakan pendekatan **Deterministik Sensitif** - bukan simulasi ulang penuh (untuk kecepatan), 
 melainkan dengan menerapkan "shock" langsung ke hasil baseline Monte Carlo:
 
 - **Return Shock**: Mengurangi total dana akumulasi secara proporsional (misal: -40% krisis 1998 → dana hanya 60% dari baseline)

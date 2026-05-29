@@ -12,7 +12,7 @@ import CtaSection         from "@/features/landing/components/CtaSection";
 import InteractiveSimulationPreview from "@/features/landing/components/InteractiveSimulationPreview";
 
 /**
- * Homepage — assembles all landing page sections.
+ * Homepage - assembles all landing page sections.
  * Each section lives in src/components/landing/*.tsx
  * Animations are defined in src/app/globals.css
  * Design tokens are in src/components/landing/tokens.ts
@@ -20,15 +20,31 @@ import InteractiveSimulationPreview from "@/features/landing/components/Interact
 export default function HomePage() {
   return (
     <main style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', 'Inter', sans-serif" }}>
+      
+      {/* 1. Hero */}
       <HeroSection />
-      <ProblemSection />
+      
+      {/* 2. About — ProblemSection + AboutSection dibungkus satu id */}
+      <div id="about">
+        <ProblemSection />
+        <AboutSection />
+      </div>
+      
+      {/* 3. Features */}
+      <div id="features">
+        <FeaturesSection />
+        <InteractiveSimulationPreview />
+      </div>
+      
+      {/* 4. Why Us */}
+      <div id="why-us">
+        <ComparisonSection />
+      </div>
+      
+      {/* 5. Supporting Sections */}
       <StatsSection />
       <HowItWorksSection />
-      <FeaturesSection />
-      <InteractiveSimulationPreview/>
-      <ComparisonSection />
       <TestimonialsSection />
-      <AboutSection />
       <FaqSection />
       <TrustSection />
       <CtaSection />

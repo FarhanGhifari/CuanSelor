@@ -71,30 +71,22 @@ function FaqItem({ q, a }: { q: string; a: string }) {
 export default function FaqSection() {
   return (
     <section
+      id="faq"
       className="flex flex-col items-center justify-center min-h-screen py-[60px] md:py-[80px] px-6 md:px-[5%] box-border"
       style={{ background: T.canvas }}
     >
-      <div className="flex flex-col md:flex-row flex-wrap gap-10 md:gap-[60px] items-start w-full max-w-[1400px] mx-auto">
-        {/* Left column */}
-        <div className="w-full md:flex-1 md:min-w-[300px] text-left">
-          <h2
+      <div className="flex flex-col md:flex-row flex-wrap gap-10 md:gap-[60px] items-center w-full max-w-[1400px] mx-auto">
+        {/* Left column - SVG Illustration */}
+        <div className="w-full md:flex-1 md:min-w-[300px] flex items-center justify-center">
+          <img 
+            src="/illustration-faq.svg" 
+            alt="FAQ Illustration"
             style={{
-              fontSize: "clamp(48px, 6vw, 64px)",
-              fontWeight: 700,
-              letterSpacing: "-0.03em",
-              lineHeight: 1.1,
-              color: T.blueDark,
-              marginBottom: 24,
+              width: "100%",
+              maxWidth: "400px",
+              height: "auto",
             }}
-          >
-            Pertanyaan?<br />5 hal yang perlu diketahui dalam 5 menit.
-          </h2>
-          <p style={{ fontFamily: FONT, fontSize: 14, fontWeight: 400, lineHeight: 1.5, color: T.inkMuted }}>
-            Untuk mempelajari lebih lanjut tentang CuanSelor, baca{" "}
-            <a href="#" style={{ textDecoration: "underline", color: T.inkMuted }}>panduan kami</a>{" "}
-            atau kunjungi{" "}
-            <a href="#" style={{ textDecoration: "underline", color: T.inkMuted }}>pusat bantuan</a>.
-          </p>
+          />
         </div>
 
         {/* Right column */}
