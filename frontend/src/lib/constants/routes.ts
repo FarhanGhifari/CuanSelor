@@ -2,6 +2,7 @@ export const ROUTES = {
   HOME:            "/",
   LOGIN:           "/auth/login",
   REGISTER:        "/auth/register",
+  AUTH_CALLBACK:   "/auth/callback",
   FORGOT_PASSWORD: "/auth/forgot-password",
   ONBOARDING:      "/auth/onboarding", 
   DASHBOARD:       "/dashboard",

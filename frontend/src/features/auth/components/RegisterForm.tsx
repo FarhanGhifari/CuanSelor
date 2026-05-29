@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { TrendingUp, User, Mail, Lock, Eye, EyeOff } from "lucide-react";
@@ -10,6 +11,9 @@ import {
   type PersonalInfoInput,
 } from "@/features/auth/validations/auth.schema";
 import { ROUTES } from "@/lib/constants/routes";
+import { authClient } from "@/lib/auth/auth-client";
+import { GoogleAuthButton } from "./GoogleAuthButton";
+import { getAuthErrorMessage } from "../utils/auth-errors";
 
 // ── Step Indicator ─────────────────────────────────────────────
 export function StepIndicator({ current }: { current: 1 | 2 }) {
@@ -33,11 +37,42 @@ interface RegisterFormProps {
 
 // ── Component ──────────────────────────────────────────────────
 export function RegisterForm({ onSubmit }: RegisterFormProps) {
+  const searchParams = useSearchParams();
   const [showPass, setShowPass] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [googleError, setGoogleError] = useState<string | null>(null);
+  const [hideCallbackError, setHideCallbackError] = useState(false);
+  const callbackError = hideCallbackError
+    ? null
+    : getAuthErrorMessage(searchParams.get("error"));
+  const displayGoogleError = googleError ?? callbackError;
 
   const { register, handleSubmit, formState: { errors } } =
     useForm<PersonalInfoInput>({ resolver: zodResolver(personalInfoSchema) });
+
+  const handleGoogleSignUp = async () => {
+    setIsGoogleLoading(true);
+    setGoogleError(null);
+    setHideCallbackError(true);
+
+    try {
+      const result = await authClient.signIn.social({
+        provider: "google",
+        callbackURL: ROUTES.AUTH_CALLBACK,
+        newUserCallbackURL: ROUTES.ONBOARDING,
+        errorCallbackURL: ROUTES.REGISTER,
+      });
+
+      if (result.error) {
+        setGoogleError(result.error.message || "Registrasi Google gagal");
+      }
+    } catch {
+      setGoogleError("Registrasi Google gagal. Coba lagi.");
+    } finally {
+      setIsGoogleLoading(false);
+    }
+  };
 
   return (
     <div className="w-full max-w-2xl">
@@ -54,6 +89,29 @@ export function RegisterForm({ onSubmit }: RegisterFormProps) {
       {/* Form Card */}
       <div className="bg-card rounded-2xl shadow-xl border border-border p-8 md:p-12">
         <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-8">
+          <div className="space-y-5">
+            {displayGoogleError && (
+              <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3 text-red-600 animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                <p className="text-sm font-medium">{displayGoogleError}</p>
+              </div>
+            )}
+            <GoogleAuthButton
+              label="Daftar dengan Google"
+              onClick={handleGoogleSignUp}
+              isLoading={isGoogleLoading}
+            />
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-border" />
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="bg-card px-4 text-muted-foreground">
+                  Atau isi data manual
+                </span>
+              </div>
+            </div>
+          </div>
 
           {/* Personal Information */}
           <div>

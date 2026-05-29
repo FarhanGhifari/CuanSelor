@@ -53,20 +53,30 @@ export function createApp() {
   // ── CORS ────────────────────────────────────────────────────────────────────
   app.use(
     cors({
-      origin: [env.frontendUrl, ...env.trustedOrigins],
+      origin: [env.frontendUrl, env.betterAuthUrl, ...env.trustedOrigins],
       credentials: true,
       methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     }),
   );
 
-  // Parse JSON body BEFORE any routes
+  // Better Auth butuh raw request body, jadi mount sebelum express.json().
+  const betterAuthHandler = toNodeHandler(auth);
+  const compatibilityAuthPaths = new Set([
+    "/api/auth/me",
+    "/api/auth/forgot-password",
+    "/api/auth/reset-password",
+  ]);
+
+  app.all("/api/auth/*splat", (req, res, next) => {
+    if (compatibilityAuthPaths.has(req.path)) return next();
+
+    return betterAuthHandler(req, res);
+  });
+
   app.use(express.json({ limit: "1mb" }));
 
   // Compatibility endpoint untuk respons user yang dinormalisasi.
   app.use("/api/auth", authRouter);
-
-  // Better Auth butuh raw request body - mount sebelum express.json().
-  app.all("/api/auth/*splat", toNodeHandler(auth));
 
   // ── Health check root ───────────────────────────────────────────────────────
   app.get("/", (req, res) => {

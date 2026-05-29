@@ -11,17 +11,27 @@ const parseList = (value) =>
     .map((item) => item.trim())
     .filter(Boolean) || [];
 
+const port = Number(process.env.PORT || 8000);
+const frontendUrl =
+  process.env.FRONTEND_URL ||
+  process.env.NEXT_PUBLIC_APP_URL ||
+  process.env.NEXT_APP_URL ||
+  "http://localhost:3000";
+const backendUrl =
+  process.env.BACKEND_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  `http://localhost:${port}`;
+const betterAuthUrl =
+  process.env.BETTER_AUTH_URL ||
+  process.env.NEXT_PUBLIC_APP_URL ||
+  frontendUrl;
+
 export const env = {
   nodeEnv: process.env.NODE_ENV || "development",
-  port: Number(process.env.PORT || 8000),
-  frontendUrl:
-    process.env.FRONTEND_URL ||
-    process.env.NEXT_APP_URL ||
-    "http://localhost:3000",
-  backendUrl:
-    process.env.BETTER_AUTH_URL ||
-    process.env.BACKEND_URL ||
-    `http://localhost:${process.env.PORT || 8000}`,
+  port,
+  frontendUrl,
+  backendUrl,
+  betterAuthUrl,
   trustedOrigins: parseList(process.env.TRUSTED_ORIGINS),
   betterAuthSecret: process.env.BETTER_AUTH_SECRET,
   supabaseUrl: process.env.SUPABASE_URL,

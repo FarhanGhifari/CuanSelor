@@ -1,21 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { 
   LayoutDashboard, 
-  WalletCards, 
   MessageCircle, 
   Smile, 
   Menu,
   X,
   LogOut,
-  Bell
+  Bell,
+  Loader2
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { ROUTES } from "@/lib/constants/routes";
-import { authClient } from "@/lib/auth/auth-client";
+import { authClient, useSession } from "@/lib/auth/auth-client";
 import { useRouter } from "next/navigation";
 
 const navItems = [
@@ -43,12 +43,41 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname();
   const router = useRouter();
+  const { data: session, isPending } = useSession();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  useEffect(() => {
+    if (!isPending && !session?.user) {
+      router.replace(ROUTES.LOGIN);
+    }
+  }, [isPending, router, session?.user]);
+
   const handleLogout = async () => {
-    await authClient.signOut();
-    router.push(ROUTES.HOME);
+    await authClient.signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          router.replace(ROUTES.LOGIN);
+          router.refresh();
+        },
+      },
+    });
   };
+
+  if (isPending || !session?.user) {
+    return (
+      <div className="min-h-screen bg-[#F8F9FA] flex items-center justify-center px-6">
+        <div className="flex flex-col items-center gap-4 text-center">
+          <div className="w-14 h-14 rounded-2xl bg-white border border-gray-100 shadow-sm flex items-center justify-center">
+            <Loader2 className="w-7 h-7 animate-spin text-[#10B981]" />
+          </div>
+          <div>
+            <h1 className="text-lg font-bold text-gray-900">Memeriksa sesi...</h1>
+            <p className="mt-1 text-sm text-gray-500">Mohon tunggu sebentar.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] font-sans selection:bg-[#10B981]/30">

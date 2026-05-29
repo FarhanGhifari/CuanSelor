@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useState } from "react";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Lock, Loader2, Eye, EyeOff, CheckCircle2, XCircle, ArrowLeft, ShieldCheck } from "lucide-react";
+import { Lock, Loader2, Eye, EyeOff, CheckCircle2, XCircle, ArrowLeft, ShieldCheck, AlertCircle } from "lucide-react";
 import { resetPasswordSchema, type ResetPasswordInput } from "../validations/auth.schema";
-import { authMock } from "../services/auth.mock";
 import { cn } from "@/lib/utils/cn";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -32,40 +31,21 @@ export default function ResetPasswordForm() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token") ?? "";
 
-  const [step, setStep] = useState<Step>("loading");
+  const [step, setStep] = useState<Step>(token ? "form" : "invalid");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [watchedPassword, setWatchedPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
   const {
+    control,
     register,
     handleSubmit,
-    watch,
     formState: { errors, isSubmitting },
   } = useForm<ResetPasswordInput>({
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: { password: "", confirmPassword: "" },
   });
-
-  // Watch password for strength meter
-  useEffect(() => {
-    const subscription = watch((value) => {
-      setWatchedPassword(value.password ?? "");
-    });
-    return () => subscription.unsubscribe();
-  }, [watch]);
-
-  // Verify token on mount
-  useEffect(() => {
-    if (!token) {
-      setStep("invalid");
-      return;
-    }
-    // Token will be verified when user submits the form
-    // Better Auth doesn't have a separate verify endpoint
-    setStep("form");
-  }, [token]);
+  const watchedPassword = useWatch({ control, name: "password" }) ?? "";
 
   const onSubmit = async (data: ResetPasswordInput) => {
     setErrorMessage("");

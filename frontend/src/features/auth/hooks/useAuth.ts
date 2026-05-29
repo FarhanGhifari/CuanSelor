@@ -124,7 +124,9 @@ export function useGoogleLogin() {
 
       await authClient.signIn.social({
         provider: "google",
-        callbackURL: ROUTES.DASHBOARD,
+        callbackURL: ROUTES.AUTH_CALLBACK,
+        newUserCallbackURL: ROUTES.ONBOARDING,
+        errorCallbackURL: ROUTES.LOGIN,
       });
     } catch {
       setError("Google login gagal. Coba lagi.");

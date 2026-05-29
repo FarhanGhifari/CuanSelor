@@ -8,11 +8,19 @@ requireEnv(["databaseUrl", "betterAuthSecret"]);
 const isLocalDatabase =
   env.databaseUrl.includes("localhost") || env.databaseUrl.includes("127.0.0.1");
 
+const trustedOrigins = Array.from(
+  new Set(
+    [env.frontendUrl, env.backendUrl, env.betterAuthUrl, ...env.trustedOrigins].filter(
+      Boolean,
+    ),
+  ),
+);
+
 export const auth = betterAuth({
   appName: "CuanSelor",
-  baseURL: env.backendUrl,
+  baseURL: env.betterAuthUrl,
   secret: env.betterAuthSecret,
-  trustedOrigins: [env.frontendUrl, env.backendUrl, ...env.trustedOrigins],
+  trustedOrigins,
   database: new Pool({
     connectionString: env.databaseUrl,
     // Gunakan rejectUnauthorized: true di production untuk mencegah MITM attack.
@@ -73,6 +81,17 @@ export const auth = betterAuth({
         console.log(`[Better Auth] ========================================`);
         throw error;
       }
+    },
+  },
+  account: {
+    accountLinking: {
+      enabled: true,
+      trustedProviders: ["google"],
+      // Google OAuth gives verified ownership for the email address, so an
+      // existing email/password user can sign in with Google without hitting
+      // account_not_linked.
+      requireLocalEmailVerified: false,
+      updateUserInfoOnLink: true,
     },
   },
   socialProviders:
