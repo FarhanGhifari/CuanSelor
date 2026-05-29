@@ -28,8 +28,9 @@ export const API = {
     RISK_PROFILE: `${ML}/predict/risk-profile`,
   },
   ADVISOR: {
-    CHAT:   `${BASE}/api/advisor/chat`,
-    ADVICE: `${BASE}/api/advisor/advice`,
+    CHAT:          `${BASE}/api/advisor/chat`,
+    ACTIVE:        `${BASE}/api/advisor/active`,
+    CONVERSATIONS: `${BASE}/api/advisor/conversations`,
   },
   SIMULATION: {
     CREATE:  `${BASE}/api/simulation`,
