@@ -6,13 +6,16 @@
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ROUTES } from "@/lib/constants/routes";
-import { apiClient } from "@/lib/api/axios.config"; // PERBAIKAN: Import menggunakan { apiClient }
-import Link from "next/link";
+import { apiClient } from "@/lib/api/axios.config";
+import { authClient } from "@/lib/auth/auth-client";
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 function VerifyEmailContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [error, setError] = useState<string | null>(null);
+    const [isVerifying, setIsVerifying] = useState(false);
     const [resendLoading, setResendLoading] = useState(false);
     const [resendMessage, setResendMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
     const token = searchParams.get("token");
@@ -22,32 +25,58 @@ function VerifyEmailContent() {
             return;
         }
 
+        let cancelled = false;
+
         const verifyEmail = async () => {
+            setIsVerifying(true);
+
             try {
-                const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-                const verifyUrl = `${backendUrl}/api/auth/verify-email?token=${token}`;
-                
-                const response = await fetch(verifyUrl, {
-                    method: "GET",
-                    credentials: "include",
+                const { error: verifyError } = await authClient.verifyEmail({
+                    query: { token },
                 });
-                
-                if (response.status === 400) {
-                    setError("Link verifikasi sudah digunakan atau tidak valid");
+
+                if (cancelled) return;
+
+                if (verifyError) {
+                    setError(
+                        verifyError.message?.includes("invalid") ||
+                        verifyError.message?.includes("expired")
+                            ? "Link verifikasi sudah digunakan atau tidak valid"
+                            : verifyError.message ?? "Link verifikasi tidak valid atau sudah kadaluarsa",
+                    );
                     return;
                 }
 
-                if (!response.ok) {
-                    throw new Error("Verifikasi gagal");
+                for (let attempt = 0; attempt < 6; attempt += 1) {
+                    const { data } = await authClient.getSession({
+                        query: { disableCookieCache: true },
+                    });
+
+                    if (cancelled) return;
+
+                    if (data?.user) {
+                        router.replace(ROUTES.AUTH_CALLBACK);
+                        return;
+                    }
+
+                    if (attempt < 5) await wait(250);
                 }
 
                 router.replace(ROUTES.AUTH_CALLBACK);
             } catch {
-                setError("Link verifikasi tidak valid atau sudah kadaluarsa");
+                if (!cancelled) {
+                    setError("Link verifikasi tidak valid atau sudah kadaluarsa");
+                }
+            } finally {
+                if (!cancelled) setIsVerifying(false);
             }
         };
 
         verifyEmail();
+
+        return () => {
+            cancelled = true;
+        };
     }, [token, router]);
 
     const handleResendEmail = async () => {
@@ -126,6 +155,18 @@ function VerifyEmailContent() {
 
                 <div className="absolute top-10 left-10 w-40 h-40 rounded-full bg-emerald-200/30 blur-2xl"></div>
                 <div className="absolute bottom-20 right-10 w-60 h-60 rounded-full bg-teal-200/20 blur-3xl"></div>
+            </div>
+        );
+    }
+
+    if (token && isVerifying) {
+        return (
+            <div className="min-h-screen w-full flex items-center justify-center bg-linear-to-br from-emerald-50 via-teal-50 to-cyan-50">
+                <div className="text-center">
+                    <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <div className="text-xl font-semibold text-gray-800 mb-2">Memverifikasi email...</div>
+                    <p className="text-gray-600 text-sm">Sebentar ya, kami sedang login-kan akunmu.</p>
+                </div>
             </div>
         );
     }
