@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Mail, Lock, Loader2, Eye, EyeOff } from "lucide-react";
+import { Mail, Lock, Loader2, Eye, EyeOff, X } from "lucide-react";
 import { loginSchema, type LoginInput } from "../validations/auth.schema";
 import { authClient } from "@/lib/auth/auth-client";
 import { cn } from "@/lib/utils/cn";
@@ -13,18 +13,46 @@ import { ROUTES } from "@/lib/constants/routes";
 import { GoogleAuthButton } from "./GoogleAuthButton";
 import { getAuthErrorMessage } from "../utils/auth-errors";
 
+type FormErrorState = {
+  id: string;
+  message: string;
+};
+
 export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [loginError, setLoginError] = useState<string | null>(null);
+  const [loginError, setLoginError] = useState<FormErrorState | null>(null);
   const [hideCallbackError, setHideCallbackError] = useState(false);
+  const [dismissedErrorId, setDismissedErrorId] = useState<string | null>(null);
+  const [autoHiddenErrorId, setAutoHiddenErrorId] = useState<string | null>(null);
   const callbackError = hideCallbackError
     ? null
     : getAuthErrorMessage(searchParams.get("error"));
-  const displayError = loginError ?? callbackError;
+  const callbackErrorState = callbackError
+    ? {
+        id: `callback:${searchParams.get("error") ?? callbackError}`,
+        message: callbackError,
+      }
+    : null;
+  const displayError = loginError ?? callbackErrorState;
+  const activeErrorId = displayError?.id ?? null;
+  const isErrorVisible =
+    Boolean(displayError) &&
+    activeErrorId !== dismissedErrorId &&
+    activeErrorId !== autoHiddenErrorId;
+
+  useEffect(() => {
+    if (!activeErrorId) return;
+
+    const timer = setTimeout(() => {
+      setAutoHiddenErrorId(activeErrorId);
+    }, 30000);
+
+    return () => clearTimeout(timer);
+  }, [activeErrorId]);
 
   const {
     register,
@@ -39,10 +67,17 @@ export default function LoginForm() {
     },
   });
 
+  const createErrorState = (scope: "login" | "google", message: string): FormErrorState => ({
+    id: `${scope}:${message}`,
+    message,
+  });
+
   const onSubmit = async (data: LoginInput) => {
     setIsLoading(true);
     setLoginError(null);
     setHideCallbackError(true);
+    setDismissedErrorId(null);
+    setAutoHiddenErrorId(null);
 
     try {
       const result = await authClient.signIn.email({
@@ -52,7 +87,9 @@ export default function LoginForm() {
       });
 
       if (result.error) {
-        setLoginError(result.error.message || "Login failed");
+        setLoginError(
+          createErrorState("login", result.error.message || "Masuk gagal. Silakan coba lagi.")
+        );
         return;
       }
 
@@ -61,14 +98,16 @@ export default function LoginForm() {
       });
 
       if (!session?.user) {
-        setLoginError("Login berhasil, tapi sesi belum terbaca. Coba refresh halaman.");
+        setLoginError(
+          createErrorState("login", "Login berhasil, tapi sesi belum terbaca. Coba refresh halaman.")
+        );
         return;
       }
 
       router.replace(ROUTES.AUTH_CALLBACK);
       router.refresh();
     } catch {
-      setLoginError("An error occurred during login");
+      setLoginError(createErrorState("login", "Terjadi kesalahan saat masuk"));
     } finally {
       setIsLoading(false);
     }
@@ -78,6 +117,8 @@ export default function LoginForm() {
     setIsGoogleLoading(true);
     setLoginError(null);
     setHideCallbackError(true);
+    setDismissedErrorId(null);
+    setAutoHiddenErrorId(null);
 
     try {
       const result = await authClient.signIn.social({
@@ -88,10 +129,12 @@ export default function LoginForm() {
       });
 
       if (result.error) {
-        setLoginError(result.error.message || "Google login failed");
+        setLoginError(
+          createErrorState("google", result.error.message || "Masuk dengan Google gagal")
+        );
       }
     } catch {
-      setLoginError("An error occurred during Google login");
+      setLoginError(createErrorState("google", "Terjadi kesalahan saat masuk dengan Google"));
     } finally {
       setIsGoogleLoading(false);
     }
@@ -99,10 +142,22 @@ export default function LoginForm() {
 
   return (
     <div className="w-full bg-white rounded-[24px] shadow-[0_12px_40px_rgb(0,0,0,0.06)] border border-gray-100 p-10">
-      {displayError && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3 text-red-600 animate-in fade-in slide-in-from-top-2 duration-300">
-          <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-          <p className="text-sm font-medium">{displayError}</p>
+      {isErrorVisible && displayError && (
+        <div className="fixed top-6 left-1/2 z-50 w-full max-w-md -translate-x-1/2 px-4 animate-in fade-in slide-in-from-top-2 duration-300">
+          <div className="rounded-xl border border-red-200 bg-red-50 pl-4 pr-3 py-3.5 flex items-center justify-between gap-3 text-red-700 shadow-lg">
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse shrink-0" />
+              <p className="text-sm font-semibold">{displayError.message}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setDismissedErrorId(displayError.id)}
+              className="p-1 hover:bg-red-100 rounded-lg transition-colors text-red-500 hover:text-red-700 shrink-0"
+              aria-label="Tutup"
+            >
+              <X size={16} />
+            </button>
+          </div>
         </div>
       )}
 
@@ -110,7 +165,7 @@ export default function LoginForm() {
         {/* Email */}
         <div className="space-y-2">
           <label htmlFor="email" className="text-[14px] font-medium text-gray-700 block">
-            Email Address
+            Email
           </label>
           <div className="relative group">
             <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
@@ -149,7 +204,7 @@ export default function LoginForm() {
               {...register("password")}
               id="password"
               type={showPassword ? "text" : "password"}
-              placeholder="Enter your password"
+              placeholder="Masukkan password kamu"
               suppressHydrationWarning
               autoComplete="current-password"
               className={cn(
@@ -186,14 +241,14 @@ export default function LoginForm() {
               className="w-4 h-4 rounded border-gray-300 text-[#10B981] focus:ring-[#10B981] cursor-pointer"
             />
             <label htmlFor="rememberMe" className="text-[14px] text-gray-600 cursor-pointer select-none">
-              Remember me
+              Ingat saya
             </label>
           </div>
           <Link
             href={ROUTES.FORGOT_PASSWORD}
             className="text-[14px] text-[#10B981] hover:text-[#059669] font-medium transition-colors"
           >
-            Forgot password?
+            Lupa password?
           </Link>
         </div>
 
@@ -207,7 +262,7 @@ export default function LoginForm() {
           {isLoading ? (
             <Loader2 className="animate-spin" size={20} />
           ) : (
-            "Sign In"
+            "Masuk"
           )}
         </button>
 
@@ -217,22 +272,22 @@ export default function LoginForm() {
             <div className="w-full border-t border-gray-200" />
           </div>
           <div className="relative flex justify-center text-xs">
-            <span className="bg-white px-4 text-gray-500">Or continue with</span>
+            <span className="bg-white px-4 text-gray-500">Atau lanjutkan dengan</span>
           </div>
         </div>
 
         {/* Google */}
         <GoogleAuthButton
-          label="Sign in with Google"
+          label="Masuk dengan Google"
           onClick={handleGoogleSignIn}
           disabled={isLoading || isGoogleLoading}
           isLoading={isGoogleLoading}
         />
 
         <p className="text-center text-[14px] text-gray-600 mt-6 pt-2">
-          Don&rsquo;t have an account?{" "}
+          Belum punya akun?{" "}
           <Link href={ROUTES.REGISTER} className="text-[#10B981] hover:text-[#059669] font-bold">
-            Sign up
+            Daftar
           </Link>
         </p>
       </form>

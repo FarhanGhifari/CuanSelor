@@ -1,42 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { TrendingUp, User, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { User, Mail, Lock, Loader2, Eye, EyeOff, X } from "lucide-react";
 import {
   personalInfoSchema,
   type PersonalInfoInput,
 } from "@/features/auth/validations/auth.schema";
 import { ROUTES } from "@/lib/constants/routes";
-import { authClient } from "@/lib/auth/auth-client";
 import { GoogleAuthButton } from "./GoogleAuthButton";
 import { getAuthErrorMessage } from "../utils/auth-errors";
-
-// ── Step Indicator ─────────────────────────────────────────────
-export function StepIndicator({ current }: { current: 1 | 2 }) {
-  const steps = [
-    { step: 1, label: "Data Diri" },
-    { step: 2, label: "Info Finansial" },
-  ];
-  return (
-    <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-4">
-      <span className="text-primary text-sm font-medium">
-        Step {current} of 2 - {steps[current - 1].label}
-      </span>
-    </div>
-  );
-}
+import { cn } from "@/lib/utils/cn";
 
 // ── Props ──────────────────────────────────────────────────────
 interface RegisterFormProps {
   onSubmit: (data: PersonalInfoInput) => void;
+  onGoogleSignUp: () => void;
+  isLoading?: boolean;
 }
 
 // ── Component ──────────────────────────────────────────────────
-export function RegisterForm({ onSubmit }: RegisterFormProps) {
+export function RegisterForm({ onSubmit, onGoogleSignUp, isLoading = false }: RegisterFormProps) {
   const searchParams = useSearchParams();
   const [showPass, setShowPass] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -48,8 +35,27 @@ export function RegisterForm({ onSubmit }: RegisterFormProps) {
     : getAuthErrorMessage(searchParams.get("error"));
   const displayGoogleError = googleError ?? callbackError;
 
-  const { register, handleSubmit, formState: { errors } } =
-    useForm<PersonalInfoInput>({ resolver: zodResolver(personalInfoSchema) });
+  const [showError, setShowError] = useState(false);
+
+  useEffect(() => {
+    if (displayGoogleError) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setShowError(true);
+      const timer = setTimeout(() => {
+        setShowError(false);
+      }, 30000);
+      return () => clearTimeout(timer);
+    } else {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setShowError(false);
+    }
+  }, [displayGoogleError]);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<PersonalInfoInput>({ resolver: zodResolver(personalInfoSchema) });
 
   const handleGoogleSignUp = async () => {
     setIsGoogleLoading(true);
@@ -57,16 +63,7 @@ export function RegisterForm({ onSubmit }: RegisterFormProps) {
     setHideCallbackError(true);
 
     try {
-      const result = await authClient.signIn.social({
-        provider: "google",
-        callbackURL: ROUTES.AUTH_CALLBACK,
-        newUserCallbackURL: ROUTES.AUTH_CALLBACK,
-        errorCallbackURL: ROUTES.REGISTER,
-      });
-
-      if (result.error) {
-        setGoogleError(result.error.message || "Registrasi Google gagal");
-      }
+      await onGoogleSignUp();
     } catch {
       setGoogleError("Registrasi Google gagal. Coba lagi.");
     } finally {
@@ -75,163 +72,197 @@ export function RegisterForm({ onSubmit }: RegisterFormProps) {
   };
 
   return (
-    <div className="w-full max-w-2xl">
-      {/* Step badge */}
-      <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-foreground mb-4">
-          Buat Akun CuanSelor
-        </h1>
-        <p className="text-lg text-muted-foreground">
-          Isi data diri kamu untuk memulai perjalanan finansialmu
-        </p>
-      </div>
-
-      {/* Form Card */}
-      <div className="bg-card rounded-2xl shadow-xl border border-border p-8 md:p-12">
-        <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-8">
-          <div className="space-y-5">
-            {displayGoogleError && (
-              <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3 text-red-600 animate-in fade-in slide-in-from-top-2 duration-300">
-                <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                <p className="text-sm font-medium">{displayGoogleError}</p>
-              </div>
-            )}
-            <GoogleAuthButton
-              label="Daftar dengan Google"
-              onClick={handleGoogleSignUp}
-              isLoading={isGoogleLoading}
-            />
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-border" />
-              </div>
-              <div className="relative flex justify-center text-xs">
-                <span className="bg-card px-4 text-muted-foreground">
-                  Atau isi data manual
-                </span>
-              </div>
+    <div className="w-full bg-white rounded-[24px] shadow-[0_12px_40px_rgb(0,0,0,0.06)] border border-gray-100 p-8">
+      {showError && displayGoogleError && (
+        <div className="fixed top-6 left-1/2 z-50 w-full max-w-md -translate-x-1/2 px-4 animate-in fade-in slide-in-from-top-2 duration-300">
+          <div className="rounded-xl border border-red-200 bg-red-50 pl-4 pr-3 py-3.5 flex items-center justify-between gap-3 text-red-700 shadow-lg">
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse shrink-0" />
+              <p className="text-sm font-semibold">{displayGoogleError}</p>
             </div>
-          </div>
-
-          {/* Personal Information */}
-          <div>
-            <h3 className="text-lg font-semibold text-foreground mb-6 flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                <User className="w-4 h-4 text-primary" />
-              </div>
-              Informasi Pribadi
-            </h3>
-
-            <div className="grid md:grid-cols-2 gap-6">
-              {/* Nama */}
-              <div className="md:col-span-2">
-                <label className="block text-sm text-muted-foreground mb-2">Nama Lengkap</label>
-                <div className="relative">
-                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/60" />
-                  <input
-                    type="text"
-                    placeholder="John Doe"
-                    autoComplete="name"
-                    className="w-full pl-12 pr-4 py-3.5 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                    {...register("fullName")}
-                  />
-                </div>
-                {errors.fullName && (
-                  <p className="text-xs text-destructive mt-1.5">{errors.fullName.message}</p>
-                )}
-              </div>
-
-              {/* Email */}
-              <div className="md:col-span-2">
-                <label className="block text-sm text-muted-foreground mb-2">Email</label>
-                <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/60" />
-                  <input
-                    type="email"
-                    placeholder="you@example.com"
-                    autoComplete="email"
-                    className="w-full pl-12 pr-4 py-3.5 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                    {...register("email")}
-                  />
-                </div>
-                {errors.email && (
-                  <p className="text-xs text-destructive mt-1.5">{errors.email.message}</p>
-                )}
-              </div>
-
-              {/* Password */}
-              <div>
-                <label className="block text-sm text-muted-foreground mb-2">Password</label>
-                <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/60" />
-                  <input
-                    type={showPass ? "text" : "password"}
-                    placeholder="Minimal 8 karakter"
-                    autoComplete="new-password"
-                    className="w-full pl-12 pr-12 py-3.5 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                    {...register("password")}
-                  />
-                  <button
-                    type="button"
-                    tabIndex={-1}
-                    onClick={() => setShowPass(p => !p)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-muted-foreground transition-colors"
-                  >
-                    {showPass ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
-                </div>
-                {errors.password && (
-                  <p className="text-xs text-destructive mt-1.5">{errors.password.message}</p>
-                )}
-              </div>
-
-              {/* Confirm Password */}
-              <div>
-                <label className="block text-sm text-muted-foreground mb-2">Konfirmasi Password</label>
-                <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/60" />
-                  <input
-                    type={showConfirm ? "text" : "password"}
-                    placeholder="Ulangi password"
-                    autoComplete="new-password"
-                    className="w-full pl-12 pr-12 py-3.5 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                    {...register("confirmPassword")}
-                  />
-                  <button
-                    type="button"
-                    tabIndex={-1}
-                    onClick={() => setShowConfirm(p => !p)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-muted-foreground transition-colors"
-                  >
-                    {showConfirm ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
-                </div>
-                {errors.confirmPassword && (
-                  <p className="text-xs text-destructive mt-1.5">{errors.confirmPassword.message}</p>
-                )}
-              </div>
-
-            </div>
-          </div>
-
-          {/* Submit */}
-          <div className="pt-2">
             <button
-              type="submit"
-              className="w-full py-4 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-xl hover:shadow-lg hover:shadow-primary/30 transition-all flex items-center justify-center gap-2 text-lg font-medium"
+              type="button"
+              onClick={() => setShowError(false)}
+              className="p-1 hover:bg-red-100 rounded-lg transition-colors text-red-500 hover:text-red-700 shrink-0"
+              aria-label="Tutup"
             >
-              Daftar
-              <TrendingUp className="w-5 h-5" />
+              <X size={16} />
             </button>
-            <p className="text-center text-sm text-muted-foreground mt-4">
-              Sudah punya akun?{" "}
-              <Link href={ROUTES.LOGIN} className="text-primary hover:underline font-medium">
-                Masuk
-              </Link>
-            </p>
           </div>
-        </form>
-      </div>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        {/* Nama Lengkap */}
+        <div className="space-y-2">
+          <label htmlFor="fullName" className="text-[14px] font-medium text-gray-700 block">
+            Nama Lengkap
+          </label>
+          <div className="relative group">
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+              <User size={18} strokeWidth={1.5} />
+            </div>
+            <input
+              {...register("fullName")}
+              id="fullName"
+              type="text"
+              placeholder="John Doe"
+              autoComplete="name"
+              className={cn(
+                "w-full pl-10 pr-4 py-4 bg-white border rounded-xl outline-none transition-all duration-200 text-base placeholder:text-gray-400",
+                errors.fullName
+                  ? "border-red-500 focus:border-red-500 focus:ring-4 focus:ring-red-500/10"
+                  : "border-gray-200 focus:border-[#10B981] focus:ring-4 focus:ring-[#10B981]/10"
+              )}
+            />
+          </div>
+          {errors.fullName && (
+            <p className="text-xs text-red-500 mt-1 font-medium">{errors.fullName.message}</p>
+          )}
+        </div>
+
+        {/* Email */}
+        <div className="space-y-2">
+          <label htmlFor="email" className="text-[14px] font-medium text-gray-700 block">
+            Email
+          </label>
+          <div className="relative group">
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+              <Mail size={18} strokeWidth={1.5} />
+            </div>
+            <input
+              {...register("email")}
+              id="email"
+              type="email"
+              placeholder="you@example.com"
+              autoComplete="email"
+              className={cn(
+                "w-full pl-10 pr-4 py-4 bg-white border rounded-xl outline-none transition-all duration-200 text-base placeholder:text-gray-400",
+                errors.email
+                  ? "border-red-500 focus:border-red-500 focus:ring-4 focus:ring-red-500/10"
+                  : "border-gray-200 focus:border-[#10B981] focus:ring-4 focus:ring-[#10B981]/10"
+              )}
+            />
+          </div>
+          {errors.email && (
+            <p className="text-xs text-red-500 mt-1 font-medium">{errors.email.message}</p>
+          )}
+        </div>
+
+        {/* Password Row */}
+        <div className="grid grid-cols-2 gap-4">
+          {/* Password */}
+          <div className="space-y-2">
+            <label htmlFor="password" className="text-[14px] font-medium text-gray-700 block">
+              Password
+            </label>
+            <div className="relative group">
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                <Lock size={18} strokeWidth={1.5} />
+              </div>
+              <input
+                {...register("password")}
+                id="password"
+                type={showPass ? "text" : "password"}
+                placeholder="Minimal 8 karakter"
+                autoComplete="new-password"
+                className={cn(
+                  "w-full pl-10 pr-12 py-4 bg-white border rounded-xl outline-none transition-all duration-200 text-base placeholder:text-gray-400",
+                  errors.password
+                    ? "border-red-500 focus:border-red-500 focus:ring-4 focus:ring-red-500/10"
+                    : "border-gray-200 focus:border-[#10B981] focus:ring-4 focus:ring-[#10B981]/10"
+                )}
+              />
+              <button
+                type="button"
+                tabIndex={-1}
+                onClick={() => setShowPass((p) => !p)}
+                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                {showPass ? <EyeOff size={18} strokeWidth={1.5} /> : <Eye size={18} strokeWidth={1.5} />}
+              </button>
+            </div>
+            {errors.password && (
+              <p className="text-xs text-red-500 mt-1 font-medium">{errors.password.message}</p>
+            )}
+          </div>
+
+          {/* Confirm Password */}
+          <div className="space-y-2">
+            <label htmlFor="confirmPassword" className="text-[14px] font-medium text-gray-700 block">
+              Konfirmasi Password
+            </label>
+            <div className="relative group">
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                <Lock size={18} strokeWidth={1.5} />
+              </div>
+              <input
+                {...register("confirmPassword")}
+                id="confirmPassword"
+                type={showConfirm ? "text" : "password"}
+                placeholder="Ulangi password"
+                autoComplete="new-password"
+                className={cn(
+                  "w-full pl-10 pr-12 py-4 bg-white border rounded-xl outline-none transition-all duration-200 text-base placeholder:text-gray-400",
+                  errors.confirmPassword
+                    ? "border-red-500 focus:border-red-500 focus:ring-4 focus:ring-red-500/10"
+                    : "border-gray-200 focus:border-[#10B981] focus:ring-4 focus:ring-[#10B981]/10"
+                )}
+              />
+              <button
+                type="button"
+                tabIndex={-1}
+                onClick={() => setShowConfirm((p) => !p)}
+                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                {showConfirm ? <EyeOff size={18} strokeWidth={1.5} /> : <Eye size={18} strokeWidth={1.5} />}
+              </button>
+            </div>
+            {errors.confirmPassword && (
+              <p className="text-xs text-red-500 mt-1 font-medium">{errors.confirmPassword.message}</p>
+            )}
+          </div>
+        </div>
+
+        {/* Submit */}
+        <button
+          type="submit"
+          disabled={isLoading}
+          suppressHydrationWarning
+          className="w-full py-4 px-6 bg-[#10B981] hover:bg-[#059669] disabled:bg-[#6EE7B7] text-white font-bold text-lg rounded-xl transition-all duration-200 flex items-center justify-center mt-2"
+        >
+          {isLoading ? (
+            <Loader2 className="animate-spin" size={20} />
+          ) : (
+            "Daftar"
+          )}
+        </button>
+
+        {/* Divider */}
+        <div className="relative my-5 pt-1">
+          <div className="absolute inset-0 flex items-center pt-1">
+            <div className="w-full border-t border-gray-200" />
+          </div>
+          <div className="relative flex justify-center text-xs">
+            <span className="bg-white px-4 text-gray-500">Atau lanjutkan dengan</span>
+          </div>
+        </div>
+
+        {/* Google */}
+        <GoogleAuthButton
+          label="Daftar dengan Google"
+          onClick={handleGoogleSignUp}
+          disabled={isLoading || isGoogleLoading}
+          isLoading={isGoogleLoading}
+        />
+
+        <p className="text-center text-[14px] text-gray-600 mt-5 pt-1">
+          Sudah punya akun?{" "}
+          <Link href={ROUTES.LOGIN} className="text-[#10B981] hover:text-[#059669] font-bold">
+            Masuk
+          </Link>
+        </p>
+      </form>
     </div>
   );
 }

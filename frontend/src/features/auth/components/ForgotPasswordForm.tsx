@@ -51,7 +51,7 @@ export default function ForgotPasswordForm() {
 
       setSubmittedEmail(data.email);
       setStep("success");
-    } catch (error) {
+    } catch {
       setErrorMessage("Terjadi kesalahan. Silakan coba lagi.");
       setStep("error");
     }

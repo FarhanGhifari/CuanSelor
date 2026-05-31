@@ -123,7 +123,6 @@ export const authMock = {
         const user = MOCK_USERS.find((u) => u.email === entry.email);
         if (user) user.password = newPassword;
         pendingResets.delete(token);
-        console.log(`[Mock] Password reset sukses untuk ${entry.email}`);
         return { data: { success: true }, error: null };
     },
 };

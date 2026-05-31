@@ -1,3 +1,5 @@
+/* eslint-disable @next/next/no-img-element */
+
 import type { Metadata } from "next";
 import LoginForm from '@/features/auth/components/LoginForm';
 import Link from "next/link";
@@ -11,7 +13,7 @@ export const metadata: Metadata = {
 export default function LoginPage() {
     return (
         <AuthPageGuard>
-        <div className="min-h-screen w-full flex bg-white relative">
+        <div className="h-screen w-full flex bg-white relative overflow-hidden">
             {/* Absolute Logo */}
             <div className="absolute top-6 left-6 lg:left-8 z-50">
                 <Link href="/" className="flex items-center relative h-12 w-48 overflow-hidden">
@@ -49,14 +51,14 @@ export default function LoginPage() {
                 {/* Right Side - Form */}
                 <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-8 pt-20 lg:pt-8 relative">
                     <div className="w-full max-w-lg">
-                        <div className="mb-8 text-center">
+                        <div className="mb-4 text-center">
                             <h2 className="text-[2.8rem] font-bold text-[#111827] tracking-tight mb-2">Selamat Datang!</h2>
                             <p className="text-[#6B7280] text-[1.1rem]">Masuk untuk melanjutkan ke dashboard kamu</p>
                         </div>
                         
                         <LoginForm/>
                         
-                        <p className="text-center text-sm text-[#6B7280] mt-8">
+                        <p className="text-center text-sm text-[#6B7280] mt-4">
                             Dengan masuk, kamu menyetujui <Link href="/terms" className="text-[#10B981] hover:underline font-medium">Ketentuan Layanan</Link> dan <Link href="/privacy" className="text-[#10B981] hover:underline font-medium">Kebijakan Privasi</Link> kami
                         </p>
                     </div>

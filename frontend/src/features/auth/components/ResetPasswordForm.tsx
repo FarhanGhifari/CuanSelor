@@ -12,20 +12,25 @@ import { ROUTES } from "@/lib/constants/routes";
 
 // Password strength helpers
 const strengthChecks = [
-  { label: "At least 8 characters", test: (v: string) => v.length >= 8 },
-  { label: "At least one uppercase letter", test: (v: string) => /[A-Z]/.test(v) },
-  { label: "At least one number", test: (v: string) => /[0-9]/.test(v) },
+  { label: "Minimal 8 karakter", test: (v: string) => v.length >= 8 },
+  { label: "Minimal satu huruf kapital", test: (v: string) => /[A-Z]/.test(v) },
+  { label: "Minimal satu angka", test: (v: string) => /[0-9]/.test(v) },
 ];
 
 function getStrengthLevel(password: string): { score: number; label: string; color: string } {
   const passed = strengthChecks.filter((c) => c.test(password)).length;
   if (passed === 0) return { score: 0, label: "", color: "" };
-  if (passed === 1) return { score: 1, label: "Weak", color: "#ef4444" };
-  if (passed === 2) return { score: 2, label: "Fair", color: "#f59e0b" };
-  return { score: 3, label: "Strong", color: "#10b981" };
+  if (passed === 1) return { score: 1, label: "Lemah", color: "#ef4444" };
+  if (passed === 2) return { score: 2, label: "Cukup", color: "#f59e0b" };
+  return { score: 3, label: "Kuat", color: "#10b981" };
 }
 
 type Step = "loading" | "invalid" | "form" | "success";
+
+const CARD_BASE_CLASS =
+  "w-full min-h-[720px] max-h-[calc(100vh-7rem)] overflow-y-auto bg-white rounded-[24px] shadow-[0_12px_40px_rgb(0,0,0,0.06)] border border-gray-100 p-8 sm:p-10";
+
+const CARD_CENTER_CLASS = `${CARD_BASE_CLASS} flex flex-col justify-center`;
 
 export default function ResetPasswordForm() {
   const searchParams = useSearchParams();
@@ -71,9 +76,19 @@ export default function ResetPasswordForm() {
           setErrorMessage(result.message);
           return;
         }
-        
-        // Token invalid or expired
-        setStep("invalid");
+
+        // Tampilkan pesan backend yang lebih spesifik untuk error non-token.
+        const message = result.message || result.error?.message || "";
+        if (
+          message.includes("tidak valid") ||
+          message.includes("kedaluwarsa") ||
+          message.includes("digunakan")
+        ) {
+          setStep("invalid");
+          return;
+        }
+
+        setErrorMessage(message || "Gagal mereset password. Silakan coba lagi.");
         return;
       }
 
@@ -88,7 +103,7 @@ export default function ResetPasswordForm() {
   // ── Token invalid / expired ────────────────────────────────────────────────
   if (step === "loading") {
     return (
-      <div className="w-full bg-white rounded-[24px] shadow-[0_12px_40px_rgb(0,0,0,0.06)] border border-gray-100 p-10 flex flex-col items-center gap-4">
+      <div className={`${CARD_CENTER_CLASS} items-center gap-4 text-center`}>
         <Loader2 className="animate-spin w-8 h-8 text-[#10B981]" />
         <p className="text-gray-500 text-sm">Memverifikasi link reset...</p>
       </div>
@@ -97,7 +112,7 @@ export default function ResetPasswordForm() {
 
   if (step === "invalid") {
     return (
-      <div className="w-full bg-white rounded-[24px] shadow-[0_12px_40px_rgb(0,0,0,0.06)] border border-gray-100 p-10 text-center">
+      <div className={`${CARD_CENTER_CLASS} text-center`}>
         <div className="flex justify-center mb-6">
           <div className="w-20 h-20 rounded-full bg-red-50 flex items-center justify-center">
             <XCircle className="w-10 h-10 text-red-400" strokeWidth={1.5} />
@@ -131,7 +146,7 @@ export default function ResetPasswordForm() {
   // ── Success ────────────────────────────────────────────────────────────────
   if (step === "success") {
     return (
-      <div className="w-full bg-white rounded-[24px] shadow-[0_12px_40px_rgb(0,0,0,0.06)] border border-gray-100 p-10 text-center">
+      <div className={`${CARD_CENTER_CLASS} text-center`}>
         <div className="flex justify-center mb-6">
           <div
             className="w-20 h-20 rounded-full flex items-center justify-center"
@@ -157,7 +172,7 @@ export default function ResetPasswordForm() {
 
   // ── Reset form ─────────────────────────────────────────────────────────────
   return (
-    <div className="w-full bg-white rounded-[24px] shadow-[0_12px_40px_rgb(0,0,0,0.06)] border border-gray-100 p-10">
+    <div className={CARD_BASE_CLASS}>
       {/* Header */}
       <div className="mb-8">
         <div
@@ -184,7 +199,7 @@ export default function ResetPasswordForm() {
         {/* New Password */}
         <div className="space-y-2">
           <label htmlFor="password" className="text-[14px] font-medium text-gray-700 block">
-            New Password
+            Password Baru
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
@@ -194,7 +209,7 @@ export default function ResetPasswordForm() {
               {...register("password")}
               id="password"
               type={showPassword ? "text" : "password"}
-              placeholder="Create a strong password"
+              placeholder="Buat password yang kuat"
               suppressHydrationWarning
               autoComplete="new-password"
               className={cn(
@@ -230,7 +245,7 @@ export default function ResetPasswordForm() {
               </div>
               {strength.label && (
                 <p className="text-xs font-medium" style={{ color: strength.color }}>
-                  {strength.label} password
+                  Password {strength.label}
                 </p>
               )}
             </div>
@@ -275,7 +290,7 @@ export default function ResetPasswordForm() {
         {/* Confirm Password */}
         <div className="space-y-2">
           <label htmlFor="confirmPassword" className="text-[14px] font-medium text-gray-700 block">
-            Confirm Password
+            Konfirmasi Password
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
@@ -285,7 +300,7 @@ export default function ResetPasswordForm() {
               {...register("confirmPassword")}
               id="confirmPassword"
               type={showConfirm ? "text" : "password"}
-              placeholder="Repeat your new password"
+              placeholder="Ulangi password baru Anda"
               suppressHydrationWarning
               autoComplete="new-password"
               className={cn(
@@ -318,10 +333,10 @@ export default function ResetPasswordForm() {
           {isSubmitting ? (
             <>
               <Loader2 className="animate-spin" size={18} />
-              Resetting password...
+              Mengatur ulang password...
             </>
           ) : (
-            "Reset Password"
+            "Simpan Password Baru"
           )}
         </button>
       </form>
@@ -332,7 +347,7 @@ export default function ResetPasswordForm() {
           className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-800 transition-colors font-medium"
         >
           <ArrowLeft size={15} />
-          Back to Sign In
+          Kembali ke Login
         </Link>
       </div>
     </div>

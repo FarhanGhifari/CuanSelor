@@ -1,3 +1,5 @@
+/* eslint-disable @next/next/no-img-element */
+
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Loader2 } from "lucide-react";
@@ -11,7 +13,7 @@ export const metadata: Metadata = {
 
 function LoadingFallback() {
     return (
-        <div className="w-full bg-white rounded-[24px] shadow-[0_12px_40_rgb(0,0,0,0.06)] border border-gray-100 p-10 flex flex-col items-center gap-4">
+        <div className="w-full min-h-[720px] max-h-[calc(100vh-7rem)] overflow-y-auto bg-white rounded-[24px] shadow-[0_12px_40px_rgb(0,0,0,0.06)] border border-gray-100 p-8 sm:p-10 flex flex-col items-center justify-center gap-4 text-center">
             <Loader2 className="animate-spin w-8 h-8 text-[#10B981]" />
             <p className="text-gray-500 text-sm">Loading...</p>
         </div>
@@ -20,10 +22,10 @@ function LoadingFallback() {
 
 export default function ResetPasswordPage() {
     return (
-        <div className="min-h-screen w-full flex items-center justify-center bg-gray-50 p-6">
-            <div className="w-full max-w-lg">
+        <div className="min-h-screen w-full bg-gray-50 px-4 py-8 sm:px-6">
+            <div className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-[620px] flex-col items-center justify-center">
                 {/* Logo for branding */}
-                <div className="flex justify-center mb-8">
+                <div className="mb-6 flex h-20 items-center justify-center sm:mb-8">
                     <Link href="/">
                         <img src="/logo.png" alt="CuanSelor Logo" className="h-32 w-auto" />
                     </Link>

@@ -1,7 +1,8 @@
 "use client";
 
+/* eslint-disable @next/next/no-img-element */
+
 import { useEffect } from "react";
-import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { apiClient } from "@/lib/api/axios.config";
 import { API } from "@/lib/constants/api-endpoints";
@@ -62,18 +63,17 @@ export default function AuthCallbackPage() {
   }, [router]);
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-white px-6">
-      <div className="flex flex-col items-center gap-4 text-center">
-        <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center">
-          <Loader2 className="w-7 h-7 animate-spin text-[#10B981]" />
-        </div>
-        <div>
-          <h1 className="text-xl font-bold text-gray-900">Menyiapkan sesi...</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Mohon tunggu sebentar.
-          </p>
-        </div>
+    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-white px-6">
+      <div className="animate-bounce-gentle">
+        <img
+          src="/projection-illustration.svg"
+          alt="Loading..."
+          className="w-48 h-48 md:w-56 md:h-56 drop-shadow-lg"
+        />
       </div>
+      <p className="mt-8 text-lg font-semibold text-gray-700 animate-pulse">
+        Memuat...
+      </p>
     </div>
   );
 }

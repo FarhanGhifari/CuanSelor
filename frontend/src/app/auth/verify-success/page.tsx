@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+/* eslint-disable @next/next/no-img-element */
+
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Modal } from "@/components/ui/Modal";
 import { SuccessIllustration } from "@/components/ui/SuccessIllustration";
@@ -13,7 +15,7 @@ export default function VerifySuccessPage() {
 
     return (
         <>
-            <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 relative">
+            <div className="min-h-screen w-full flex items-center justify-center bg-linear-to-br from-emerald-50 via-teal-50 to-cyan-50 relative">
                 {/* Absolute Logo */}
                 <div className="absolute top-6 left-6 lg:left-8 z-50">
                     <Link href="/" className="flex items-center relative h-12 w-48 overflow-hidden">
@@ -40,7 +42,7 @@ export default function VerifySuccessPage() {
                         </p>
                         <button
                             onClick={() => router.push(ROUTES.ONBOARDING)}
-                            className="w-full py-3 bg-gradient-to-r from-primary to-primary/80 text-white rounded-xl hover:shadow-lg hover:shadow-primary/30 transition-all font-medium mb-3"
+                            className="w-full py-3 bg-linear-to-r from-primary to-primary/80 text-white rounded-xl hover:shadow-lg hover:shadow-primary/30 transition-all font-medium mb-3"
                         >
                             Lanjut ke Onboarding
                         </button>

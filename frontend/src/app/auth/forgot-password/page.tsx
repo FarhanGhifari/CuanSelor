@@ -1,3 +1,5 @@
+/* eslint-disable @next/next/no-img-element */
+
 import type { Metadata } from "next";
 import ForgotPasswordForm from "@/features/auth/components/ForgotPasswordForm";
 import { ROUTES } from "@/lib/constants/routes";

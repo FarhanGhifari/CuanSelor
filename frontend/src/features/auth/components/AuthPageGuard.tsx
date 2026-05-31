@@ -1,7 +1,8 @@
 "use client";
 
+/* eslint-disable @next/next/no-img-element */
+
 import { useEffect, useState } from "react";
-import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { authClient, useSession } from "@/lib/auth/auth-client";
 import { ROUTES } from "@/lib/constants/routes";
@@ -45,13 +46,17 @@ export function AuthPageGuard({ children }: { children: React.ReactNode }) {
 
   if (isPending || isVerifying || session?.user) {
     return (
-      <div className="min-h-screen w-full flex items-center justify-center bg-white px-6">
-        <div className="flex flex-col items-center gap-4 text-center">
-          <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center">
-            <Loader2 className="w-7 h-7 animate-spin text-[#10B981]" />
-          </div>
-          <p className="text-sm font-medium text-gray-500">Memeriksa sesi...</p>
+      <div className="min-h-screen w-full flex flex-col items-center justify-center bg-white px-6">
+        <div className="animate-bounce-gentle">
+          <img
+            src="/projection-illustration.svg"
+            alt="Loading..."
+            className="w-48 h-48 md:w-56 md:h-56 drop-shadow-lg"
+          />
         </div>
+        <p className="mt-8 text-lg font-semibold text-gray-700 animate-pulse">
+          Memuat...
+        </p>
       </div>
     );
   }
