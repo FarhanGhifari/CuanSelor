@@ -9,6 +9,7 @@ import { useRegister } from "@/features/auth/hooks/useAuth";
 import type { PersonalInfoInput } from "@/features/auth/validations/auth.schema";
 import Link from "next/link";
 import { AuthPageGuard } from "@/features/auth/components/AuthPageGuard";
+import { AuthLoadingScreen } from "@/features/auth/components/AuthLoadingScreen";
 import { authClient } from "@/lib/auth/auth-client";
 import { ROUTES } from "@/lib/constants/routes";
 
@@ -54,25 +55,13 @@ export default function RegisterPage() {
         }
     }, []);
 
+    if (step === "loading") {
+        return <AuthLoadingScreen message="Mendaftarkan akun..." />;
+    }
+
     return (
         <AuthPageGuard>
             <>
-                {/* ── Loading Overlay ── */}
-                {step === "loading" && (
-                    <div className="fixed inset-0 z-60 flex flex-col items-center justify-center bg-white/95 backdrop-blur-sm">
-                        <div className="animate-bounce-gentle">
-                            <img
-                                src="/projection-illustration.svg"
-                                alt="Loading..."
-                                className="w-48 h-48 md:w-56 md:h-56 drop-shadow-lg"
-                            />
-                        </div>
-                        <p className="mt-8 text-lg font-semibold text-gray-700 animate-pulse">
-                            Mendaftarkan akun...
-                        </p>
-                    </div>
-                )}
-
                 <div className="h-screen w-full flex bg-white relative overflow-hidden">
                     {/* Absolute Logo */}
                     <div className="absolute top-6 left-6 lg:left-8 z-50">

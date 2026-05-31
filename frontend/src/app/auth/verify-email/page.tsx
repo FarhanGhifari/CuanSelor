@@ -107,12 +107,7 @@ function VerifyEmailContent() {
     }
 
     if (token) {
-        return (
-            <AuthLoadingScreen
-                message="Memverifikasi email..."
-                subtitle="Sebentar ya, kami sedang login-kan akunmu."
-            />
-        );
+        return <AuthLoadingScreen message="Memverifikasi email..." />;
     }
 
     return (

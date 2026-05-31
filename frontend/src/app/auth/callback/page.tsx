@@ -61,10 +61,5 @@ export default function AuthCallbackPage() {
     };
   }, [router]);
 
-  return (
-    <AuthLoadingScreen
-      message="Memuat..."
-      subtitle="Menyiapkan akunmu untuk onboarding."
-    />
-  );
+  return <AuthLoadingScreen />;
 }
