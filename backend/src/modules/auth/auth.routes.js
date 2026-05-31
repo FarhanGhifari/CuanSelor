@@ -10,4 +10,4 @@ authRouter.get("/me", optionalAuth, getCurrentUser);
 
 authRouter.post("/forgot-password", requestPasswordReset);
 authRouter.post("/reset-password", resetPassword);
-router.post("/resend-verification", resendVerification);
+authRouter.post("/resend-verification", resendVerification);
