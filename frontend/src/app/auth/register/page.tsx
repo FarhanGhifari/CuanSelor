@@ -2,7 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element */
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { RegisterForm } from "@/features/auth/components/RegisterForm";
 import { useRegister } from "@/features/auth/hooks/useAuth";
@@ -105,11 +105,13 @@ export default function RegisterPage() {
                                 <p className="text-[#6B7280] text-[1.1rem]">Isi data diri kamu untuk memulai</p>
                             </div>
 
-                            <RegisterForm
-                                onSubmit={handleRegister}
-                                onGoogleSignUp={handleGoogleSignUp}
-                                isLoading={step === "loading"}
-                            />
+                            <Suspense fallback={<AuthLoadingScreen />}>
+                                <RegisterForm
+                                    onSubmit={handleRegister}
+                                    onGoogleSignUp={handleGoogleSignUp}
+                                    isLoading={false}
+                                />
+                            </Suspense>
 
                             <p className="text-center text-sm text-[#6B7280] mt-4">
                                 Dengan mendaftar, kamu menyetujui <Link href="/terms" className="text-[#10B981] hover:underline font-medium">Ketentuan Layanan</Link> dan <Link href="/privacy" className="text-[#10B981] hover:underline font-medium">Kebijakan Privasi</Link> kami
@@ -118,7 +120,7 @@ export default function RegisterPage() {
                     </div>
                 </div>
 
-                {error && step === "form" && (
+                {error && (
                     <div className="fixed bottom-6 left-1/2 z-40 w-full max-w-md -translate-x-1/2 px-4">
                         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 shadow">
                             {error}

@@ -1,9 +1,11 @@
 /* eslint-disable @next/next/no-img-element */
 
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import LoginForm from '@/features/auth/components/LoginForm';
 import Link from "next/link";
 import { AuthPageGuard } from "@/features/auth/components/AuthPageGuard";
+import { AuthLoadingScreen } from "@/features/auth/components/AuthLoadingScreen";
 
 export const metadata: Metadata = {
     title: 'Login - CuanSelor',
@@ -56,7 +58,9 @@ export default function LoginPage() {
                             <p className="text-[#6B7280] text-[1.1rem]">Masuk untuk melanjutkan ke dashboard kamu</p>
                         </div>
                         
-                        <LoginForm/>
+                        <Suspense fallback={<AuthLoadingScreen />}>
+                            <LoginForm />
+                        </Suspense>
                         
                         <p className="text-center text-sm text-[#6B7280] mt-4">
                             Dengan masuk, kamu menyetujui <Link href="/terms" className="text-[#10B981] hover:underline font-medium">Ketentuan Layanan</Link> dan <Link href="/privacy" className="text-[#10B981] hover:underline font-medium">Kebijakan Privasi</Link> kami
