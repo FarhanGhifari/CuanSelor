@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Clock, ArrowLeft, Info } from "lucide-react";
+import { Clock, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { ArticleCard } from "./ArticleCard";
-import { CATEGORY_STYLES, formatDate } from "../utils/blog.utils";
+import { formatDate } from "../utils/blog.utils";
 import { getArticleBySlug, getRelatedArticles } from "../data/articles";
 
 const CATEGORY_GRADIENT: Record<string, string> = {
@@ -23,7 +23,6 @@ export function BlogDetailPage({ slug }: BlogDetailPageProps) {
     if (!article) notFound();
 
     const related = getRelatedArticles(slug, 3);
-    const style = CATEGORY_STYLES[article.category];
     const gradient = CATEGORY_GRADIENT[article.category];
 
     return (
@@ -33,13 +32,13 @@ export function BlogDetailPage({ slug }: BlogDetailPageProps) {
             <div className={cn(
                 "w-full flex items-end relative overflow-hidden",
                 "h-[50vh] lg:h-[60vh]",
-                `bg-gradient-to-br ${gradient}`
+                `bg-linear-to-br ${gradient}`
             )}>
                 <div className="absolute inset-0 opacity-10"
                     style={{ backgroundImage: "radial-gradient(circle at 60% 20%, white 0%, transparent 55%)" }} />
-                <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/60 to-transparent" />
+                <div className="absolute inset-x-0 bottom-0 h-2/3 bg-linear-to-t from-black/60 to-transparent" />
 
-                <div className="relative z-10 max-w-screen-xl mx-auto px-6 lg:px-12 pb-12 w-full">
+                <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-12 pb-12 w-full">
                     <Link
                         href="/blog"
                         className="inline-flex items-center gap-1.5 text-white/70 hover:text-white text-sm mb-6 transition-colors"
@@ -59,7 +58,7 @@ export function BlogDetailPage({ slug }: BlogDetailPageProps) {
             </div>
 
             {/* ── Article body ─────────────────────────────────────── */}
-            <div className="max-w-screen-xl mx-auto px-6 lg:px-12">
+            <div className="max-w-7xl mx-auto px-6 lg:px-12">
 
                 {/* Meta row */}
                 <div className="flex items-center gap-3 py-8 border-b border-border/50 text-sm text-muted-foreground">
@@ -117,7 +116,7 @@ export function BlogDetailPage({ slug }: BlogDetailPageProps) {
                                         <ul key={i} className="space-y-3 my-4">
                                             {block.items.map((item, j) => (
                                                 <li key={j} className="flex items-start gap-3 text-foreground/90">
-                                                    <span className="mt-2 w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
+                                                    <span className="mt-2 w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
                                                     <span className="leading-relaxed">{item}</span>
                                                 </li>
                                             ))}
@@ -131,7 +130,7 @@ export function BlogDetailPage({ slug }: BlogDetailPageProps) {
 
                         {/* CTA Banner */}
                         <div className={cn(
-                            "mt-16 rounded-3xl p-10 text-center bg-gradient-to-br",
+                            "mt-16 rounded-3xl p-10 text-center bg-linear-to-br",
                             gradient
                         )}>
                             <div className="absolute inset-0 opacity-10 rounded-3xl"

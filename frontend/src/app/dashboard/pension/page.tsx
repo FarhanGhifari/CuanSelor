@@ -3,13 +3,16 @@
 import { useState } from "react";
 import { PensionForm } from "@/features/financial-profile/components/PensionForm";
 import { useSubmitPension } from "@/features/financial-profile/hooks/useOnboarding";
+import type { PensionOnboardingInput } from "@/features/auth/validations/auth.schema";
 import { Umbrella } from "lucide-react";
 
 export default function PensionManagementPage() {
   const { submitPension, isPending, error } = useSubmitPension();
   const [isSuccess, setIsSuccess] = useState(false);
 
-  const handleUpdate = async (data: any) => {
+  const handleUpdate = async (
+    data: PensionOnboardingInput & { riskAnswers?: Record<string, number> }
+  ) => {
     const ok = await submitPension(data);
     if (ok) {
       setIsSuccess(true);

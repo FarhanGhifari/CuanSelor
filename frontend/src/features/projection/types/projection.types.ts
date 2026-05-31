@@ -91,6 +91,8 @@ export interface UserProfileData {
   sector: string;
   include_pandemic_risk: boolean;
   custom_deposit_rate: number | null;
+  custom_planning_age?: number | null;
+  current_assets?: number;
 }
 
 export interface ProjectionMetadata {

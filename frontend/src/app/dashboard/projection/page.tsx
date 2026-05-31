@@ -2,13 +2,14 @@
 
 import { useState, useRef, useEffect, type ComponentProps } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, MessageCircle, User, Loader2, Sparkles, Trash2 } from "lucide-react";
+import { Send, MessageCircle, User, Loader2, Trash2 } from "lucide-react";
 import { useAdvisor } from "@/features/advisor/hooks/useAdvisor";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import "katex/dist/katex.min.css";
+import { ProjectionLoader } from "@/components/ui/ProjectionLoader";
 
 // ── Markdown component with styled elements ───────────────────────────────────
 const markdownComponents: ComponentProps<typeof ReactMarkdown>["components"] = {
@@ -122,9 +123,8 @@ export default function TanyaFindSorPage() {
   if (!initialized) {
     return (
       <div className="h-[calc(100vh-7rem)] lg:h-[calc(100vh-10rem)] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
-          <p className="text-sm text-gray-400 font-medium">Memuat percakapan...</p>
+        <div className="w-full max-w-sm">
+          <ProjectionLoader text="Memuat percakapan..." />
         </div>
       </div>
     );
@@ -152,7 +152,7 @@ export default function TanyaFindSorPage() {
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
-                className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white mb-5 shadow-xl shadow-emerald-500/25"
+                className="w-16 h-16 rounded-2xl bg-linear-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white mb-5 shadow-xl shadow-emerald-500/25"
               >
                 <MessageCircle className="w-8 h-8" />
               </motion.div>
@@ -171,7 +171,7 @@ export default function TanyaFindSorPage() {
                 transition={{ delay: 0.3 }}
                 className="text-sm text-gray-400 mb-8 text-center max-w-sm"
               >
-                AI Financial Advisor — Siap membantu kamu memahami kondisi keuanganmu 24/7
+                AI Financial Advisor - Siap membantu kamu memahami kondisi keuanganmu 24/7
               </motion.p>
 
               {/* Quick question bubbles */}
@@ -215,7 +215,7 @@ export default function TanyaFindSorPage() {
                 >
                   {/* Assistant avatar */}
                   {message.role === "assistant" && (
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shrink-0 mt-0.5 shadow-sm">
+                    <div className="w-8 h-8 rounded-lg bg-linear-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shrink-0 mt-0.5 shadow-sm">
                       <MessageCircle className="w-4 h-4" />
                     </div>
                   )}
@@ -230,13 +230,21 @@ export default function TanyaFindSorPage() {
                   >
                     <div className="text-[13px] leading-relaxed prose-sm">
                       {message.role === "assistant" ? (
-                        <ReactMarkdown
-                          remarkPlugins={[remarkGfm, remarkMath]}
-                          rehypePlugins={[rehypeKatex]}
-                          components={markdownComponents}
-                        >
-                          {message.content || ""}
-                        </ReactMarkdown>
+                        message.content.trim() === "" ? (
+                          <div className="flex gap-1.5 items-center py-1">
+                            <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce [animation-delay:0ms]" />
+                            <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce [animation-delay:150ms]" />
+                            <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce [animation-delay:300ms]" />
+                          </div>
+                        ) : (
+                          <ReactMarkdown
+                            remarkPlugins={[remarkGfm, remarkMath]}
+                            rehypePlugins={[rehypeKatex]}
+                            components={markdownComponents}
+                          >
+                            {message.content}
+                          </ReactMarkdown>
+                        )
                       ) : (
                         message.content
                       )}
@@ -245,7 +253,7 @@ export default function TanyaFindSorPage() {
 
                   {/* User avatar */}
                   {message.role === "user" && (
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center text-white shrink-0 mt-0.5 shadow-sm">
+                    <div className="w-8 h-8 rounded-lg bg-linear-to-br from-gray-700 to-gray-900 flex items-center justify-center text-white shrink-0 mt-0.5 shadow-sm">
                       <User className="w-4 h-4" />
                     </div>
                   )}
@@ -259,7 +267,7 @@ export default function TanyaFindSorPage() {
                   animate={{ opacity: 1, y: 0 }}
                   className="flex gap-2.5"
                 >
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-sm">
+                  <div className="w-8 h-8 rounded-lg bg-linear-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-sm">
                     <MessageCircle className="w-4 h-4" />
                   </div>
                   <div className="bg-white border border-gray-100 rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm">

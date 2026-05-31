@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { TrendingDown, Minus, TrendingUp } from "lucide-react";
+import { TrendingDown, Minus, TrendingUp, type LucideIcon } from "lucide-react";
 import type { CalculatorOutput, ProjectionScenario } from "../types/projection.types";
 import { formatCurrency, formatPercentage } from "../utils/format";
 
@@ -15,7 +15,10 @@ type ScenarioKey = "pessimistic" | "median" | "optimistic";
 export function ScenarioTabs({ data }: ScenarioTabsProps) {
   const [activeTab, setActiveTab] = useState<ScenarioKey>("median");
 
-  const scenarios: Record<ScenarioKey, { data: ProjectionScenario; label: string; icon: any; color: string }> = {
+  const scenarios: Record<
+    ScenarioKey,
+    { data: ProjectionScenario; label: string; icon: LucideIcon; color: string }
+  > = {
     pessimistic: {
       data: data.projection.pessimistic_p10,
       label: "Pesimis (P10)",

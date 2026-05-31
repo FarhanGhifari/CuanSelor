@@ -1,10 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { TrendingUp } from "lucide-react";
 import type { CalculatorOutput } from "../types/projection.types";
-import { formatPercentage } from "../utils/format";
 
 interface PortfolioAllocationProps {
   data: CalculatorOutput;

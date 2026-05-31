@@ -4,7 +4,6 @@ import {
   sendChatMessage,
   deleteConversation,
   type ChatMessage,
-  type Conversation,
 } from "../services/advisor.service";
 
 interface UseAdvisorReturn {
@@ -38,14 +37,14 @@ export function useAdvisor(): UseAdvisorReturn {
           created_at: m.created_at,
         }))
       );
-    } catch (err) {
-      console.error("[useAdvisor] Failed to load conversation:", err);
+    } catch {
     } finally {
       setInitialized(true);
     }
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadConversation();
   }, [loadConversation]);
 
@@ -92,8 +91,7 @@ export function useAdvisor(): UseAdvisorReturn {
             setConversationId(id);
           }
         );
-      } catch (err) {
-        console.error("[useAdvisor] Chat error:", err);
+      } catch {
         // Update the assistant message with error
         setMessages((prev) => {
           const updated = [...prev];

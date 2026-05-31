@@ -1,6 +1,9 @@
 "use client";
 
+/* eslint-disable @next/next/no-img-element */
+
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { 
@@ -10,8 +13,7 @@ import {
   Menu,
   X,
   LogOut,
-  Bell,
-  Loader2
+  Bell
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { ROUTES } from "@/lib/constants/routes";
@@ -98,16 +100,17 @@ export default function DashboardLayout({
 
   if (isPending || !session?.user) {
     return (
-      <div className="min-h-screen bg-[#F8F9FA] flex items-center justify-center px-6">
-        <div className="flex flex-col items-center gap-4 text-center">
-          <div className="w-14 h-14 rounded-2xl bg-white border border-gray-100 shadow-sm flex items-center justify-center">
-            <Loader2 className="w-7 h-7 animate-spin text-[#10B981]" />
-          </div>
-          <div>
-            <h1 className="text-lg font-bold text-gray-900">Memeriksa sesi...</h1>
-            <p className="mt-1 text-sm text-gray-500">Mohon tunggu sebentar.</p>
-          </div>
+      <div className="min-h-screen w-full flex flex-col items-center justify-center bg-[#F8F9FA] px-6">
+        <div className="animate-bounce-gentle">
+          <img
+            src="/projection-illustration.svg"
+            alt="Loading..."
+            className="w-48 h-48 md:w-56 md:h-56 drop-shadow-lg"
+          />
         </div>
+        <p className="mt-8 text-lg font-semibold text-gray-700 animate-pulse">
+          Memuat...
+        </p>
       </div>
     );
   }
@@ -117,10 +120,14 @@ export default function DashboardLayout({
       {/* Mobile Navbar */}
       <nav className="lg:hidden fixed top-0 w-full bg-white/80 backdrop-blur-xl border-b border-gray-100 z-50 px-4 py-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-linear-to-br from-[#10B981] to-[#059669] flex items-center justify-center text-white font-bold text-sm">
-            CS
-          </div>
-          <span className="font-extrabold text-xl tracking-tight text-gray-900">CuanSelor</span>
+          <Image
+            src="/logo.png"
+            alt="Logo CuanSelor"
+            width={140}
+            height={40}
+            className="h-10 w-auto object-contain"
+            priority
+          />
         </div>
         <button 
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -136,15 +143,20 @@ export default function DashboardLayout({
         isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         {/* Brand */}
-        <div className="h-20 flex items-center gap-3 px-8">
-          <div className="w-10 h-10 rounded-2xl bg-linear-to-br from-[#10B981] to-[#059669] flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-emerald-500/20">
-            CS
-          </div>
-          <span className="font-extrabold text-2xl tracking-tight text-gray-900">CuanSelor</span>
+        <div className="h-28 flex items-center justify-center px-4 pt-3">
+          <Image
+            src="/logo.png"
+            alt="Logo CuanSelor"
+            width={540}
+            height={156}
+            className="h-36 w-auto object-contain"
+            priority
+          />
         </div>
+        <div className="mx-auto w-44 border-b-2 border-emerald-800" />
 
         {/* Navigation */}
-        <div className="flex-1 px-4 py-8 space-y-2 overflow-y-auto">
+        <div className="flex-1 px-4 py-4 space-y-2 overflow-y-auto">
           {navItems.map((item) => {
             const isActive = pathname === item.href;
             return (
@@ -194,7 +206,7 @@ export default function DashboardLayout({
         <header className="hidden lg:flex h-20 items-center justify-between px-10 bg-white/50 backdrop-blur-xl sticky top-0 z-30">
           <div>
             <h1 className="text-xl font-bold text-gray-900">Hi, Gen Z! 👋</h1>
-            <p className="text-sm text-gray-500 font-medium">Ready to rule your finances today?</p>
+            <p className="text-sm text-gray-500 font-medium">Siap untuk merencanakan pensiunmu hari ini?</p>
           </div>
           <div className="flex items-center gap-4">
             <button className="relative p-2.5 rounded-full bg-white hover:bg-gray-50 border border-gray-100 transition-colors">

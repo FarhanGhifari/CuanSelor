@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect } from "react";
 import { apiClient } from "@/lib/api/axios.config";
 import { API } from "@/lib/constants/api-endpoints";
 import { useFinancialProfile } from "@/features/financial-profile/hooks/useOnboarding";
@@ -8,9 +8,9 @@ import { financialProfileService } from "@/features/financial-profile/services/f
 import { RISK_QUESTIONS, calcRisk, SECTORS } from "@/features/financial-profile/components/OnBoardingWizard";
 import type { OnboardingPayload, RiskProfile } from "@/features/financial-profile/types/financial-profile.types";
 import { useQueryClient } from "@tanstack/react-query";
+import { ProjectionLoader } from "@/components/ui/ProjectionLoader";
 import {
   User,
-  Wallet,
   ShieldCheck,
   Umbrella,
   Loader2,
@@ -18,9 +18,8 @@ import {
   PiggyBank,
   AlertCircle,
   CheckCircle2,
-  TrendingUp,
+  Info,
   HeartPulse,
-  Landmark,
   ChevronLeft,
   X,
   Check,
@@ -87,6 +86,7 @@ function ProfileCurrencyField({
   const [raw, setRaw] = useState(value ? String(value) : "");
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setRaw(value ? String(value) : "");
   }, [value]);
 
@@ -173,6 +173,7 @@ export default function ProfilePage() {
   // Sync profile data to local form state
   useEffect(() => {
     if (profile) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFormData({
         fullName: profile.fullName,
         age: profile.age,
@@ -184,6 +185,7 @@ export default function ProfilePage() {
         currentSavings: profile.currentSavings,
         totalDebt: profile.totalDebt,
         retirementAge: profile.retirementAge,
+        planningAge: profile.planningAge,
         lifestylePercent: profile.lifestylePercent,
         riskProfile: profile.riskProfile,
         riskAnswers: profile.riskAnswers || {},
@@ -213,6 +215,7 @@ export default function ProfilePage() {
         currentSavings: profile.currentSavings,
         totalDebt: profile.totalDebt,
         retirementAge: profile.retirementAge,
+        planningAge: profile.planningAge,
         lifestylePercent: profile.lifestylePercent,
         riskProfile: profile.riskProfile,
         riskAnswers: profile.riskAnswers || {},
@@ -234,12 +237,12 @@ export default function ProfilePage() {
     setSaveSuccess(false);
 
     // Validation checks
-    if (!formData.age || formData.age < 17 || formData.age > 80) {
-      setSaveError("Usia harus diisi 17 tahun ke atas.");
+    if (!formData.age || formData.age < 17 || formData.age > 100) {
+      setSaveError("Usia harus diisi antara 17 hingga 100 tahun.");
       return;
     }
-    if (!formData.retirementAge || formData.retirementAge <= formData.age || formData.retirementAge > 80) {
-      setSaveError(`Target Usia Pensiun harus lebih besar dari usia Anda saat ini (${formData.age}) dan maksimal 80 tahun.`);
+    if (!formData.retirementAge || formData.retirementAge <= formData.age || formData.retirementAge > 100) {
+      setSaveError(`Target Usia Pensiun harus lebih besar dari usia Anda saat ini (${formData.age}) dan maksimal 100 tahun.`);
       return;
     }
     if (formData.savingsPercentage < 0 || formData.savingsPercentage > 100) {
@@ -273,8 +276,22 @@ export default function ProfilePage() {
 
   // ── Risk Questionnaire Logics ──
   const openQuiz = () => {
+    // Pre-fill answers from existing profile data
+    const prefilled: Record<string, number> = {};
+    
+    // Auto-calculate annual_income untuk risk assessment
+    // Formula: (gaji bulanan × 12) + (gaji bulanan × bonus bulan)
+    // Ini HANYA untuk analisis profil risiko finansial, TIDAK mempengaruhi proyeksi pensiun
+    if (formData) {
+      if (formData.age) prefilled.age = formData.age;
+      if (formData.monthlyIncome) {
+        const bonusMonths = formData.annualBonusMonths ?? 0;
+        prefilled.annual_income = formData.monthlyIncome * (12 + bonusMonths);
+      }
+      if (formData.currentSavings) prefilled.savings_balance = formData.currentSavings;
+    }
     setQuizStep(0);
-    setQuizAnswers({});
+    setQuizAnswers(prefilled);
     setCalculatedRisk(null);
     setIsQuizOpen(true);
   };
@@ -323,13 +340,14 @@ export default function ProfilePage() {
         riskProfile: calculatedRisk,
         riskAnswers: quizAnswers,
         // Sync age and totalDebt from quiz values
-        age: quizAnswers.age || formData.age,
-        totalDebt: quizAnswers.loan_amount || formData.totalDebt,
-        monthlyExpense: quizAnswers.monthly_expenses || formData.monthlyExpense,
+        age: quizAnswers.age ?? formData.age,
+        totalDebt: quizAnswers.loan_amount ?? formData.totalDebt,
+        monthlyExpense: quizAnswers.monthly_expenses ?? formData.monthlyExpense,
       };
 
       await financialProfileService.save(updatedPayload);
       queryClient.invalidateQueries({ queryKey: ["projection"] });
+      setFormData(updatedPayload);
       setIsQuizOpen(false);
       setSaveSuccess(true);
       await refetch();
@@ -344,8 +362,10 @@ export default function ProfilePage() {
   // Render loading skeleton
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-96">
-        <Loader2 className="animate-spin text-emerald-500" size={36} />
+      <div className="flex justify-center items-center h-[calc(100vh-10rem)]">
+        <div className="w-full max-w-sm">
+          <ProjectionLoader text="Memuat profil kamu..." />
+        </div>
       </div>
     );
   }
@@ -375,19 +395,13 @@ export default function ProfilePage() {
       {/* ── Profile Header ── */}
       <div className="flex items-start justify-between gap-6 flex-wrap pb-6 border-b border-gray-100">
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-3xl bg-linear-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white font-extrabold text-2xl shadow-lg shadow-emerald-500/20">
-            {profile.fullName?.charAt(0).toUpperCase() || "U"}
+          <div className="w-16 h-16 rounded-3xl bg-linear-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
+            <User size={30} strokeWidth={2.5} />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">
-                {profile.fullName || "User"}
-              </h1>
-              <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-bold">
-                <CheckCircle2 size={12} />
-                Aktif
-              </div>
-            </div>
+            <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">
+              {profile.fullName || "User"}
+            </h1>
             <p className="text-gray-500 font-medium">{email || "Memuat email..."}</p>
           </div>
         </div>
@@ -644,7 +658,7 @@ export default function ProfilePage() {
             <h2 className="font-bold text-gray-800 text-base">Dana Pensiun</h2>
           </div>
           {isEditing ? (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-4">
               <div>
                 <label className="text-xs text-gray-500 font-bold block mb-1">TARGET USIA PENSIUN</label>
                 <input
@@ -659,7 +673,23 @@ export default function ProfilePage() {
                 />
               </div>
               <div>
+                <label className="text-xs text-gray-500 font-bold block mb-1">RENCANAKAN DANA HINGGA USIA</label>
+                <p className="text-[10px] text-gray-400 font-medium mt-0.5 mb-1">Usia target hingga dana pensiunmu harus bertahan (berdasarkan tabel mortalitas)</p>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={formData.planningAge || ""}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, "");
+                    handleFieldChange("planningAge", val === "" ? 0 : Number(val));
+                  }}
+                  placeholder="Contoh: 84"
+                  className="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all font-semibold text-gray-800"
+                />
+              </div>
+              <div>
                 <label className="text-xs text-gray-500 font-bold block mb-1">GAYA HIDUP PENSIUN (%)</label>
+                <p className="text-[10px] text-gray-400 font-medium mt-0.5 mb-1">Persentase dari gaji terakhir yang kamu butuhkan per bulan saat pensiun</p>
                 <input
                   type="text"
                   inputMode="numeric"
@@ -675,8 +705,8 @@ export default function ProfilePage() {
           ) : (
             <div className="space-y-1">
               <InfoRow label="Target Usia Pensiun" value={`${formData.retirementAge} Tahun`} />
+              <InfoRow label="Rencanakan Dana Hingga" value={formData.planningAge ? `${formData.planningAge} Tahun` : "-"} />
               <InfoRow label="Gaya Hidup Pensiun" value={`${formData.lifestylePercent}% dari pengeluaran akhir`} />
-              <InfoRow label="Sisa Tahun Aktif" value={`${Math.max(0, formData.retirementAge - formData.age)} Tahun`} />
             </div>
           )}
         </div>
@@ -742,7 +772,7 @@ export default function ProfilePage() {
                     onChange={(e) => handleFieldChange("hasHealthInsurance", e.target.checked)}
                     className="w-5 h-5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
                   />
-                  <span className="text-sm text-gray-700 font-semibold">❤️ Memiliki Asuransi Kesehatan</span>
+                  <span className="text-sm text-gray-700 font-semibold">Memiliki Asuransi Kesehatan</span>
                 </label>
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input
@@ -751,7 +781,7 @@ export default function ProfilePage() {
                     onChange={(e) => handleFieldChange("includePandemicRisk", e.target.checked)}
                     className="w-5 h-5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
                   />
-                  <span className="text-sm text-gray-700 font-semibold">🛡️ Sertakan Buffer Risiko Pandemi</span>
+                  <span className="text-sm text-gray-700 font-semibold">Sertakan Buffer Risiko Pandemi</span>
                 </label>
               </div>
             </div>
@@ -767,9 +797,9 @@ export default function ProfilePage() {
 
       {/* ── Footer Info Note ── */}
       {!isEditing && (
-        <div className="flex items-start gap-3 p-4 bg-emerald-50 border border-emerald-100 rounded-3xl text-sm text-emerald-800">
-          <HeartPulse size={16} className="shrink-0 mt-0.5 text-emerald-600" />
-          <p className="font-semibold leading-relaxed">
+        <div className="flex items-center gap-3.5 p-4 bg-emerald-50 border border-emerald-100 rounded-3xl text-emerald-800">
+          <Info size={16} className="shrink-0 text-emerald-600" />
+          <p className="text-base font-semibold leading-relaxed">
             Semua parameter di atas digunakan oleh mesin rekomendasi CuanSelor untuk menyimulasikan masa pensiun Anda menggunakan metode Monte Carlo. Anda dapat memperbarui data ini kapan saja untuk melihat dampaknya pada rencana pensiun Anda.
           </p>
         </div>
@@ -777,83 +807,104 @@ export default function ProfilePage() {
 
       {/* ── RISK QUIZ MODAL ── */}
       {isQuizOpen && (
-        <div className="fixed inset-0 z-50 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl shadow-xl w-full max-w-xl overflow-hidden border border-gray-100 animate-in zoom-in-95 duration-200">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-              <h3 className="font-extrabold text-gray-900 text-lg flex items-center gap-2">
-                <span>🧠</span> Isi Ulang Kuesioner Risiko
-              </h3>
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200">
+
+            {/* Header — mirip container register */}
+            <div className="flex items-center justify-between px-7 pt-7 pb-5 border-b border-gray-100">
+              <div>
+                <h3 className="text-xl font-bold text-gray-900 tracking-tight">
+                  Perbarui Profil Risiko
+                </h3>
+                <p className="text-sm text-gray-500 mt-0.5">
+                  Jawab pertanyaan berikut untuk menghitung ulang profil risiko kamu
+                </p>
+              </div>
               <button
                 onClick={closeQuiz}
-                className="p-1.5 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+                className="p-2 rounded-xl hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
               >
-                <X size={20} />
+                <X size={18} />
               </button>
             </div>
 
-            {/* Modal Body */}
-            <div className="p-6">
+            {/* Body */}
+            <div className="px-7 py-6">
               {!allQuizDone ? (
-                <div className="space-y-6">
-                  {/* Step indicators */}
-                  <div className="flex gap-1">
-                    {RISK_QUESTIONS.map((q, i) => (
-                      <div
-                        key={q.id}
-                        className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
-                          quizAnswers[q.id] !== undefined
-                            ? "bg-emerald-500"
-                            : i === quizStep
-                            ? "bg-emerald-300"
-                            : "bg-gray-100"
-                        }`}
-                      />
-                    ))}
+                <div className="space-y-5">
+                  {/* Progress bar */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-xs text-gray-400 font-medium">
+                      <span>Pertanyaan {quizStep + 1} dari {RISK_QUESTIONS.length}</span>
+                      <span>{Math.round(((quizStep) / RISK_QUESTIONS.length) * 100)}% selesai</span>
+                    </div>
+                    <div className="flex gap-1">
+                      {RISK_QUESTIONS.map((q, i) => (
+                        <div
+                          key={q.id}
+                          className={`h-1 flex-1 rounded-full transition-all duration-300 ${
+                            i < quizStep
+                              ? "bg-emerald-500"        // sudah dilewati
+                              : i === quizStep
+                              ? "bg-emerald-300"        // sedang aktif
+                              : "bg-gray-100"           // belum dilewati
+                          }`}
+                        />
+                      ))}
+                    </div>
                   </div>
 
-                  {/* Question Prompt */}
-                  <div className="space-y-1">
-                    <p className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                      <span className="text-2xl shrink-0">{currentQuestion.emoji}</span>
+                  {/* Question */}
+                  <div>
+                    <p className="text-base font-semibold text-gray-900 leading-snug">
                       {currentQuestion.q}
                     </p>
                     {currentQuestion.hint && (
-                      <p className="text-xs text-gray-400 font-medium ml-8">{currentQuestion.hint}</p>
+                      <p className="text-xs text-gray-400 mt-1 leading-relaxed">{currentQuestion.hint}</p>
+                    )}
+                    {/* Show pre-filled notice */}
+                    {(currentQuestion.id === "age" || currentQuestion.id === "annual_income" || currentQuestion.id === "savings_balance") &&
+                      quizAnswers[currentQuestion.id] !== undefined && (
+                      <p className="text-xs text-emerald-600 font-medium mt-1.5 flex items-center gap-1">
+                        <Check size={12} /> Diisi otomatis dari data profilmu — ubah jika perlu
+                      </p>
                     )}
                   </div>
 
-                  {/* Question Inputs */}
-                  <div className="pt-2">
+                  {/* Inputs */}
+                  <div>
                     {currentQuestion.type === "select" && currentQuestion.opts ? (
-                      <div className="space-y-3">
-                        {currentQuestion.opts.map((opt) => (
-                          <button
-                            key={opt.score}
-                            type="button"
-                            onClick={() => handleQuizSelect(opt.score)}
-                            className={`w-full text-left flex items-center justify-between p-4 rounded-2xl border-2 transition-all duration-200 ${
-                              quizAnswers[currentQuestion.id] === opt.score
-                                ? "border-emerald-500 bg-emerald-50/50"
-                                : "border-gray-100 hover:bg-gray-50"
-                            }`}
-                          >
-                            <div>
-                              <p className={`font-bold text-sm ${quizAnswers[currentQuestion.id] === opt.score ? "text-emerald-700" : "text-gray-800"}`}>
-                                {opt.label}
-                              </p>
-                              {opt.sub && <p className="text-xs text-gray-400 mt-0.5">{opt.sub}</p>}
-                            </div>
-                            {quizAnswers[currentQuestion.id] === opt.score && (
-                              <div className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center">
-                                <Check className="w-3 h-3 text-white" />
+                      <div className="space-y-2.5">
+                        {currentQuestion.opts.map((opt) => {
+                          const selected = quizAnswers[currentQuestion.id] === opt.score;
+                          return (
+                            <button
+                              key={opt.score}
+                              type="button"
+                              onClick={() => handleQuizSelect(opt.score)}
+                              className={`w-full text-left flex items-center justify-between px-4 py-3.5 rounded-xl border transition-all duration-150 ${
+                                selected
+                                  ? "border-emerald-500 bg-emerald-50 ring-1 ring-emerald-500/20"
+                                  : "border-gray-200 hover:border-emerald-300 hover:bg-gray-50"
+                              }`}
+                            >
+                              <div>
+                                <p className={`font-semibold text-sm ${selected ? "text-emerald-700" : "text-gray-800"}`}>
+                                  {opt.label}
+                                </p>
+                                {opt.sub && <p className="text-xs text-gray-400 mt-0.5">{opt.sub}</p>}
                               </div>
-                            )}
-                          </button>
-                        ))}
+                              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
+                                selected ? "border-emerald-500 bg-emerald-500" : "border-gray-300"
+                              }`}>
+                                {selected && <Check className="w-3 h-3 text-white" />}
+                              </div>
+                            </button>
+                          );
+                        })}
                       </div>
                     ) : currentQuestion.type === "currency" ? (
-                      <div className="space-y-4">
+                      <div className="space-y-3">
                         <ProfileCurrencyField
                           value={quizAnswers[currentQuestion.id] || 0}
                           onChange={handleQuizInputChange}
@@ -862,28 +913,28 @@ export default function ProfilePage() {
                           type="button"
                           onClick={handleQuizNext}
                           disabled={quizAnswers[currentQuestion.id] === undefined}
-                          className="w-full py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white font-bold transition-all text-sm shadow-md shadow-emerald-500/10"
+                          className="w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold transition-all text-sm"
                         >
                           Lanjut
                         </button>
                       </div>
-                    ) : currentQuestion.type === "number" || currentQuestion.type === "percentage" ? (
-                      <div className="space-y-4">
+                    ) : (
+                      <div className="space-y-3">
                         <div className="relative">
                           <input
                             type="text"
                             inputMode="numeric"
                             value={quizAnswers[currentQuestion.id] !== undefined ? String(quizAnswers[currentQuestion.id]) : ""}
                             onChange={(e) => {
-                              const val = e.target.value.replace(/\D/g, "");
+                              const val = e.target.value.replace(/[^\d.]/g, "").replace(/^(\d*\.?\d*).*/, "$1");
                               handleQuizInputChange(val === "" ? null : Number(val));
                             }}
                             placeholder={currentQuestion.placeholder}
                             autoFocus
-                            className="w-full px-5 py-4 text-lg font-bold rounded-2xl border-2 border-gray-100 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all text-gray-800"
+                            className="w-full px-4 py-3.5 pr-16 text-base font-semibold rounded-xl border border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all text-gray-800 placeholder:font-normal placeholder:text-gray-400"
                           />
                           {currentQuestion.unit && (
-                            <span className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 font-bold">
+                            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-400 font-medium">
                               {currentQuestion.unit}
                             </span>
                           )}
@@ -892,67 +943,84 @@ export default function ProfilePage() {
                           type="button"
                           onClick={handleQuizNext}
                           disabled={quizAnswers[currentQuestion.id] === undefined}
-                          className="w-full py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white font-bold transition-all text-sm shadow-md shadow-emerald-500/10"
+                          className="w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold transition-all text-sm"
                         >
                           Lanjut
                         </button>
                       </div>
-                    ) : null}
+                    )}
                   </div>
 
-                  {/* Prev Button */}
+                  {/* Back button */}
                   {quizStep > 0 && (
                     <button
                       type="button"
                       onClick={() => setQuizStep((s) => s - 1)}
-                      className="inline-flex items-center gap-1 text-xs font-bold text-gray-400 hover:text-gray-600 transition-colors"
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-gray-400 hover:text-gray-600 transition-colors"
                     >
-                      <ChevronLeft size={14} /> Pertanyaan sebelumnya
+                      <ChevronLeft size={13} /> Kembali
                     </button>
                   )}
                 </div>
               ) : (
                 /* Result Screen */
                 calculatedRisk && (
-                  <div className="space-y-6 text-center py-4">
-                    <div className="text-6xl animate-bounce">{RISK_DETAILS[calculatedRisk].emoji}</div>
-                    <div className="space-y-2">
-                      <h4 className="text-2xl font-extrabold text-gray-900">
-                        Hasil: Profil {RISK_DETAILS[calculatedRisk].label}
-                      </h4>
-                      <p className="text-sm text-gray-500 max-w-md mx-auto leading-relaxed">
-                        {RISK_DETAILS[calculatedRisk].desc}
-                      </p>
+                  <div className="space-y-5">
+                    {/* Result badge */}
+                    <div className={`flex items-center gap-4 p-4 rounded-xl border ${RISK_DETAILS[calculatedRisk].border} ${RISK_DETAILS[calculatedRisk].bg}`}>
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${RISK_DETAILS[calculatedRisk].bg} border ${RISK_DETAILS[calculatedRisk].border}`}>
+                        <ShieldCheck size={22} className={RISK_DETAILS[calculatedRisk].color} />
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 font-medium">Profil Risiko Baru</p>
+                        <h4 className={`text-lg font-bold ${RISK_DETAILS[calculatedRisk].color}`}>
+                          {RISK_DETAILS[calculatedRisk].label}
+                        </h4>
+                        <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">
+                          {RISK_DETAILS[calculatedRisk].desc}
+                        </p>
+                      </div>
                     </div>
 
-                    <div className="bg-emerald-50/50 rounded-2xl p-4 border border-emerald-100 text-left text-xs space-y-2 text-emerald-800">
-                      <p className="font-bold flex items-center gap-1.5 text-sm mb-1">
-                        <CheckCircle2 size={15} /> Data yang akan diperbarui:
-                      </p>
-                      <ul className="list-disc list-inside space-y-1 font-semibold">
-                        <li>Profil Risiko ke {RISK_DETAILS[calculatedRisk].label}</li>
-                        <li>Usia ke {quizAnswers.age} tahun</li>
-                        <li>Pengeluaran Bulanan ke {formatRupiah(quizAnswers.monthly_expenses || 0)}</li>
-                        <li>Total Utang ke {formatRupiah(quizAnswers.loan_amount || 0)}</li>
-                      </ul>
+                    {/* Summary of changes */}
+                    <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 space-y-2.5">
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Data yang akan diperbarui</p>
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-500">Profil Risiko</span>
+                          <span className={`font-semibold ${RISK_DETAILS[calculatedRisk].color}`}>{RISK_DETAILS[calculatedRisk].label}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-500">Usia</span>
+                          <span className="font-semibold text-gray-800">{quizAnswers.age} tahun</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-500">Pengeluaran Bulanan</span>
+                          <span className="font-semibold text-gray-800">{formatRupiah(quizAnswers.monthly_expenses || 0)}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-500">Total Utang</span>
+                          <span className="font-semibold text-gray-800">{formatRupiah(quizAnswers.loan_amount || 0)}</span>
+                        </div>
+                      </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3 pt-4">
+                    <div className="flex gap-3 pt-1">
                       <button
                         type="button"
                         onClick={openQuiz}
-                        className="py-3 rounded-2xl border border-gray-200 text-gray-600 hover:bg-gray-50 font-bold transition-all text-sm"
+                        className="flex-1 py-3 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 font-semibold transition-all text-sm"
                       >
-                        Ulangi Kuesioner
+                        Ulangi
                       </button>
                       <button
                         type="button"
                         onClick={handleSaveQuizResult}
                         disabled={isSaving}
-                        className="py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold transition-all text-sm shadow-md shadow-emerald-500/10 flex items-center justify-center gap-2"
+                        className="flex-1 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white font-semibold transition-all text-sm flex items-center justify-center gap-2"
                       >
-                        {isSaving && <Loader2 size={16} className="animate-spin" />}
-                        Simpan Profil Risiko Baru
+                        {isSaving && <Loader2 size={15} className="animate-spin" />}
+                        Simpan Profil Baru
                       </button>
                     </div>
                   </div>
