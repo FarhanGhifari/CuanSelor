@@ -2,12 +2,10 @@
 
 type AuthLoadingScreenProps = {
   message?: string;
-  subtitle?: string;
 };
 
 export function AuthLoadingScreen({
   message = "Memuat...",
-  subtitle,
 }: AuthLoadingScreenProps) {
   return (
     <div className="min-h-screen w-full flex flex-col items-center justify-center bg-white px-6">
@@ -19,9 +17,6 @@ export function AuthLoadingScreen({
         />
       </div>
       <p className="mt-8 text-lg font-semibold text-gray-700">{message}</p>
-      {subtitle ? (
-        <p className="mt-2 text-sm text-gray-500">{subtitle}</p>
-      ) : null}
     </div>
   );
 }

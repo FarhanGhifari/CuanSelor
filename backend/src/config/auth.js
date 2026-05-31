@@ -56,7 +56,7 @@ export const auth = betterAuth({
     autoSignInAfterVerification: true, // Auto sign-in setelah verifikasi email
     expiresIn: 60 * 60 * 24, // 24 jam
     sendVerificationEmail: async ({ user, token }) => {
-      const callbackURL = `${env.frontendUrl}/auth/callback`;
+      const callbackURL = `${env.frontendUrl}/auth/onboarding`;
       const verifyUrl = `${env.backendUrl}/api/auth/verify-email?token=${encodeURIComponent(token)}&callbackURL=${encodeURIComponent(callbackURL)}`;
 
       try {

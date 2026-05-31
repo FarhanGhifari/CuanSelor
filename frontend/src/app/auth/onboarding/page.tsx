@@ -5,20 +5,17 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { authClient, useSession } from "@/lib/auth/auth-client";
+import { useSession } from "@/lib/auth/auth-client";
 import { ROUTES } from "@/lib/constants/routes";
 import { OnboardingWizard } from "@/features/financial-profile/components/OnBoardingWizard";
 import { useOnboarding } from "@/features/financial-profile/hooks/useOnboarding";
+import { AuthLoadingScreen } from "@/features/auth/components/AuthLoadingScreen";
 import { X } from "lucide-react";
-
-const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-type BetterAuthSession = typeof authClient.$Infer.Session;
 
 export default function OnboardingPage() {
   const router = useRouter();
   const { submit, isPending: isSubmitPending, error } = useOnboarding();
-  const { data: session, isPending: isSessionPending, refetch } = useSession();
-  const [isVerifying, setIsVerifying] = useState(true);
+  const { data: session, isPending: isSessionPending } = useSession();
   const [showWelcome, setShowWelcome] = useState(true);
   const [isExiting, setIsExiting] = useState(false);
 
@@ -31,40 +28,10 @@ export default function OnboardingPage() {
 
   useEffect(() => {
     if (isSessionPending) return;
-
-    let cancelled = false;
-    const timeout = window.setTimeout(async () => {
-      let verifiedSession: BetterAuthSession | null = null;
-
-      for (let attempt = 0; attempt < 4; attempt += 1) {
-        const { data } = await authClient.getSession({
-          query: { disableCookieCache: true },
-        });
-
-        if (data?.user) {
-          verifiedSession = data;
-          break;
-        }
-
-        if (attempt < 3) await wait(250);
-      }
-
-      if (cancelled) return;
-
-      if (verifiedSession?.user) {
-        await refetch({ query: { disableCookieCache: true } });
-        setIsVerifying(false);
-        return;
-      }
-
+    if (!session?.user) {
       router.replace(ROUTES.REGISTER);
-    }, 300);
-
-    return () => {
-      cancelled = true;
-      window.clearTimeout(timeout);
-    };
-  }, [isSessionPending, refetch, router, session?.user]);
+    }
+  }, [isSessionPending, router, session?.user]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -73,21 +40,12 @@ export default function OnboardingPage() {
     return () => clearTimeout(timer);
   }, []);
 
-  if (isSessionPending || isVerifying || !session?.user) {
-    return (
-      <div className="min-h-screen w-full flex flex-col items-center justify-center bg-white px-6">
-        <div className="animate-bounce-gentle">
-          <img
-            src="/projection-illustration.svg"
-            alt="Loading..."
-            className="w-48 h-48 md:w-56 md:h-56 drop-shadow-lg"
-          />
-        </div>
-        <p className="mt-8 text-lg font-semibold text-gray-700 animate-pulse">
-          Memuat...
-        </p>
-      </div>
-    );
+  if (isSessionPending) {
+    return <AuthLoadingScreen />;
+  }
+
+  if (!session?.user) {
+    return null;
   }
 
   return (

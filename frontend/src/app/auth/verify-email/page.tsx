@@ -6,7 +6,8 @@
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ROUTES } from "@/lib/constants/routes";
-import { apiClient } from "@/lib/api/axios.config";
+import { authClient } from "@/lib/auth/auth-client";
+import { APP_BASE_URL } from "@/lib/constants/env";
 import { AuthLoadingScreen } from "@/features/auth/components/AuthLoadingScreen";
 import { buildVerifyEmailUrl } from "@/features/auth/utils/verify-email-url";
 
@@ -30,26 +31,44 @@ function VerifyEmailContent() {
         setResendLoading(true);
         setResendMessage(null);
 
-        try {
-            const registeredEmail = localStorage.getItem("registered_email") || "al.ghifarifarhan2503@gmail.com";
+        const registeredEmail = localStorage.getItem("registered_email");
 
-            const response = await apiClient.post("/api/auth/resend-verification", {
-                email: registeredEmail,
-            });
-
-            if (response.data?.success) {
-                setResendMessage({
-                    type: "success",
-                    text: "Link verifikasi baru berhasil dikirim ke email kamu!",
-                });
-            } else {
-                throw new Error();
-            }
-        } catch (err: any) {
-            console.error("Gagal mengirim ulang email:", err);
+        if (!registeredEmail) {
             setResendMessage({
                 type: "error",
-                text: err.response?.data?.message || "Gagal mengirim ulang email. Coba beberapa saat lagi.",
+                text: "Email tidak ditemukan. Silakan daftar ulang.",
+            });
+            setResendLoading(false);
+            return;
+        }
+
+        try {
+            const appUrl =
+                typeof window !== "undefined" ? window.location.origin : APP_BASE_URL;
+
+            const { error } = await authClient.sendVerificationEmail({
+                email: registeredEmail,
+                callbackURL: `${appUrl}${ROUTES.ONBOARDING}`,
+            });
+
+            if (error) {
+                throw new Error(error.message || "Gagal mengirim ulang email");
+            }
+
+            setResendMessage({
+                type: "success",
+                text: "Link verifikasi baru berhasil dikirim ke email kamu!",
+            });
+        } catch (err: unknown) {
+            console.error("Gagal mengirim ulang email:", err);
+            const message =
+                err instanceof Error
+                    ? err.message
+                    : "Gagal mengirim ulang email. Coba beberapa saat lagi.";
+
+            setResendMessage({
+                type: "error",
+                text: message,
             });
         } finally {
             setResendLoading(false);

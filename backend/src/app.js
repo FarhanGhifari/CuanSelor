@@ -67,6 +67,7 @@ export function createApp() {
     "/api/auth/me",
     "/api/auth/forgot-password",
     "/api/auth/reset-password",
+    "/api/auth/resend-verification",
   ]);
 
   app.all("/api/auth/*splat", (req, res, next) => {

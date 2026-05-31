@@ -1,5 +1,6 @@
 import { ok } from "../../utils/api-response.js";
 import { auth } from "../../config/auth.js";
+import { env } from "../../config/env.js";
 
 /**
  * Controller untuk mengirim ulang email verifikasi
@@ -17,7 +18,10 @@ export async function resendVerification(req, res) {
     // 2. Gunakan Better Auth API untuk mengirim ulang email verifikasi
     //    Better Auth akan handle: cari user, cek status, generate token, kirim email
     await auth.api.sendVerificationEmail({
-      body: { email: email.toLowerCase() },
+      body: {
+        email: email.toLowerCase(),
+        callbackURL: `${env.frontendUrl}/auth/onboarding`,
+      },
     });
 
     return ok(res, {

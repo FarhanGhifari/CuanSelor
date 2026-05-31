@@ -7,17 +7,26 @@ const resend = new Resend(process.env.RESEND_API_KEY);
  * Fungsi pengiriman email utama
  */
 async function sendEmail({ to, subject, html }) {
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error("RESEND_API_KEY belum dikonfigurasi di server");
+  }
+
   try {
-    const data = await resend.emails.send({
-      from: `${env.emailFromName} <onboarding@resend.dev>`, // Gunakan domain terverifikasi nanti
+    const { data, error } = await resend.emails.send({
+      from: `${env.emailFromName} <onboarding@resend.dev>`,
       to,
       subject,
       html,
     });
-    return { success: true, id: data.id };
+
+    if (error) {
+      throw new Error(error.message || "Gagal mengirim email");
+    }
+
+    return { success: true, id: data?.id };
   } catch (error) {
     console.error("[Email] Resend Error:", error);
-    return { success: false, error: error.message };
+    throw error instanceof Error ? error : new Error("Gagal mengirim email");
   }
 }
 
