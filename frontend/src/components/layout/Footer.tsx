@@ -41,7 +41,7 @@ export function Footer() {
                             </div>
                         </div>
                         <p className="text-muted-foreground text-sm leading-relaxed">
-                            Your AI-powered financial advisor for a secure future.
+                            Your Partner for Fearless Financial Freedom.
                         </p>
                     </div>
 

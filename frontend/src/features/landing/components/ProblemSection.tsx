@@ -134,9 +134,8 @@ export default function ProblemSection() {
                 margin: "0 auto 20px",
               }}
             >
-              Masalahnya bukan kamu tidak peduli masa depan.
-              <br />
-              Masalahnya, kamu belum punya gambaran yang jelas.
+              Masalahnya bukan kamu tidak peduli masa depan,
+              tapi kamu belum punya gambaran yang jelas.
             </h2>
 
             {/* Subheadline */}

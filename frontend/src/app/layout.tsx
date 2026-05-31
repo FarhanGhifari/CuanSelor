@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Geist_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 
 import { LayoutWrapper } from "@/components/layout/LayoutWrapper";
@@ -11,13 +11,8 @@ const plusJakarta = Plus_Jakarta_Sans({
   display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
-  title: "CuanSelor - AI Financial Planning",
+  title: "CuanSelor - Your Partner for Fearless Financial Freedom",
   description: "Platform perencanaan keuangan pensiun berbasis AI. Analisis, proyeksi, dan rekomendasi investasi personal.",
 };
 
@@ -29,7 +24,7 @@ export default function RootLayout({
   return (
     <html
       lang="id"
-      className={`${plusJakarta.variable} ${geistMono.variable} h-full w-full antialiased`}
+      className={`${plusJakarta.variable} h-full w-full antialiased`}
     >
       <body className="min-h-full w-full flex flex-col">
         <LayoutWrapper>{children}</LayoutWrapper>
