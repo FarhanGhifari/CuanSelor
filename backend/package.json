@@ -22,6 +22,7 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "express-rate-limit": "^8.5.2",
+    "install": "^0.13.0",
     "langchain": "^1.4.2",
     "node-cache": "^5.1.2",
     "nodemailer": "^8.0.9",
