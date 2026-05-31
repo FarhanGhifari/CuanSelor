@@ -1,10 +1,9 @@
 import axios from 'axios';
 import { ROUTES } from '../constants/routes';
-
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://cuanselor-backend.up.railway.app";
+import { API_BASE_URL } from '../constants/env';
 
 export const apiClient = axios.create({
-    baseURL: BASE_URL,
+    baseURL: API_BASE_URL,
     timeout: 30_000, // 30 seconds untuk projection calculation
     headers: { "Content-Type": "application/json" },
     // Cookie Better Auth otomatis di-forward ke backend

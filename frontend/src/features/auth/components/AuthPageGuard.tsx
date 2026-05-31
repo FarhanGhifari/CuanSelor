@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { authClient, useSession } from "@/lib/auth/auth-client";
 import { ROUTES } from "@/lib/constants/routes";
+import { AuthLoadingScreen } from "@/features/auth/components/AuthLoadingScreen";
 
 export function AuthPageGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -45,20 +46,7 @@ export function AuthPageGuard({ children }: { children: React.ReactNode }) {
   }, [isPending, router, session?.user]);
 
   if (isPending || isVerifying || session?.user) {
-    return (
-      <div className="min-h-screen w-full flex flex-col items-center justify-center bg-white px-6">
-        <div className="animate-bounce-gentle">
-          <img
-            src="/projection-illustration.svg"
-            alt="Loading..."
-            className="w-48 h-48 md:w-56 md:h-56 drop-shadow-lg"
-          />
-        </div>
-        <p className="mt-8 text-lg font-semibold text-gray-700 animate-pulse">
-          Memuat...
-        </p>
-      </div>
-    );
+    return <AuthLoadingScreen />;
   }
 
   return <>{children}</>;

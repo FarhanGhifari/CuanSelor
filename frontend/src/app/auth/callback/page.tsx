@@ -1,13 +1,12 @@
 "use client";
 
-/* eslint-disable @next/next/no-img-element */
-
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { apiClient } from "@/lib/api/axios.config";
 import { API } from "@/lib/constants/api-endpoints";
 import { ROUTES } from "@/lib/constants/routes";
 import { authClient } from "@/lib/auth/auth-client";
+import { AuthLoadingScreen } from "@/features/auth/components/AuthLoadingScreen";
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 type BetterAuthSession = typeof authClient.$Infer.Session;
@@ -21,7 +20,7 @@ export default function AuthCallbackPage() {
     async function redirectAfterAuth() {
       let session: BetterAuthSession | null = null;
 
-      for (let attempt = 0; attempt < 6; attempt += 1) {
+      for (let attempt = 0; attempt < 10; attempt += 1) {
         const { data } = await authClient.getSession({
           query: { disableCookieCache: true },
         });
@@ -31,7 +30,7 @@ export default function AuthCallbackPage() {
           break;
         }
 
-        if (attempt < 5) await wait(250);
+        if (attempt < 9) await wait(300);
       }
 
       if (cancelled) return;
@@ -63,17 +62,9 @@ export default function AuthCallbackPage() {
   }, [router]);
 
   return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-white px-6">
-      <div className="animate-bounce-gentle">
-        <img
-          src="/projection-illustration.svg"
-          alt="Loading..."
-          className="w-48 h-48 md:w-56 md:h-56 drop-shadow-lg"
-        />
-      </div>
-      <p className="mt-8 text-lg font-semibold text-gray-700 animate-pulse">
-        Memuat...
-      </p>
-    </div>
+    <AuthLoadingScreen
+      message="Memuat..."
+      subtitle="Menyiapkan akunmu untuk onboarding."
+    />
   );
 }

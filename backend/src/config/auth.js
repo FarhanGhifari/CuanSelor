@@ -21,6 +21,12 @@ export const auth = betterAuth({
   baseURL: env.betterAuthUrl,
   secret: env.betterAuthSecret,
   trustedOrigins,
+  advanced: {
+    defaultCookieAttributes: {
+      sameSite: env.nodeEnv === "production" ? "none" : "lax",
+      secure: env.nodeEnv === "production",
+    },
+  },
   database: new Pool({
     connectionString: env.databaseUrl,
     // Gunakan rejectUnauthorized: true di production untuk mencegah MITM attack.
@@ -50,12 +56,11 @@ export const auth = betterAuth({
     autoSignInAfterVerification: true, // Auto sign-in setelah verifikasi email
     expiresIn: 60 * 60 * 24, // 24 jam
     sendVerificationEmail: async ({ user, token }) => {
-      // Create custom URL that points to frontend
-      // Frontend will call Better Auth API to verify
-      const frontendVerifyUrl = `${env.frontendUrl}/auth/verify-email?token=${token}`;
+      const callbackURL = `${env.frontendUrl}/auth/callback`;
+      const verifyUrl = `${env.backendUrl}/api/auth/verify-email?token=${encodeURIComponent(token)}&callbackURL=${encodeURIComponent(callbackURL)}`;
 
       try {
-        await sendVerificationEmail({ user, url: frontendVerifyUrl });
+        await sendVerificationEmail({ user, url: verifyUrl });
       } catch (error) {
         console.error(`[Better Auth] ERROR sending verification email:`, error);
         throw error;

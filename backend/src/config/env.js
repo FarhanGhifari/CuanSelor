@@ -23,8 +23,7 @@ const backendUrl =
   `http://localhost:${port}`;
 const betterAuthUrl =
   process.env.BETTER_AUTH_URL ||
-  process.env.NEXT_PUBLIC_APP_URL ||
-  frontendUrl;
+  backendUrl;
 
 export const env = {
   nodeEnv: process.env.NODE_ENV || "development",
