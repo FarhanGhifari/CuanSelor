@@ -1,6 +1,7 @@
 import { supabase } from "../../config/supabase.js";
 import { AppError } from "../../utils/app-error.js";
 import { clearUserCache } from "../../utils/cache.js";
+import { callMortalityInfo } from "../projection/fastapi-calculator.client.js";
 
 // ── Helpers validasi ──────────────────────────────────────────────────────────
 
@@ -185,4 +186,27 @@ export async function savePensionOnboarding(userId, payload) {
   clearUserCache(userId);
 
   return retirementData;
+}
+
+export async function getMortalityInfo(payload) {
+  const age = toPositiveNumber(payload.age, "Usia", { min: 17, max: 80 });
+  const retirementAge = toPositiveNumber(payload.retirementAge, "Usia pensiun", {
+    min: 18,
+    max: 80,
+  });
+
+  if (retirementAge <= age) {
+    throw new AppError("Usia pensiun harus lebih besar dari usia saat ini", 400);
+  }
+
+  const gender = payload.gender;
+  if (gender !== "male" && gender !== "female") {
+    throw new AppError("Jenis kelamin harus male atau female", 400);
+  }
+
+  return callMortalityInfo({
+    age,
+    gender,
+    retirement_age: retirementAge,
+  });
 }

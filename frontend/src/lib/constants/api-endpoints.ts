@@ -14,9 +14,10 @@ export const API = {
     UPDATE: `${BASE}/api/profile`,
   },
   ONBOARDING: {
-    STATUS:    `${BASE}/api/onboarding/status`,
-    FINANCIAL: `${BASE}/api/onboarding/financial`,
-    PENSION:   `${BASE}/api/onboarding/pension`,
+    STATUS:         `${BASE}/api/onboarding/status`,
+    FINANCIAL:      `${BASE}/api/onboarding/financial`,
+    PENSION:        `${BASE}/api/onboarding/pension`,
+    MORTALITY_INFO: `${BASE}/api/onboarding/mortality-info`,
   },
   RISK: {
     QUESTIONS: `${BASE}/api/risk/questions`,

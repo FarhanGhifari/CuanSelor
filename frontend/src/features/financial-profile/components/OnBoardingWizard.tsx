@@ -10,6 +10,8 @@ import {
 import { cn } from "@/lib/utils/cn";
 import { Modal } from "@/components/ui/Modal";
 import { SuccessIllustration } from "@/components/ui/SuccessIllustration";
+import { apiClient } from "@/lib/api/axios.config";
+import { API } from "@/lib/constants/api-endpoints";
 
 /* ── Types ─────────────────────────────────────────────────────────── */
 export interface WizardData {
@@ -793,42 +795,59 @@ function S8_PlanningAge({ data, set }: { data: WizardData; set: (p: Partial<Wiza
         expected_death_age: number;
         p50_survival_age: number;
         p90_survival_age: number;
+        planning_age_recommended: number;
     } | null>(null);
     const [isLoading, setIsLoading] = useState(shouldFetchMortalityInfo);
+    const [fetchError, setFetchError] = useState<string | null>(null);
 
-    // Fetch mortality info dari FastAPI saat component mount atau data berubah
     useEffect(() => {
         if (!shouldFetchMortalityInfo) {
             return;
         }
 
         const controller = new AbortController();
+        setIsLoading(true);
+        setFetchError(null);
 
-        fetch("http://localhost:8001/mortality-info", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                age: data.age,
-                gender: data.gender,
-                retirement_age: data.retirementAge,
-            }),
-            signal: controller.signal,
-        })
-            .then((res) => res.json())
-            .then((result) => {
-                if (result.success && result.data) {
-                    setMortalityInfo(result.data);
+        apiClient
+            .post(
+                API.ONBOARDING.MORTALITY_INFO,
+                {
+                    age: data.age,
+                    gender: data.gender,
+                    retirementAge: data.retirementAge,
+                },
+                { signal: controller.signal },
+            )
+            .then((response) => {
+                const summary = response.data?.data ?? response.data;
+                if (!summary) return;
+
+                setMortalityInfo({
+                    expected_death_age: summary.expected_death_age,
+                    p50_survival_age: summary.p50_survival_age,
+                    p90_survival_age: summary.p90_survival_age,
+                    planning_age_recommended: summary.planning_age_recommended,
+                });
+
+                if (data.planningAge == null && summary.planning_age_recommended) {
+                    set({ planningAge: summary.planning_age_recommended });
                 }
             })
-            .catch(() => {
+            .catch((error) => {
+                if (controller.signal.aborted) return;
                 setMortalityInfo(null);
+                setFetchError("Gagal menghitung info aktuaria. Kamu bisa isi usia target secara manual.");
+                console.error("Mortality info error:", error);
             })
             .finally(() => {
-                setIsLoading(false);
+                if (!controller.signal.aborted) {
+                    setIsLoading(false);
+                }
             });
 
         return () => controller.abort();
-    }, [data.age, data.gender, data.retirementAge, shouldFetchMortalityInfo]);
+    }, [data.age, data.gender, data.retirementAge, shouldFetchMortalityInfo, set]);
 
     return (
         <div>
@@ -838,11 +857,10 @@ function S8_PlanningAge({ data, set }: { data: WizardData; set: (p: Partial<Wiza
                 sub="Tentukan sampai usia berapa kamu ingin dana pensiunmu bertahan." 
             />
             
-            {/* Info Box dengan Data Real dari FastAPI */}
             {isLoading ? (
                 <div className="mb-5 flex gap-2.5 p-3.5 bg-gray-50/50 border border-gray-200/80 rounded-xl text-xs text-gray-600 leading-relaxed items-center">
                     <div className="w-4 h-4 border-2 border-gray-400 border-t-gray-600 rounded-full animate-spin shrink-0"></div>
-                    <span>Menghitung tabel mortalitas...</span>
+                    <span>Menghitung tabel mortalitas TMPI 2023...</span>
                 </div>
             ) : mortalityInfo ? (
                 <div className="mb-5 flex gap-2.5 p-3.5 bg-gray-50/50 border border-gray-200/80 rounded-xl text-xs text-gray-800 leading-relaxed items-center">
@@ -855,7 +873,7 @@ function S8_PlanningAge({ data, set }: { data: WizardData; set: (p: Partial<Wiza
                 <div className="mb-5 flex gap-2.5 p-3.5 bg-gray-50/50 border border-gray-200/80 rounded-xl text-xs text-gray-800 leading-relaxed items-center">
                     <Info className="w-4 h-4 shrink-0 text-gray-600" />
                     <span>
-                        <strong>Informasi Aktuaria:</strong> Sistem akan menghitung usia harapan hidup berdasarkan tabel mortalitas Indonesia (TMPI 2023) sesuai dengan usia dan jenis kelamin kamu.
+                        <strong>Informasi Aktuaria:</strong> {fetchError ?? "Sistem akan menghitung usia harapan hidup berdasarkan tabel mortalitas Indonesia (TMPI 2023) sesuai dengan usia dan jenis kelamin kamu."}
                     </span>
                 </div>
             )}
@@ -868,7 +886,7 @@ function S8_PlanningAge({ data, set }: { data: WizardData; set: (p: Partial<Wiza
                     <input
                         type="text"
                         inputMode="numeric"
-                        placeholder={mortalityInfo ? mortalityInfo.p50_survival_age.toString() : "Contoh: 84"}
+                        placeholder={mortalityInfo ? mortalityInfo.p90_survival_age.toString() : "Contoh: 84"}
                         value={data.planningAge ?? ""}
                         onChange={e => {
                             const val = e.target.value.replace(/\D/g, "");
@@ -882,6 +900,11 @@ function S8_PlanningAge({ data, set }: { data: WizardData; set: (p: Partial<Wiza
                     />
                     <span className="text-base font-medium text-gray-500">tahun</span>
                 </div>
+                {mortalityInfo && data.planningAge === mortalityInfo.planning_age_recommended && (
+                    <p className="text-xs mt-2 text-emerald-600">
+                        Diisi otomatis berdasarkan rekomendasi aktuaria P90 (TMPI 2023). Kamu bisa ubah jika perlu.
+                    </p>
+                )}
                 {data.retirementAge && (
                     <p className="text-xs mt-2 text-gray-500">
                         Minimal {data.retirementAge + 1} tahun, maksimal 120 tahun
