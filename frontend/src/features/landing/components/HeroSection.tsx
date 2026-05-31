@@ -237,9 +237,9 @@ export default function HeroSection() {
                 Mulai Gratis Sekarang
                 <ArrowRight className="transition-transform duration-300 group-hover:translate-x-1.5" style={{ width: 16, height: 16, marginLeft: 4 }} />
               </AuthAwarePillCTA>
-              <PillCTA href={ROUTES.PROJECTION} variant="ghost" style={{ padding: "14px 28px", fontSize: 15 }}>
+              <PillCTA href="/auth/register" variant="ghost" style={{ padding: "14px 28px", fontSize: 15 }}>
                 Coba Simulasi
-              </PillCTA>
+              </PillCTA>      
             </div>
           </div>
 
