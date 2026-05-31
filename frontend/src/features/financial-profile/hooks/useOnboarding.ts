@@ -24,6 +24,7 @@ function sanitize(raw: WizardData): OnboardingPayload {
     currentSavings:     Number(raw.currentSavings)     || 0,
     totalDebt:          Number(raw.riskAnswers?.loan_amount) || 0,
     retirementAge:      Number(raw.retirementAge)      || 55,
+    planningAge:        raw.planningAge ? Number(raw.planningAge) : undefined,
     lifestylePercent:   Number(raw.lifestylePercent)   || 80,
     riskProfile:        (raw.riskProfile as OnboardingPayload["riskProfile"]) ?? "moderate",
     riskAnswers:        (raw.riskAnswers as Record<string, number>) ?? {},

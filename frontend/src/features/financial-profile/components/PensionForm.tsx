@@ -12,7 +12,6 @@ import {
   Landmark,
   Shield,
   CheckSquare,
-  TrendingUp,
 } from "lucide-react";
 import {
   pensionOnboardingSchema,

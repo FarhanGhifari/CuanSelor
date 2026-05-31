@@ -16,6 +16,7 @@ export interface OnboardingPayload {
     totalDebt: number;
     // Step 4
     retirementAge: number;
+    planningAge?: number;
     lifestylePercent: number;
     // Step 5
     riskProfile: RiskProfile;

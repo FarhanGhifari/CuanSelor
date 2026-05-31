@@ -21,6 +21,7 @@ interface BackendProfileResponse {
   pension?: {
     target_retirement_age?: number;
     post_retirement_lifestyle?: number;
+    planning_age?: number;
   } | null;
   risk?: {
     risk_category?: string;
@@ -87,6 +88,7 @@ export const financialProfileService = {
       currentSavings: raw.financial.cold_cash || 0,
       totalDebt: Number(raw.risk?.answers?.totalDebt) || 0,
       retirementAge: raw.pension?.target_retirement_age || 55,
+      planningAge: raw.pension?.planning_age,
       lifestylePercent: raw.pension?.post_retirement_lifestyle || 80,
       riskProfile: normalizeRiskProfile(raw.risk?.risk_category),
       riskAnswers: (raw.risk?.answers || {}) as Record<string, number>,
