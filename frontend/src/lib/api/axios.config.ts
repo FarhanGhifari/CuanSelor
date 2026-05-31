@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { ROUTES } from '../constants/routes';
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://cuanselor-backend.up.railway.app";
 
 export const apiClient = axios.create({
     baseURL: BASE_URL,
