@@ -14,6 +14,8 @@ import {
 export function createApp() {
   const app = express();
 
+  app.set('trust proxy', 1);
+
   // ── Security headers dasar ──────────────────────────────────────────────────
   app.use((req, res, next) => {
     res.setHeader("X-Content-Type-Options", "nosniff");
