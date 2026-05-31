@@ -20,7 +20,6 @@ export default function PillCTA({
   children,
   variant = "primary",
   style,
-  dark,
 }: PillCTAProps) {
   const isPrimary = variant === "primary";
 

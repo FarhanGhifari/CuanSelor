@@ -1,5 +1,5 @@
 import React from "react";
-import { AlertCircle, TrendingDown, ShoppingBag, Clock, HeartPulse, BrainCircuit } from "lucide-react";
+import { TrendingDown, ShoppingBag, Clock, HeartPulse, BrainCircuit } from "lucide-react";
 import { T, FONT } from "./tokens";
 
 export default function ProblemSection() {

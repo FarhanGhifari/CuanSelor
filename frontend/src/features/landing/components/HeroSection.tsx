@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Brain, MessageCircle, TrendingUp, Users, ArrowRight, Sparkles, Lock, BarChart3 } from "lucide-react";
+import { Brain, MessageCircle, TrendingUp, ArrowRight, Sparkles } from "lucide-react";
 import { T, FONT } from "./tokens";
 import { ROUTES } from "@/lib/constants/routes";
 import PillCTA from "./PillCTA";
@@ -425,49 +425,6 @@ function CanvasWave() {
       className="absolute inset-0 w-full h-full pointer-events-none"
       style={{ mixBlendMode: "multiply", zIndex: 1 }}
     />
-  );
-}
-
-function TrustStrip() {
-  const items = [
-    { icon: <Users style={{ width: 14, height: 14, color: T.emerald }} />, value: "50K+", label: "Pengguna" },
-    { icon: <BarChart3 style={{ width: 14, height: 14, color: T.teal }} />, value: "1.200+", label: "Simulasi/mg" },
-    { icon: <Sparkles style={{ width: 14, height: 14, color: T.indigo }} />, value: "24/7", label: "AI Advisor" },
-    { icon: <Lock style={{ width: 14, height: 14, color: T.emerald }} />, value: "100%", label: "Aman" },
-  ];
-
-  return (
-    <div
-      style={{
-        display: "inline-flex",
-        flexWrap: "wrap",
-        alignItems: "center",
-        columnGap: 16,
-        rowGap: 8,
-        padding: "10px 24px",
-        background: "rgba(255, 255, 255, 0.8)",
-        backdropFilter: "blur(16px)",
-        WebkitBackdropFilter: "blur(16px)",
-        border: "1px solid rgba(15, 23, 42, 0.06)",
-        borderRadius: 50,
-        boxShadow: "0 10px 30px rgba(15, 23, 42, 0.03)",
-      }}
-    >
-      {items.map((item, i) => (
-        <div key={i} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          {item.icon}
-          <span style={{ fontSize: 13, fontWeight: 800, color: T.ink, fontFamily: FONT }}>
-            {item.value}
-          </span>
-          <span style={{ fontSize: 11, fontWeight: 500, color: T.inkMuted48, fontFamily: FONT }}>
-            {item.label}
-          </span>
-          {i < items.length - 1 && (
-            <span style={{ color: "rgba(15, 23, 42, 0.12)", fontSize: 12, paddingLeft: 8 }}>|</span>
-          )}
-        </div>
-      ))}
-    </div>
   );
 }
 

@@ -3,28 +3,34 @@
 import Image from "next/image";
 import "./ProjectionLoader.css";
 
-export function ProjectionLoader() {
+interface ProjectionLoaderProps {
+  text?: string;
+  subtext?: string;
+}
+
+export function ProjectionLoader({ text = "Menghitung Proyeksi...", subtext }: ProjectionLoaderProps) {
   return (
-    <div className="bg-white rounded-[32px] p-12 border border-gray-100">
-      <div className="flex flex-col items-center justify-center gap-6">
-        {/* SVG Illustration with Soft Bounce Animation */}
-        <div className="animate-soft-bounce">
-          <Image
-            src="/projection-illustration.svg"
-            alt="Calculating projection"
-            width={280}
-            height={280}
-            className="w-full h-full object-contain"
-            priority
-          />
-        </div>
-        
-        {/* Text */}
-        <div className="text-center">
-          <h3 className="text-xl font-semibold text-gray-700">
-            Menghitung Proyeksi...
-          </h3>
-        </div>
+    <div className="flex flex-col items-center justify-center gap-6 py-12 w-full">
+      {/* SVG Illustration with Soft Bounce Animation */}
+      <div className="animate-soft-bounce">
+        <Image
+          src="/projection-illustration.svg"
+          alt="Loading"
+          width={280}
+          height={280}
+          className="w-full h-full object-contain"
+          priority
+        />
+      </div>
+      
+      {/* Text */}
+      <div className="text-center">
+        <h3 className="text-xl font-semibold text-gray-700">
+          {text}
+        </h3>
+        {subtext && (
+          <p className="text-sm text-gray-400 mt-1">{subtext}</p>
+        )}
       </div>
     </div>
   );

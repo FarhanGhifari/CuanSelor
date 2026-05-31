@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import type React from "react";
 import { useSession } from "@/lib/auth/auth-client";
 import { ROUTES } from "@/lib/constants/routes";
@@ -24,8 +25,22 @@ export default function AuthAwarePillCTA({
   style,
   dark,
 }: AuthAwarePillCTAProps) {
+  const [mounted, setMounted] = useState(false);
   const { data: session, isPending } = useSession();
   const isAuthenticated = Boolean(session?.user);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <PillCTA href={href} variant={variant} style={style} dark={dark}>
+        {children}
+      </PillCTA>
+    );
+  }
 
   return (
     <PillCTA

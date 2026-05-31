@@ -1,5 +1,5 @@
 import {
-  TrendingUp, Brain, Target, Shield, Zap, Users,
+  TrendingUp, Brain, Target, Zap,
   MessageCircle, BarChart3, Wallet,
 } from "lucide-react";
 

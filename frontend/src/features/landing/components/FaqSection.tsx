@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable @next/next/no-img-element */
+
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { T, FONT } from "./tokens";
