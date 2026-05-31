@@ -153,6 +153,7 @@ export default function ProfilePage() {
   const [isQuizOpen, setIsQuizOpen] = useState(false);
   const [quizStep, setQuizStep] = useState(0);
   const [quizAnswers, setQuizAnswers] = useState<Record<string, number>>({});
+  const [quizRawInputs, setQuizRawInputs] = useState<Record<string, string>>({});
   const [calculatedRisk, setCalculatedRisk] = useState<RiskProfile | null>(null);
 
   // Fetch email separately to not disrupt type interfaces
@@ -292,6 +293,11 @@ export default function ProfilePage() {
     }
     setQuizStep(0);
     setQuizAnswers(prefilled);
+    setQuizRawInputs(
+      Object.fromEntries(
+        Object.entries(prefilled).map(([key, value]) => [key, String(value)])
+      )
+    );
     setCalculatedRisk(null);
     setIsQuizOpen(true);
   };
@@ -314,10 +320,58 @@ export default function ProfilePage() {
     }
   };
 
-  const handleQuizInputChange = (value: number | null) => {
-    if (value !== null) {
-      setQuizAnswers((prev) => ({ ...prev, [currentQuestion.id]: value }));
-    }
+  const handleQuizInputChange = (rawValue: string) => {
+    const normalizedValue = currentQuestion.type === "percentage"
+      ? rawValue
+          .replace(/,/g, ".")
+          .replace(/[^\d.]/g, "")
+          .replace(/(\..*)\./g, "$1")
+      : rawValue.replace(/\D/g, "");
+
+    setQuizRawInputs((prev) => ({
+      ...prev,
+      [currentQuestion.id]: normalizedValue,
+    }));
+
+    setQuizAnswers((prev) => {
+      const next = { ...prev };
+
+      if (normalizedValue === "" || normalizedValue === ".") {
+        delete next[currentQuestion.id];
+        return next;
+      }
+
+      const parsed = Number(normalizedValue);
+      if (Number.isFinite(parsed)) {
+        next[currentQuestion.id] = parsed;
+      } else {
+        delete next[currentQuestion.id];
+      }
+
+      return next;
+    });
+  };
+
+  const handleQuizNumberChange = (value: number | null) => {
+    setQuizRawInputs((prev) => {
+      const next = { ...prev };
+      if (value === null) {
+        delete next[currentQuestion.id];
+      } else {
+        next[currentQuestion.id] = String(value);
+      }
+      return next;
+    });
+
+    setQuizAnswers((prev) => {
+      const next = { ...prev };
+      if (value === null) {
+        delete next[currentQuestion.id];
+      } else {
+        next[currentQuestion.id] = value;
+      }
+      return next;
+    });
   };
 
   const handleQuizNext = () => {
@@ -907,7 +961,7 @@ export default function ProfilePage() {
                       <div className="space-y-3">
                         <ProfileCurrencyField
                           value={quizAnswers[currentQuestion.id] || 0}
-                          onChange={handleQuizInputChange}
+                          onChange={handleQuizNumberChange}
                         />
                         <button
                           type="button"
@@ -923,11 +977,10 @@ export default function ProfilePage() {
                         <div className="relative">
                           <input
                             type="text"
-                            inputMode="numeric"
-                            value={quizAnswers[currentQuestion.id] !== undefined ? String(quizAnswers[currentQuestion.id]) : ""}
+                            inputMode={currentQuestion.type === "percentage" ? "decimal" : "numeric"}
+                            value={quizRawInputs[currentQuestion.id] ?? (quizAnswers[currentQuestion.id] !== undefined ? String(quizAnswers[currentQuestion.id]) : "")}
                             onChange={(e) => {
-                              const val = e.target.value.replace(/[^\d.]/g, "").replace(/^(\d*\.?\d*).*/, "$1");
-                              handleQuizInputChange(val === "" ? null : Number(val));
+                              handleQuizInputChange(e.target.value);
                             }}
                             placeholder={currentQuestion.placeholder}
                             autoFocus

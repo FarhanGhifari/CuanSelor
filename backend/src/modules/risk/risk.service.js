@@ -14,6 +14,45 @@ function toNumber(value, fallback = 0) {
   return Number.isFinite(numberValue) ? numberValue : fallback;
 }
 
+function validateNonNegativeNumber(value, fieldName) {
+  if (value === undefined || value === null || value === "") return;
+
+  const numberValue = Number(value);
+  if (!Number.isFinite(numberValue) || numberValue < 0) {
+    throw new AppError(`${fieldName} harus berupa angka >= 0`, 400);
+  }
+}
+
+function validateRiskOverrides(overrides = {}) {
+  const numericFields = [
+    ["age", "Usia"],
+    ["annualIncome", "Pendapatan tahunan"],
+    ["annual_income", "Pendapatan tahunan"],
+    ["loanAmount", "Jumlah pinjaman"],
+    ["loan_amount", "Jumlah pinjaman"],
+    ["totalDebt", "Total utang"],
+    ["total_debt", "Total utang"],
+    ["loanDurationMonths", "Durasi pinjaman"],
+    ["loan_duration_months", "Durasi pinjaman"],
+    ["interestRate", "Suku bunga"],
+    ["interest_rate", "Suku bunga"],
+    ["debtToIncomeRatio", "Rasio utang terhadap pendapatan"],
+    ["debt_to_income_ratio", "Rasio utang terhadap pendapatan"],
+    ["monthlyExpenses", "Pengeluaran bulanan"],
+    ["monthly_expenses", "Pengeluaran bulanan"],
+    ["savingsBalance", "Saldo tabungan"],
+    ["savings_balance", "Saldo tabungan"],
+    ["employmentStabilityYears", "Stabilitas kerja"],
+    ["employment_stability_years", "Stabilitas kerja"],
+    ["previousDefaultCount", "Jumlah gagal bayar sebelumnya"],
+    ["previous_default_count", "Jumlah gagal bayar sebelumnya"],
+  ];
+
+  for (const [field, label] of numericFields) {
+    validateNonNegativeNumber(overrides[field], label);
+  }
+}
+
 function calculateAge(dateOfBirth) {
   if (!dateOfBirth) return null;
 
@@ -226,6 +265,8 @@ export async function getLatestRiskAssessment(userId) {
 }
 
 export async function generateRiskAssessment(userId, overrides = {}) {
+  validateRiskOverrides(overrides);
+
   const [profileResult, financialResult, latestRiskResult] = await Promise.all([
     supabase.from("profiles").select("date_of_birth").eq("id", userId).maybeSingle(),
     supabase.from("financial_records").select("*").eq("user_id", userId).maybeSingle(),

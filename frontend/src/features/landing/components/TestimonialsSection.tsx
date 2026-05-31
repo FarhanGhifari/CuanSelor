@@ -48,7 +48,7 @@ export default function TestimonialsSection() {
         <p style={{ fontFamily: FONT, fontSize: 16, fontWeight: 500, color: T.inkMuted, marginBottom: 16 }}>
           Ribuan Gen Z Indonesia sudah bergabung
         </p>
-        <h2 style={{ fontSize: "clamp(34px, 5vw, 56px)", fontWeight: 600, letterSpacing: "-0.03em", color: T.ink }}>
+        <h2 style={{ fontSize: "clamp(34px, 5vw, 56px)", fontWeight: 600, letterSpacing: "-0.03em", color: "#000000" }}>
           Apa kata pengguna CuanSelor
         </h2>
       </div>

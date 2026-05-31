@@ -48,12 +48,10 @@ export default function InteractiveSimulationPreview() {
     return (
         <section
             id="simulation-preview"
-            className="relative flex min-h-[100svh] items-center overflow-hidden bg-slate-50 px-5 py-16 md:px-[5%] lg:py-20 xl:py-24"
+            className="relative flex min-h-[100svh] items-center overflow-hidden bg-white px-5 py-16 md:px-[5%] lg:py-20 xl:py-24"
         >
-            {/* Background Ambient */}
-            <div className="pointer-events-none absolute left-1/2 top-[-12%] h-[520px] w-[920px] -translate-x-1/2 rounded-full bg-emerald-200/30 blur-[120px]" />
-            <div className="pointer-events-none absolute bottom-[-18%] right-[-10%] h-[520px] w-[620px] rounded-full bg-indigo-200/30 blur-[120px]" />
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_18%,rgba(16,185,129,0.08),transparent_30%),radial-gradient(circle_at_85%_60%,rgba(79,70,229,0.08),transparent_34%)]" />
+            {/* No ambient/gradient background overlays */}
+
 
             <div className="relative z-10 mx-auto grid w-full max-w-[1560px] grid-cols-1 items-center gap-10 lg:grid-cols-12 xl:gap-14">
                 {/* Left Content */}
@@ -112,7 +110,6 @@ export default function InteractiveSimulationPreview() {
                     className="lg:col-span-8"
                 >
                     <div className="relative overflow-hidden rounded-[34px] border border-slate-200/80 bg-white/85 p-4 shadow-[0_30px_100px_rgba(15,23,42,0.12)] backdrop-blur-2xl md:p-5 xl:p-6">
-                        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.14),transparent_34%),radial-gradient(circle_at_bottom_left,rgba(79,70,229,0.12),transparent_38%)]" />
 
                         <div className="relative z-10 grid grid-cols-1 gap-5 xl:grid-cols-12">
                             {/* Controls */}

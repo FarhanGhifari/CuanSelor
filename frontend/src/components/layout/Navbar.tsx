@@ -9,10 +9,8 @@ import { useSession } from "@/lib/auth/auth-client";
 
 const NAV_LINK = [
     { label: "About", href: "/#about" },
+    { label: "How It Works", href: "/#how-it-works" },
     { label: "Features", href: "/#features" },
-    { label: "Why Us", href: "/#why-us" },
-    { label: "FAQ", href: "/#faq" },
-    { label: "Blog", href: "/blog" },
 ];
 
 export function Navbar() {

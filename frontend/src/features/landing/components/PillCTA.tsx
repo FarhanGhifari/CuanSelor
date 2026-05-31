@@ -12,9 +12,6 @@ interface PillCTAProps {
   dark?: boolean;
 }
 
-/**
- * Premium pill-shaped CTA button - dark-first design with shimmer hover.
- */
 export default function PillCTA({
   href,
   children,

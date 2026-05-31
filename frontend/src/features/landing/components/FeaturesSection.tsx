@@ -29,6 +29,8 @@ import {
 } from "lucide-react";
 
 import { T } from "./tokens";
+import AuthAwarePillCTA from "./AuthAwarePillCTA";
+import { ROUTES } from "@/lib/constants/routes";
 
 /* =========================================================
    DESIGN TOKENS
@@ -232,9 +234,36 @@ export default function FeaturesSection() {
                     real-time.
                   </p>
 
-                  <button
-                    suppressHydrationWarning
-                    className="group inline-flex w-fit items-center gap-3 rounded-2xl bg-slate-950 px-5 py-3 font-semibold text-white transition-all duration-300 hover:scale-[1.02] hover:bg-slate-800"
+                  <AuthAwarePillCTA
+                    href={ROUTES.REGISTER}
+                    dashboardChildren={
+                      <>
+                        Buka Dashboard
+                        <m.div
+                          animate={
+                            shouldReduceMotion
+                              ? {}
+                              : { x: [0, 4, 0] }
+                          }
+                          transition={{
+                            duration: 1.5,
+                            repeat: Infinity,
+                          }}
+                        >
+                          <ArrowRight size={18} />
+                        </m.div>
+                      </>
+                    }
+                    style={{
+                      width: "fit-content",
+                      gap: 12,
+                      borderRadius: 16,
+                      background: "#020617",
+                      border: "1px solid rgba(15,23,42,0.2)",
+                      boxShadow: "none",
+                      padding: "12px 20px",
+                      fontWeight: 600,
+                    }}
                   >
                     Lihat Proyeksi Masa Depan
                     <m.div
@@ -250,7 +279,7 @@ export default function FeaturesSection() {
                     >
                       <ArrowRight size={18} />
                     </m.div>
-                  </button>
+                  </AuthAwarePillCTA>
                 </div>
 
                 <div className="relative flex flex-1 items-center justify-center overflow-hidden rounded-[28px] border border-slate-200 bg-gradient-to-br from-white to-slate-100 p-6">

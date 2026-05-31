@@ -4,7 +4,7 @@ import { clearUserCache } from "../../utils/cache.js";
 
 // ── Helpers validasi ──────────────────────────────────────────────────────────
 
-const VALID_GENDERS = ["male", "female"];
+const VALID_GENDERS = ["male", "female", "Laki-laki", "Perempuan"];
 
 /**
  * Validasi dan konversi angka positif dari payload.
@@ -23,6 +23,17 @@ function toPositiveNumber(value, fieldName, { min = 0, max } = {}) {
     throw new AppError(`${fieldName} tidak boleh lebih dari ${max}`, 400);
   }
   return num;
+}
+
+function normalizeGender(value) {
+  if (value == null || value === "") return "Laki-laki";
+  if (value === "male" || value === "Laki-laki") return "Laki-laki";
+  if (value === "female" || value === "Perempuan") return "Perempuan";
+
+  throw new AppError(
+    `Gender tidak valid. Gunakan salah satu: ${VALID_GENDERS.join(", ")}`,
+    400,
+  );
 }
 
 // ── Service functions ─────────────────────────────────────────────────────────
@@ -98,13 +109,7 @@ export async function upsertProfile(userId, payload) {
   // ── Validasi input ──────────────────────────────────────────────────────────
   const age = toPositiveNumber(payload.age ?? 30, "Usia", { min: 17, max: 80 });
 
-  // Normalize gender to ensure it's always valid
-  let gender = "Laki-laki"; // default
-  if (payload.gender === "male" || payload.gender === "Laki-laki") {
-    gender = "Laki-laki";
-  } else if (payload.gender === "female" || payload.gender === "Perempuan") {
-    gender = "Perempuan";
-  }
+  const gender = normalizeGender(payload.gender);
 
   const monthlyIncome = toPositiveNumber(
     payload.monthlyIncome ?? 0,

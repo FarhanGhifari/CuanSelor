@@ -500,14 +500,20 @@ export async function chat(userId, conversationId, userMessage, onChunk) {
  * Delete a conversation and all its messages.
  */
 export async function deleteConversation(conversationId, userId) {
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("chat_conversations")
     .delete()
     .eq("id", conversationId)
-    .eq("user_id", userId);
+    .eq("user_id", userId)
+    .select("id")
+    .maybeSingle();
 
   if (error) {
     throw new AppError("Gagal menghapus percakapan", 500, error.message);
+  }
+
+  if (!data) {
+    throw new AppError("Percakapan tidak ditemukan", 404);
   }
 }
 

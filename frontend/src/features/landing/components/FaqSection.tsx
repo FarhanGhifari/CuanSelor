@@ -26,7 +26,7 @@ function FaqItem({ q, a }: { q: string; a: string }) {
             fontWeight: 600,
             letterSpacing: "-0.02em",
             lineHeight: 1.4,
-            color: T.ink,
+            color: "#000000",
           }}
         >
           {q}

@@ -4,12 +4,18 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { financialProfileService } from "../services/financial-profile.service";
 import { financialProfileMock } from "../services/financial-profile.mock";
+import { onboardingService } from "../services/onboarding.service";
 import { ROUTES } from "@/lib/constants/routes";
 import type { OnboardingPayload, FinancialProfile } from "../types/financial-profile.types";
 import type { WizardData } from "../components/OnBoardingWizard";
+import type { PensionOnboardingInput } from "@/features/auth/validations/auth.schema";
 
 const IS_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === "true";
 const svc = IS_MOCK ? financialProfileMock : financialProfileService;
+
+type PensionSubmission = PensionOnboardingInput & {
+  riskAnswers?: Record<string, number>;
+};
 
 // ── Helper: sanitize WizardData → OnboardingPayload ────────────────
 function sanitize(raw: WizardData): OnboardingPayload {
@@ -88,11 +94,35 @@ export function useSubmitPension() {
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const submitPension = async (raw: WizardData): Promise<boolean> => {
+  const submitPension = async (raw: PensionSubmission): Promise<boolean> => {
     setIsPending(true);
     setError(null);
     try {
-      await svc.save(sanitize(raw));
+      if (IS_MOCK) {
+        const current = await svc.get();
+        await svc.save({
+          fullName: current?.fullName ?? "",
+          age: current?.age ?? 30,
+          gender: current?.gender ?? "male",
+          monthlyIncome: current?.monthlyIncome ?? 0,
+          annualBonusMonths: current?.annualBonusMonths ?? 0,
+          monthlyExpense: current?.monthlyExpense ?? 0,
+          savingsPercentage: current?.savingsPercentage ?? 0,
+          currentSavings: current?.currentSavings ?? 0,
+          totalDebt: current?.totalDebt ?? 0,
+          retirementAge: Number(raw.retirementAge) || current?.retirementAge || 55,
+          planningAge: current?.planningAge,
+          lifestylePercent: Number(raw.lifestylePercent) || current?.lifestylePercent || 80,
+          riskProfile: raw.riskProfile,
+          riskAnswers: raw.riskAnswers ?? current?.riskAnswers ?? {},
+          sector: raw.sector,
+          hasHealthInsurance: Boolean(raw.hasHealthInsurance),
+          depositRate: Number(raw.depositRate) || current?.depositRate || 4.5,
+          includePandemicRisk: Boolean(raw.includePandemicRisk),
+        });
+      } else {
+        await onboardingService.submitPension(raw);
+      }
       return true;
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })

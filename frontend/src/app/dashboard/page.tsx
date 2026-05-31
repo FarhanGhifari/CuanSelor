@@ -40,6 +40,9 @@ const INVESTMENT_SUGGESTIONS: Record<
     badge: string;
     accent: string;
     softBg: string;
+    textColor?: string;
+    descColor?: string;
+    borderColor?: string;
     allocations: Array<{
       key: "saham" | "obligasi" | "emas";
       label: string;
@@ -65,7 +68,7 @@ const INVESTMENT_SUGGESTIONS: Record<
     summary: "Komposisi dibuat lebih berimbang agar portofolio tetap bertumbuh tanpa terlalu agresif terhadap fluktuasi pasar.",
     badge: "Pertumbuhan terukur",
     accent: "text-amber-700",
-    softBg: "from-amber-50 via-white to-emerald-50",
+    softBg: "bg-gradient-to-r from-amber-50 via-white to-emerald-50",
     allocations: [
       { key: "saham", label: "Saham", percentage: 45, reason: "Menjadi mesin pertumbuhan utama untuk horizon menengah hingga panjang." },
       { key: "obligasi", label: "Obligasi", percentage: 30, reason: "Membantu menjaga kestabilan portofolio saat pasar saham melemah." },
@@ -76,8 +79,11 @@ const INVESTMENT_SUGGESTIONS: Record<
     title: "Agresif untuk mengejar pertumbuhan",
     summary: "Porsi saham dibuat dominan untuk mengejar return jangka panjang, dengan obligasi dan emas sebagai penyeimbang risiko.",
     badge: "Pertumbuhan maksimal",
-    accent: "text-emerald-700",
-    softBg: "bg-emerald-50/50",
+    accent: "text-white",
+    softBg: "bg-emerald-600",
+    textColor: "text-white",
+    descColor: "text-emerald-50",
+    borderColor: "border-emerald-500",
     allocations: [
       { key: "saham", label: "Saham", percentage: 70, reason: "Menjadi porsi terbesar karena paling sesuai untuk target pertumbuhan tinggi." },
       { key: "emas", label: "Emas", percentage: 20, reason: "Menjadi buffer saat volatilitas pasar tinggi dan menjaga diversifikasi." },
@@ -301,13 +307,13 @@ export default function DashboardOverview() {
             <h2 className="text-2xl font-bold text-gray-900">Saran Investasi</h2>
           </div>
 
-          <div className={`rounded-2xl border p-5 flex flex-col md:flex-row gap-4 items-start md:items-center ${investmentSuggestion.softBg} border-emerald-50`}>
+          <div className={`rounded-2xl border p-5 flex flex-col md:flex-row gap-4 items-start md:items-center ${investmentSuggestion.softBg} ${investmentSuggestion.borderColor || 'border-emerald-50'}`}>
             
             <div className="flex-1">
-              <div className="text-base leading-relaxed text-gray-800">
+              <div className={`text-base leading-relaxed ${investmentSuggestion.textColor || 'text-gray-800'}`}>
                 Wahh profil risiko kamu <span className={`font-bold ${investmentSuggestion.accent}`}>{riskInfo.label}</span> ! Kamu bisa ikuti saran investasi berikut yaa!
               </div>
-              <p className="text-base leading-relaxed text-gray-500 mt-1.5">
+              <p className={`text-base leading-relaxed mt-1.5 ${investmentSuggestion.descColor || 'text-gray-500'}`}>
                 {investmentSuggestion.summary}
               </p>
             </div>

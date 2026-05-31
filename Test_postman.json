@@ -1,0 +1,4604 @@
+{
+  "info": {
+    "_postman_id": "c7c17e9c-6b9b-4c14-9a6b-cuanselor-production-test",
+    "name": "CuanSelor - Production Objective Test Suite",
+    "description": "Collection Postman untuk menguji website CuanSelor secara black-box/production-oriented. Test ini tidak dibuat agar selalu hijau, tetapi untuk membuktikan service frontend, backend, auth, onboarding, profile, risk, projection, advisor, dan calculator benar-benar berjalan. Jalankan dari atas ke bawah. Ubah variable frontend_url, backend_url, dan calculator_url jika target bukan localhost.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "frontend_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "backend_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "calculator_url",
+      "value": "http://localhost:8001",
+      "type": "string"
+    },
+    {
+      "key": "frontend_max_ms",
+      "value": "8000",
+      "type": "string"
+    },
+    {
+      "key": "backend_max_ms",
+      "value": "5000",
+      "type": "string"
+    },
+    {
+      "key": "projection_max_ms",
+      "value": "150000",
+      "type": "string"
+    },
+    {
+      "key": "run_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "test_name",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "test_email",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "test_password",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "auth_cookie",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "conversation_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "verified_email",
+      "value": "",
+      "type": "string",
+      "description": "Isi dengan email akun test yang sudah verified. Dipakai untuk login dan semua endpoint protected ketika REQUIRE_EMAIL_VERIFICATION=true."
+    },
+    {
+      "key": "verified_password",
+      "value": "",
+      "type": "string",
+      "description": "Isi dengan password akun test yang sudah verified. Jangan gunakan akun yang baru dibuat collection karena emailVerified=false."
+    }
+  ],
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.test(\"Tidak ada response 5xx\", function () {",
+          "  pm.expect(pm.response.code, \"server tidak boleh error 5xx\").to.be.below(500);",
+          "});"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "00 - Setup Runtime",
+      "item": [
+        {
+          "name": "Initialize Test Data and Check Backend Health",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const runId = Date.now().toString();",
+                  "pm.collectionVariables.set(\"run_id\", runId);",
+                  "pm.collectionVariables.set(\"test_name\", `Postman E2E ${runId}`);",
+                  "pm.collectionVariables.set(\"test_email\", `postman.${runId}@example.com`);",
+                  "pm.collectionVariables.set(\"test_password\", `CuanSelor#${runId}`);",
+                  "pm.collectionVariables.unset(\"auth_cookie\");",
+                  "pm.collectionVariables.unset(\"conversation_id\");",
+                  "try {",
+                  "  const jar = pm.cookies.jar();",
+                  "  jar.clear(pm.collectionVariables.get(\"backend_url\"), function () {});",
+                  "} catch (error) {",
+                  "  console.warn(\"Cookie jar clear skipped\", error);",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Backend health endpoint aktif\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "  pm.expect(json.status).to.eql(\"healthy\");",
+                  "});",
+                  "pm.test(\"Runtime user dibuat untuk run ini\", function () {",
+                  "  pm.expect(pm.collectionVariables.get(\"test_email\")).to.match(/^postman\\.\\d+@example\\.com$/);",
+                  "  pm.expect(pm.collectionVariables.get(\"test_password\")).to.match(/^CuanSelor#\\d+$/);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{backend_url}}/api/health",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "health"
+              ]
+            },
+            "description": "Menyiapkan email/password unik untuk test run dan memastikan backend hidup."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "01 - Frontend Website Smoke",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Page tidak crash atau 5xx\", function () {",
+              "  pm.expect([200, 301, 302, 303, 307, 308]).to.include(pm.response.code);",
+              "});",
+              "pm.test(\"Response time frontend masih wajar\", function () {",
+              "  pm.expect(pm.response.responseTime).to.be.below(Number(pm.collectionVariables.get(\"frontend_max_ms\")));",
+              "});",
+              "if (pm.response.code === 200) {",
+              "  const contentType = (pm.response.headers.get(\"Content-Type\") || \"\").toLowerCase();",
+              "  const body = pm.response.text().toLowerCase();",
+              "  pm.test(\"Response berupa HTML halaman web\", function () {",
+              "    pm.expect(contentType).to.include(\"text/html\");",
+              "    pm.expect(body.includes(\"<html\") || body.includes(\"__next\") || body.includes(\"<body\")).to.eql(true);",
+              "  });",
+              "  pm.test(\"Tidak menampilkan error page umum\", function () {",
+              "    pm.expect(body).to.not.include(\"application error\");",
+              "    pm.expect(body).to.not.include(\"internal server error\");",
+              "    pm.expect(body).to.not.include(\"runtime error\");",
+              "  });",
+              "}"
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "name": "Landing Page",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{frontend_url}}/",
+              "host": [
+                "{{frontend_url}}"
+              ],
+              "path": [
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login Page",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{frontend_url}}/auth/login",
+              "host": [
+                "{{frontend_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Register Page",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{frontend_url}}/auth/register",
+              "host": [
+                "{{frontend_url}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Forgot Password Page",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{frontend_url}}/auth/forgot-password",
+              "host": [
+                "{{frontend_url}}"
+              ],
+              "path": [
+                "auth",
+                "forgot-password"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "About Page",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{frontend_url}}/about",
+              "host": [
+                "{{frontend_url}}"
+              ],
+              "path": [
+                "about"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Blog Page",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{frontend_url}}/blog",
+              "host": [
+                "{{frontend_url}}"
+              ],
+              "path": [
+                "blog"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Dashboard Page",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{frontend_url}}/dashboard",
+              "host": [
+                "{{frontend_url}}"
+              ],
+              "path": [
+                "dashboard"
+              ]
+            },
+            "description": "Halaman protected boleh redirect, tetapi tidak boleh 5xx/error page."
+          },
+          "response": []
+        },
+        {
+          "name": "Dashboard Projection Page",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{frontend_url}}/dashboard/projection",
+              "host": [
+                "{{frontend_url}}"
+              ],
+              "path": [
+                "dashboard",
+                "projection"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Dashboard Pension Page",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{frontend_url}}/dashboard/pension",
+              "host": [
+                "{{frontend_url}}"
+              ],
+              "path": [
+                "dashboard",
+                "pension"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Dashboard Profile Page",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{frontend_url}}/dashboard/profile",
+              "host": [
+                "{{frontend_url}}"
+              ],
+              "path": [
+                "dashboard",
+                "profile"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Terms Page",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{frontend_url}}/terms",
+              "host": [
+                "{{frontend_url}}"
+              ],
+              "path": [
+                "terms"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Privacy Page",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{frontend_url}}/privacy",
+              "host": [
+                "{{frontend_url}}"
+              ],
+              "path": [
+                "privacy"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Security Page",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{frontend_url}}/security",
+              "host": [
+                "{{frontend_url}}"
+              ],
+              "path": [
+                "security"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Auth Onboarding Page",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": []
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{frontend_url}}/auth/onboarding",
+              "host": [
+                "{{frontend_url}}"
+              ],
+              "path": [
+                "auth",
+                "onboarding"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reset Password Page With Invalid Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": []
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{frontend_url}}/auth/reset-password?token=invalid-token",
+              "host": [
+                "{{frontend_url}}"
+              ],
+              "path": [
+                "auth",
+                "reset-password"
+              ],
+              "query": [
+                {
+                  "key": "token",
+                  "value": "invalid-token"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Verify Email Page With Invalid Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": []
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{frontend_url}}/auth/verify-email?token=invalid-token",
+              "host": [
+                "{{frontend_url}}"
+              ],
+              "path": [
+                "auth",
+                "verify-email"
+              ],
+              "query": [
+                {
+                  "key": "token",
+                  "value": "invalid-token"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Verify Success Page",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": []
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{frontend_url}}/auth/verify-success",
+              "host": [
+                "{{frontend_url}}"
+              ],
+              "path": [
+                "auth",
+                "verify-success"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "02 - Frontend Static Assets",
+      "item": [
+        {
+          "name": "Logo PNG",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(200);",
+                  "pm.test(\"Static asset tidak kosong\", function () { pm.expect(pm.response.text().length).to.be.greaterThan(50); });",
+                  "pm.test(\"Static asset response cepat\", function () { pm.expect(pm.response.responseTime).to.be.below(Number(pm.collectionVariables.get(\"frontend_max_ms\"))); });",
+                  "pm.test(\"Content-Type image/png\", function () { pm.expect((pm.response.headers.get(\"Content-Type\") || \"\").toLowerCase()).to.include(\"image/png\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{frontend_url}}/logo.png",
+              "host": [
+                "{{frontend_url}}"
+              ],
+              "path": [
+                "logo.png"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "About PNG",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(200);",
+                  "pm.test(\"Static asset tidak kosong\", function () { pm.expect(pm.response.text().length).to.be.greaterThan(50); });",
+                  "pm.test(\"Static asset response cepat\", function () { pm.expect(pm.response.responseTime).to.be.below(Number(pm.collectionVariables.get(\"frontend_max_ms\"))); });",
+                  "pm.test(\"Content-Type image/png\", function () { pm.expect((pm.response.headers.get(\"Content-Type\") || \"\").toLowerCase()).to.include(\"image/png\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{frontend_url}}/About.png",
+              "host": [
+                "{{frontend_url}}"
+              ],
+              "path": [
+                "About.png"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Success Illustration SVG",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(200);",
+                  "pm.test(\"Static asset tidak kosong\", function () { pm.expect(pm.response.text().length).to.be.greaterThan(50); });",
+                  "pm.test(\"Static asset response cepat\", function () { pm.expect(pm.response.responseTime).to.be.below(Number(pm.collectionVariables.get(\"frontend_max_ms\"))); });",
+                  "pm.test(\"Content-Type SVG\", function () { pm.expect((pm.response.headers.get(\"Content-Type\") || \"\").toLowerCase()).to.include(\"image/svg+xml\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{frontend_url}}/success-illustration.svg",
+              "host": [
+                "{{frontend_url}}"
+              ],
+              "path": [
+                "success-illustration.svg"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Projection Illustration SVG",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(200);",
+                  "pm.test(\"Static asset tidak kosong\", function () { pm.expect(pm.response.text().length).to.be.greaterThan(50); });",
+                  "pm.test(\"Static asset response cepat\", function () { pm.expect(pm.response.responseTime).to.be.below(Number(pm.collectionVariables.get(\"frontend_max_ms\"))); });",
+                  "pm.test(\"Content-Type SVG\", function () { pm.expect((pm.response.headers.get(\"Content-Type\") || \"\").toLowerCase()).to.include(\"image/svg+xml\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{frontend_url}}/projection-illustration.svg",
+              "host": [
+                "{{frontend_url}}"
+              ],
+              "path": [
+                "projection-illustration.svg"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Favicon",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(200);",
+                  "pm.test(\"Favicon tidak kosong\", function () { pm.expect(pm.response.text().length).to.be.greaterThan(0); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{frontend_url}}/favicon.ico",
+              "host": [
+                "{{frontend_url}}"
+              ],
+              "path": [
+                "favicon.ico"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "03 - Frontend Routing Edge Cases",
+      "item": [
+        {
+          "name": "Unknown Frontend Route Does Not Crash",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Unknown frontend route tidak 5xx\", function () { pm.expect(pm.response.code).to.be.below(500); });",
+                  "pm.test(\"Unknown frontend route bukan runtime error\", function () { const body = pm.response.text().toLowerCase(); pm.expect(body).to.not.include(\"application error\"); pm.expect(body).to.not.include(\"runtime error\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{frontend_url}}/__postman_unknown_page__",
+              "host": [
+                "{{frontend_url}}"
+              ],
+              "path": [
+                "__postman_unknown_page__"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Unknown Blog Slug Does Not Crash",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Unknown blog slug tidak 5xx\", function () { pm.expect(pm.response.code).to.be.below(500); });",
+                  "pm.test(\"Unknown blog slug bukan runtime error\", function () { const body = pm.response.text().toLowerCase(); pm.expect(body).to.not.include(\"application error\"); pm.expect(body).to.not.include(\"runtime error\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{frontend_url}}/blog/__postman_unknown_slug__",
+              "host": [
+                "{{frontend_url}}"
+              ],
+              "path": [
+                "blog",
+                "__postman_unknown_slug__"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "04 - Public Backend API",
+      "item": [
+        {
+          "name": "Backend Root",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(200);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Root API sukses\", function () {",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "  pm.expect(json.status).to.eql(\"Active\");",
+                  "});",
+                  "pm.test(\"Response time backend masih wajar\", function () {",
+                  "  pm.expect(pm.response.responseTime).to.be.below(Number(pm.collectionVariables.get(\"backend_max_ms\")));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{backend_url}}/",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Backend Health",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(200);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Health API mengembalikan status healthy\", function () {",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "  pm.expect(json.service).to.eql(\"cuanselor-backend\");",
+                  "  pm.expect(json.status).to.eql(\"healthy\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{backend_url}}/api/health",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "health"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Security Headers",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(200);",
+                  "pm.test(\"Security headers dasar aktif\", function () {",
+                  "  pm.expect(pm.response.headers.get(\"X-Content-Type-Options\")).to.eql(\"nosniff\");",
+                  "  pm.expect(pm.response.headers.get(\"X-Frame-Options\")).to.eql(\"DENY\");",
+                  "  pm.expect(pm.response.headers.get(\"Referrer-Policy\")).to.eql(\"strict-origin-when-cross-origin\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{backend_url}}/api/health",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "health"
+              ]
+            },
+            "description": "Menguji header keamanan dasar dari backend."
+          },
+          "response": []
+        },
+        {
+          "name": "CORS Preflight From Frontend Origin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Preflight diterima\", function () {",
+                  "  pm.expect([200, 204]).to.include(pm.response.code);",
+                  "});",
+                  "pm.test(\"CORS mengizinkan origin frontend\", function () {",
+                  "  const allowOrigin = pm.response.headers.get(\"Access-Control-Allow-Origin\");",
+                  "  pm.expect(allowOrigin).to.eql(pm.collectionVariables.get(\"frontend_url\"));",
+                  "  pm.expect(pm.response.headers.get(\"Access-Control-Allow-Credentials\")).to.eql(\"true\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "OPTIONS",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{frontend_url}}"
+              },
+              {
+                "key": "Access-Control-Request-Method",
+                "value": "GET"
+              },
+              {
+                "key": "Access-Control-Request-Headers",
+                "value": "Content-Type"
+              }
+            ],
+            "url": {
+              "raw": "{{backend_url}}/api/profile",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "profile"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Unknown Backend Route Returns 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(404);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"404 response konsisten\", function () {",
+                  "  pm.expect(json.success).to.eql(false);",
+                  "  pm.expect(json.message).to.be.a(\"string\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{backend_url}}/api/__postman_unknown_route__",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "__postman_unknown_route__"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Health Rejects Unsupported POST Method",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(404);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Response success false\", function () { pm.expect(json.success).to.eql(false); pm.expect(json.message).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{backend_url}}/api/health",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "health"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"smoke\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Malformed JSON Body Returns 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Malformed JSON ditolak\", function () { pm.expect([400, 401]).to.include(pm.response.code); });",
+                  "pm.test(\"Tidak membocorkan password atau secret\", function () {",
+                  "  const body = pm.response.text().toLowerCase();",
+                  "  pm.expect(body).to.not.include((pm.collectionVariables.get(\"test_password\") || \"\").toLowerCase());",
+                  "  pm.expect(body).to.not.include(\"database_url\");",
+                  "  pm.expect(body).to.not.include(\"supabase_service_role_key\");",
+                  "  pm.expect(body).to.not.include(\"better_auth_secret\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{auth_cookie}}"
+              }
+            ],
+            "url": {
+              "raw": "{{backend_url}}/api/profile",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "profile"
+              ]
+            },
+            "description": "Jika tidak ada session, bisa 401 sebelum parser. Dengan session aktif, malformed body harus 400.",
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"fullName\": \"Broken JSON\", ",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "05 - Auth and Access Control",
+      "item": [
+        {
+          "name": "Anonymous Access Matrix",
+          "item": [
+            {
+              "name": "Anonymous GET Onboarding Status Rejected",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.response.to.have.status(401);",
+                      "const json = pm.response.json();",
+                      "pm.test(\"Response success false\", function () { pm.expect(json.success).to.eql(false); pm.expect(json.message).to.be.a(\"string\"); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Cookie",
+                    "value": "__postman_anonymous=1"
+                  }
+                ],
+                "url": {
+                  "raw": "{{backend_url}}/api/onboarding/status",
+                  "host": [
+                    "{{backend_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "onboarding",
+                    "status"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Anonymous POST Financial Onboarding Rejected",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.response.to.have.status(401);",
+                      "const json = pm.response.json();",
+                      "pm.test(\"Response success false\", function () { pm.expect(json.success).to.eql(false); pm.expect(json.message).to.be.a(\"string\"); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Cookie",
+                    "value": "__postman_anonymous=1"
+                  }
+                ],
+                "url": {
+                  "raw": "{{backend_url}}/api/onboarding/financial",
+                  "host": [
+                    "{{backend_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "onboarding",
+                    "financial"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"monthlyIncome\": 1000000\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Anonymous POST Pension Onboarding Rejected",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.response.to.have.status(401);",
+                      "const json = pm.response.json();",
+                      "pm.test(\"Response success false\", function () { pm.expect(json.success).to.eql(false); pm.expect(json.message).to.be.a(\"string\"); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Cookie",
+                    "value": "__postman_anonymous=1"
+                  }
+                ],
+                "url": {
+                  "raw": "{{backend_url}}/api/onboarding/pension",
+                  "host": [
+                    "{{backend_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "onboarding",
+                    "pension"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"retirementAge\": 55\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Anonymous GET Risk Result Rejected",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.response.to.have.status(401);",
+                      "const json = pm.response.json();",
+                      "pm.test(\"Response success false\", function () { pm.expect(json.success).to.eql(false); pm.expect(json.message).to.be.a(\"string\"); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Cookie",
+                    "value": "__postman_anonymous=1"
+                  }
+                ],
+                "url": {
+                  "raw": "{{backend_url}}/api/risk/result",
+                  "host": [
+                    "{{backend_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "risk",
+                    "result"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Anonymous POST Risk Assessment Rejected",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.response.to.have.status(401);",
+                      "const json = pm.response.json();",
+                      "pm.test(\"Response success false\", function () { pm.expect(json.success).to.eql(false); pm.expect(json.message).to.be.a(\"string\"); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Cookie",
+                    "value": "__postman_anonymous=1"
+                  }
+                ],
+                "url": {
+                  "raw": "{{backend_url}}/api/risk/assess",
+                  "host": [
+                    "{{backend_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "risk",
+                    "assess"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Anonymous GET Projection Rejected",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.response.to.have.status(401);",
+                      "const json = pm.response.json();",
+                      "pm.test(\"Response success false\", function () { pm.expect(json.success).to.eql(false); pm.expect(json.message).to.be.a(\"string\"); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Cookie",
+                    "value": "__postman_anonymous=1"
+                  }
+                ],
+                "url": {
+                  "raw": "{{backend_url}}/api/projection",
+                  "host": [
+                    "{{backend_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "projection"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Anonymous GET Projection Cache Stats Rejected",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.response.to.have.status(401);",
+                      "const json = pm.response.json();",
+                      "pm.test(\"Response success false\", function () { pm.expect(json.success).to.eql(false); pm.expect(json.message).to.be.a(\"string\"); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Cookie",
+                    "value": "__postman_anonymous=1"
+                  }
+                ],
+                "url": {
+                  "raw": "{{backend_url}}/api/projection/cache/stats",
+                  "host": [
+                    "{{backend_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "projection",
+                    "cache",
+                    "stats"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Anonymous DELETE Projection Cache Rejected",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.response.to.have.status(401);",
+                      "const json = pm.response.json();",
+                      "pm.test(\"Response success false\", function () { pm.expect(json.success).to.eql(false); pm.expect(json.message).to.be.a(\"string\"); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Cookie",
+                    "value": "__postman_anonymous=1"
+                  }
+                ],
+                "url": {
+                  "raw": "{{backend_url}}/api/projection/cache",
+                  "host": [
+                    "{{backend_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "projection",
+                    "cache"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Anonymous GET Advisor Active Rejected",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.response.to.have.status(401);",
+                      "const json = pm.response.json();",
+                      "pm.test(\"Response success false\", function () { pm.expect(json.success).to.eql(false); pm.expect(json.message).to.be.a(\"string\"); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Cookie",
+                    "value": "__postman_anonymous=1"
+                  }
+                ],
+                "url": {
+                  "raw": "{{backend_url}}/api/advisor/active",
+                  "host": [
+                    "{{backend_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "advisor",
+                    "active"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Anonymous GET Advisor Conversations Rejected",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.response.to.have.status(401);",
+                      "const json = pm.response.json();",
+                      "pm.test(\"Response success false\", function () { pm.expect(json.success).to.eql(false); pm.expect(json.message).to.be.a(\"string\"); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Cookie",
+                    "value": "__postman_anonymous=1"
+                  }
+                ],
+                "url": {
+                  "raw": "{{backend_url}}/api/advisor/conversations",
+                  "host": [
+                    "{{backend_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "advisor",
+                    "conversations"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Anonymous POST Advisor Chat Rejected",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.response.to.have.status(401);",
+                      "const json = pm.response.json();",
+                      "pm.test(\"Response success false\", function () { pm.expect(json.success).to.eql(false); pm.expect(json.message).to.be.a(\"string\"); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Cookie",
+                    "value": "__postman_anonymous=1"
+                  }
+                ],
+                "url": {
+                  "raw": "{{backend_url}}/api/advisor/chat",
+                  "host": [
+                    "{{backend_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "advisor",
+                    "chat"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"message\": \"Halo\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            }
+          ],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.unset(\"auth_cookie\");",
+                  "try {",
+                  "  const jar = pm.cookies.jar();",
+                  "  jar.clear(pm.variables.get(\"backend_url\"), function (error) {",
+                  "    if (error) console.warn(\"Cookie jar clear skipped\", error);",
+                  "  });",
+                  "} catch (error) {",
+                  "  console.warn(\"Cookie jar clear unavailable\", error);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Protected Profile Rejects Anonymous User",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.unset(\"auth_cookie\");",
+                  "try {",
+                  "  pm.cookies.jar().clear(pm.variables.get(\"backend_url\"), function () {});",
+                  "} catch (error) {}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(401);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Endpoint protected menolak user tanpa session\", function () {",
+                  "  pm.expect(json.success).to.eql(false);",
+                  "  pm.expect(json.message).to.be.a(\"string\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "__postman_anonymous=1"
+              }
+            ],
+            "url": {
+              "raw": "{{backend_url}}/api/profile",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "profile"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Register Rejects Invalid Email",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code sesuai ekspektasi\", function () { pm.expect([400,422]).to.include(pm.response.code); });",
+                  "pm.test(\"Tidak membocorkan password atau secret\", function () {",
+                  "  const body = pm.response.text().toLowerCase();",
+                  "  pm.expect(body).to.not.include((pm.collectionVariables.get(\"test_password\") || \"\").toLowerCase());",
+                  "  pm.expect(body).to.not.include(\"database_url\");",
+                  "  pm.expect(body).to.not.include(\"supabase_service_role_key\");",
+                  "  pm.expect(body).to.not.include(\"better_auth_secret\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Origin",
+                "value": "{{frontend_url}}"
+              }
+            ],
+            "url": {
+              "raw": "{{backend_url}}/api/auth/sign-up/email",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "sign-up",
+                "email"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"not-an-email\",\n  \"password\": \"{{test_password}}\",\n  \"name\": \"Invalid Email\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Register Rejects Weak Password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code sesuai ekspektasi\", function () { pm.expect([400,422]).to.include(pm.response.code); });",
+                  "pm.test(\"Tidak membocorkan password atau secret\", function () {",
+                  "  const body = pm.response.text().toLowerCase();",
+                  "  pm.expect(body).to.not.include((pm.collectionVariables.get(\"test_password\") || \"\").toLowerCase());",
+                  "  pm.expect(body).to.not.include(\"database_url\");",
+                  "  pm.expect(body).to.not.include(\"supabase_service_role_key\");",
+                  "  pm.expect(body).to.not.include(\"better_auth_secret\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Origin",
+                "value": "{{frontend_url}}"
+              }
+            ],
+            "url": {
+              "raw": "{{backend_url}}/api/auth/sign-up/email",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "sign-up",
+                "email"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"weak.{{run_id}}@example.com\",\n  \"password\": \"123\",\n  \"name\": \"Weak Password\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Register New Email Account",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Register berhasil membuat akun unverified\", function () {",
+                  "  pm.expect(pm.response.code).to.be.within(200, 299);",
+                  "});",
+                  "const contentType = (pm.response.headers.get(\"Content-Type\") || \"\").toLowerCase();",
+                  "const json = contentType.includes(\"application/json\") ? pm.response.json() : {};",
+                  "pm.test(\"Response JSON dan tidak membocorkan password\", function () {",
+                  "  pm.expect(contentType).to.include(\"application/json\");",
+                  "  pm.expect(pm.response.text()).to.not.include(pm.collectionVariables.get(\"test_password\"));",
+                  "});",
+                  "pm.test(\"Akun baru belum verified saat verification aktif\", function () {",
+                  "  pm.expect(json.user).to.be.an(\"object\");",
+                  "  pm.expect(json.user.email.toLowerCase()).to.eql(pm.collectionVariables.get(\"test_email\").toLowerCase());",
+                  "  if (Object.prototype.hasOwnProperty.call(json.user, \"emailVerified\")) {",
+                  "    pm.expect(json.user.emailVerified).to.eql(false);",
+                  "  }",
+                  "});",
+                  "pm.collectionVariables.unset(\"auth_cookie\");"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Origin",
+                "value": "{{frontend_url}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{test_email}}\",\n  \"password\": \"{{test_password}}\",\n  \"name\": \"{{test_name}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{backend_url}}/api/auth/sign-up/email",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "sign-up",
+                "email"
+              ]
+            },
+            "description": "Membuat akun baru untuk membuktikan sign-up bekerja. Pada environment dengan email verification aktif, akun ini sengaja belum verified dan tidak dipakai untuk endpoint protected."
+          },
+          "response": []
+        },
+        {
+          "name": "Login Newly Registered Unverified Account Is Blocked",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(403);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Login user unverified ditolak\", function () {",
+                  "  pm.expect(json.code).to.eql(\"EMAIL_NOT_VERIFIED\");",
+                  "  pm.expect(json.message).to.match(/not verified/i);",
+                  "});",
+                  "pm.collectionVariables.unset(\"auth_cookie\");"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Origin",
+                "value": "{{frontend_url}}"
+              }
+            ],
+            "url": {
+              "raw": "{{backend_url}}/api/auth/sign-in/email",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "sign-in",
+                "email"
+              ]
+            },
+            "description": "Dengan REQUIRE_EMAIL_VERIFICATION=true, user yang baru dibuat harus ditolak login sampai email diverifikasi. Ini test security, bukan blocker untuk endpoint protected.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{test_email}}\",\n  \"password\": \"{{test_password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Invalid Login Is Rejected",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Login dengan password salah ditolak\", function () {",
+                  "  pm.expect([400, 401, 403]).to.include(pm.response.code);",
+                  "});",
+                  "pm.test(\"Response tidak membocorkan informasi sensitif\", function () {",
+                  "  const body = pm.response.text().toLowerCase();",
+                  "  pm.expect(body).to.not.include(pm.collectionVariables.get(\"test_password\").toLowerCase());",
+                  "  pm.expect(body).to.not.include(\"stack\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Origin",
+                "value": "{{frontend_url}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{test_email}}\",\n  \"password\": \"WrongPassword#123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{backend_url}}/api/auth/sign-in/email",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "sign-in",
+                "email"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login Existing Verified Account",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Variable akun verified sudah diisi\", function () {",
+                  "  pm.expect(pm.collectionVariables.get(\"verified_email\") || \"\", \"verified_email wajib diisi\").to.not.equal(\"\");",
+                  "  pm.expect(pm.collectionVariables.get(\"verified_password\") || \"\", \"verified_password wajib diisi\").to.not.equal(\"\");",
+                  "});",
+                  "pm.test(\"Login akun verified berhasil\", function () {",
+                  "  pm.expect(pm.response.code).to.be.within(200, 299);",
+                  "});",
+                  "const setCookies = pm.response.headers.all()",
+                  "  .filter((header) => header.key.toLowerCase() === \"set-cookie\")",
+                  "  .map((header) => header.value.split(\";\")[0])",
+                  "  .filter(Boolean);",
+                  "if (setCookies.length > 0) {",
+                  "  pm.collectionVariables.set(\"auth_cookie\", setCookies.join(\"; \"));",
+                  "}",
+                  "pm.test(\"Session cookie tersedia untuk request protected\", function () {",
+                  "  pm.expect(pm.collectionVariables.get(\"auth_cookie\") || \"\").to.not.equal(\"\");",
+                  "});",
+                  "pm.test(\"Password tidak muncul di response\", function () {",
+                  "  pm.expect(pm.response.text()).to.not.include(pm.collectionVariables.get(\"verified_password\"));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Origin",
+                "value": "{{frontend_url}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{verified_email}}\",\n  \"password\": \"{{verified_password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{backend_url}}/api/auth/sign-in/email",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "sign-in",
+                "email"
+              ]
+            },
+            "description": "Login memakai akun test yang sudah verified. Isi collection/environment variable verified_email dan verified_password sebelum menjalankan folder protected. Akun baru dari request register tidak bisa dipakai ketika email verification aktif."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Current Authenticated User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(200);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Session aktif dan user sesuai akun verified\", function () {",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "  pm.expect(json.data.user).to.be.an(\"object\");",
+                  "  pm.expect(json.data.user.email.toLowerCase()).to.eql(pm.collectionVariables.get(\"verified_email\").toLowerCase());",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "{{auth_cookie}}"
+              }
+            ],
+            "url": {
+              "raw": "{{backend_url}}/api/auth/me",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Forgot Password Does Not Reveal Unknown Email",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(200);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Unknown email tetap mendapat response aman\", function () {",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "  pm.expect(json.message).to.be.a(\"string\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"unknown.{{run_id}}@example.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{backend_url}}/api/auth/forgot-password",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "forgot-password"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reset Password Rejects Invalid Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(400);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Token reset invalid ditolak\", function () {",
+                  "  pm.expect(json.success).to.eql(false);",
+                  "  pm.expect(json.message).to.be.a(\"string\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"invalid-token-{{run_id}}\",\n  \"newPassword\": \"NewCuanSelor#123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{backend_url}}/api/auth/reset-password",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "reset-password"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Duplicate Register Response Is Safe",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Duplicate register punya response yang aman\", function () {",
+                  "  pm.expect([200, 400, 409, 422]).to.include(pm.response.code);",
+                  "});",
+                  "pm.test(\"Response tidak membocorkan password\", function () {",
+                  "  pm.expect(pm.response.text()).to.not.include(pm.collectionVariables.get(\"test_password\"));",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  pm.test(\"Duplicate register 200 tetap tidak memberi token session\", function () {",
+                  "    pm.expect(json.token === null || json.token === undefined).to.eql(true);",
+                  "    pm.expect(json.user.email.toLowerCase()).to.eql(pm.collectionVariables.get(\"test_email\").toLowerCase());",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Origin",
+                "value": "{{frontend_url}}"
+              }
+            ],
+            "url": {
+              "raw": "{{backend_url}}/api/auth/sign-up/email",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "sign-up",
+                "email"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{test_email}}\",\n  \"password\": \"{{test_password}}\",\n  \"name\": \"{{test_name}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Better Auth dapat mengembalikan 200 untuk sign-up email yang sama ketika akun masih unverified. Yang penting response aman, tidak membuat session login, dan tidak membocorkan password."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Session Endpoint With Cookie",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Get session endpoint merespons sukses\", function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "pm.test(\"Response session tidak membocorkan password\", function () { pm.expect(pm.response.text()).to.not.include(pm.collectionVariables.get(\"verified_password\")); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "{{auth_cookie}}"
+              }
+            ],
+            "url": {
+              "raw": "{{backend_url}}/api/auth/get-session",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "get-session"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "06 - Onboarding and Profile",
+      "item": [
+        {
+          "name": "Profile Rejects Invalid Age",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(400);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Validasi profil menolak age di bawah batas\", function () {",
+                  "  pm.expect(json.success).to.eql(false);",
+                  "  pm.expect(json.message).to.be.a(\"string\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{auth_cookie}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Invalid User\",\n  \"age\": 16,\n  \"gender\": \"male\",\n  \"retirementAge\": 55\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{backend_url}}/api/profile",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "profile"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Financial Onboarding Rejects Missing Fields",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(400);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Financial onboarding menolak payload tidak lengkap\", function () {",
+                  "  pm.expect(json.success).to.eql(false);",
+                  "  pm.expect(json.message).to.be.a(\"string\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{auth_cookie}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monthlyIncome\": 12000000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{backend_url}}/api/onboarding/financial",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "onboarding",
+                "financial"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Pension Onboarding Rejects Invalid Risk Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(400);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Pension onboarding menolak risk profile tidak valid\", function () {",
+                  "  pm.expect(json.success).to.eql(false);",
+                  "  pm.expect(json.message).to.be.a(\"string\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{auth_cookie}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"retirementAge\": 55,\n  \"lifestylePercent\": 75,\n  \"riskProfile\": \"reckless\",\n  \"sector\": \"Rata-rata\",\n  \"depositRate\": 6\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{backend_url}}/api/onboarding/pension",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "onboarding",
+                "pension"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Financial Onboarding Rejects Negative Income",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(400);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Response success false\", function () { pm.expect(json.success).to.eql(false); pm.expect(json.message).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{auth_cookie}}"
+              }
+            ],
+            "url": {
+              "raw": "{{backend_url}}/api/onboarding/financial",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "onboarding",
+                "financial"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monthlyIncome\": -1,\n  \"monthlyExpense\": 7000000,\n  \"annualBonusMonths\": 1,\n  \"currentSavings\": 50000000,\n  \"savingsPercentage\": 25\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Financial Onboarding Rejects Savings Percentage Above 100",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(400);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Response success false\", function () { pm.expect(json.success).to.eql(false); pm.expect(json.message).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{auth_cookie}}"
+              }
+            ],
+            "url": {
+              "raw": "{{backend_url}}/api/onboarding/financial",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "onboarding",
+                "financial"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monthlyIncome\": 12000000,\n  \"monthlyExpense\": 7000000,\n  \"annualBonusMonths\": 1,\n  \"currentSavings\": 50000000,\n  \"savingsPercentage\": 101\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Pension Onboarding Rejects Retirement Age Below 40",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(400);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Response success false\", function () { pm.expect(json.success).to.eql(false); pm.expect(json.message).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{auth_cookie}}"
+              }
+            ],
+            "url": {
+              "raw": "{{backend_url}}/api/onboarding/pension",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "onboarding",
+                "pension"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"retirementAge\": 39,\n  \"lifestylePercent\": 75,\n  \"riskProfile\": \"moderate\",\n  \"sector\": \"Rata-rata\",\n  \"depositRate\": 6\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Pension Onboarding Rejects Deposit Rate Above 100",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(400);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Response success false\", function () { pm.expect(json.success).to.eql(false); pm.expect(json.message).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{auth_cookie}}"
+              }
+            ],
+            "url": {
+              "raw": "{{backend_url}}/api/onboarding/pension",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "onboarding",
+                "pension"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"retirementAge\": 55,\n  \"lifestylePercent\": 75,\n  \"riskProfile\": \"moderate\",\n  \"sector\": \"Rata-rata\",\n  \"depositRate\": 101\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Pension Onboarding Rejects Planning Age Below Retirement Age",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(400);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Response success false\", function () { pm.expect(json.success).to.eql(false); pm.expect(json.message).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{auth_cookie}}"
+              }
+            ],
+            "url": {
+              "raw": "{{backend_url}}/api/onboarding/pension",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "onboarding",
+                "pension"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"retirementAge\": 55,\n  \"planningAge\": 54,\n  \"lifestylePercent\": 75,\n  \"riskProfile\": \"moderate\",\n  \"sector\": \"Rata-rata\",\n  \"depositRate\": 6\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Profile Rejects Savings Percentage Above 100",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(400);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Response success false\", function () { pm.expect(json.success).to.eql(false); pm.expect(json.message).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{auth_cookie}}"
+              }
+            ],
+            "url": {
+              "raw": "{{backend_url}}/api/profile",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "profile"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Invalid Savings\",\n  \"age\": 30,\n  \"gender\": \"male\",\n  \"monthlyIncome\": 12000000,\n  \"monthlyExpense\": 7000000,\n  \"savingsPercentage\": 150,\n  \"currentSavings\": 50000000,\n  \"retirementAge\": 55,\n  \"lifestylePercent\": 75\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Profile Rejects Retirement Age Not Greater Than Current Age",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(400);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Response success false\", function () { pm.expect(json.success).to.eql(false); pm.expect(json.message).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{auth_cookie}}"
+              }
+            ],
+            "url": {
+              "raw": "{{backend_url}}/api/profile",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "profile"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Invalid Retirement\",\n  \"age\": 55,\n  \"gender\": \"male\",\n  \"monthlyIncome\": 12000000,\n  \"monthlyExpense\": 7000000,\n  \"savingsPercentage\": 25,\n  \"currentSavings\": 50000000,\n  \"retirementAge\": 55,\n  \"lifestylePercent\": 75\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Profile Rejects Planning Age Below Retirement Age",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(400);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Response success false\", function () { pm.expect(json.success).to.eql(false); pm.expect(json.message).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{auth_cookie}}"
+              }
+            ],
+            "url": {
+              "raw": "{{backend_url}}/api/profile",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "profile"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Invalid Planning\",\n  \"age\": 30,\n  \"gender\": \"male\",\n  \"monthlyIncome\": 12000000,\n  \"monthlyExpense\": 7000000,\n  \"savingsPercentage\": 25,\n  \"currentSavings\": 50000000,\n  \"retirementAge\": 55,\n  \"planningAge\": 50,\n  \"lifestylePercent\": 75\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Profile Rejects Unsupported Gender",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(400);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Response success false\", function () { pm.expect(json.success).to.eql(false); pm.expect(json.message).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{auth_cookie}}"
+              }
+            ],
+            "url": {
+              "raw": "{{backend_url}}/api/profile",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "profile"
+              ]
+            },
+            "description": "Production hardening: backend sebaiknya menolak enum gender di luar male/female.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Invalid Gender\",\n  \"age\": 30,\n  \"gender\": \"unknown\",\n  \"monthlyIncome\": 12000000,\n  \"monthlyExpense\": 7000000,\n  \"savingsPercentage\": 25,\n  \"currentSavings\": 50000000,\n  \"retirementAge\": 55,\n  \"lifestylePercent\": 75\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Save Financial Onboarding",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(200);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Financial onboarding tersimpan\", function () {",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "  pm.expect(json.data).to.be.an(\"object\");",
+                  "  pm.expect(Number(json.data.monthly_income)).to.eql(12000000);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{auth_cookie}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monthlyIncome\": 12000000,\n  \"monthlyExpense\": 7000000,\n  \"annualBonusMonths\": 1,\n  \"currentSavings\": 50000000,\n  \"savingsPercentage\": 25\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{backend_url}}/api/onboarding/financial",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "onboarding",
+                "financial"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Save Pension Onboarding",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(200);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Pension onboarding tersimpan\", function () {",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "  pm.expect(json.data).to.be.an(\"object\");",
+                  "  pm.expect(Number(json.data.target_retirement_age)).to.eql(55);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{auth_cookie}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"retirementAge\": 55,\n  \"planningAge\": 85,\n  \"lifestylePercent\": 75,\n  \"riskProfile\": \"moderate\",\n  \"sector\": \"Aktivitas Keuangan dan Asuransi\",\n  \"depositRate\": 6,\n  \"hasHealthInsurance\": true,\n  \"includePandemicRisk\": false,\n  \"confirmAccuracy\": true,\n  \"riskAnswers\": {\n    \"age\": 30,\n    \"gender\": \"male\",\n    \"sector\": \"Aktivitas Keuangan dan Asuransi\",\n    \"totalDebt\": 5000000,\n    \"loan_amount\": 5000000,\n    \"loan_duration_months\": 12,\n    \"interest_rate\": 8,\n    \"debt_to_income_ratio\": 0.04,\n    \"employment_stability_years\": 5,\n    \"previous_default_count\": 0,\n    \"hasHealthInsurance\": true,\n    \"includePandemicRisk\": false\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{backend_url}}/api/onboarding/pension",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "onboarding",
+                "pension"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Onboarding Status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(200);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Onboarding lengkap setelah financial dan pension disimpan\", function () {",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "  pm.expect(json.data.hasCompletedFinancial).to.eql(true);",
+                  "  pm.expect(json.data.hasCompletedPension).to.eql(true);",
+                  "  pm.expect(json.data.isFullyOnboarded).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "{{auth_cookie}}"
+              }
+            ],
+            "url": {
+              "raw": "{{backend_url}}/api/onboarding/status",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "onboarding",
+                "status"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Save Complete Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(200);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Profile lengkap tersimpan\", function () {",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "  pm.expect(json.data.profile).to.be.an(\"object\");",
+                  "  pm.expect(json.data.financial).to.be.an(\"object\");",
+                  "  pm.expect(json.data.pension).to.be.an(\"object\");",
+                  "  pm.expect(json.data.risk).to.be.an(\"object\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{auth_cookie}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"{{test_name}}\",\n  \"age\": 30,\n  \"gender\": \"male\",\n  \"monthlyIncome\": 12000000,\n  \"annualBonusMonths\": 1,\n  \"monthlyExpense\": 7000000,\n  \"savingsPercentage\": 25,\n  \"currentSavings\": 50000000,\n  \"totalDebt\": 5000000,\n  \"retirementAge\": 55,\n  \"planningAge\": 85,\n  \"lifestylePercent\": 75,\n  \"riskProfile\": \"moderate\",\n  \"sector\": \"Aktivitas Keuangan dan Asuransi\",\n  \"depositRate\": 6,\n  \"hasHealthInsurance\": true,\n  \"includePandemicRisk\": false,\n  \"riskAnswers\": {\n    \"age\": 30,\n    \"gender\": \"male\",\n    \"sector\": \"Aktivitas Keuangan dan Asuransi\",\n    \"totalDebt\": 5000000,\n    \"loan_amount\": 5000000,\n    \"loan_duration_months\": 12,\n    \"interest_rate\": 8,\n    \"debt_to_income_ratio\": 0.04,\n    \"employment_stability_years\": 5,\n    \"previous_default_count\": 0,\n    \"hasHealthInsurance\": true,\n    \"includePandemicRisk\": false\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{backend_url}}/api/profile",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "profile"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Saved Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(200);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Profile dapat dibaca kembali\", function () {",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "  pm.expect(json.data.personal.email.toLowerCase()).to.eql(pm.collectionVariables.get(\"verified_email\").toLowerCase());",
+                  "  pm.expect(json.data.financial).to.be.an(\"object\");",
+                  "  pm.expect(json.data.pension).to.be.an(\"object\");",
+                  "  pm.expect(json.data.risk).to.be.an(\"object\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "{{auth_cookie}}"
+              }
+            ],
+            "url": {
+              "raw": "{{backend_url}}/api/profile",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "profile"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Patch Profile Partial Update",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(200);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"PATCH profile berhasil\", function () { pm.expect(json.success).to.eql(true); pm.expect(Number(json.data.financial.monthly_income)).to.eql(13000000); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{auth_cookie}}"
+              }
+            ],
+            "url": {
+              "raw": "{{backend_url}}/api/profile",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "profile"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"{{test_name}}\",\n  \"age\": 30,\n  \"gender\": \"male\",\n  \"monthlyIncome\": 13000000,\n  \"annualBonusMonths\": 1,\n  \"monthlyExpense\": 7500000,\n  \"savingsPercentage\": 30,\n  \"currentSavings\": 60000000,\n  \"totalDebt\": 4000000,\n  \"retirementAge\": 56,\n  \"planningAge\": 86,\n  \"lifestylePercent\": 80,\n  \"riskProfile\": \"moderate\",\n  \"sector\": \"Aktivitas Keuangan dan Asuransi\",\n  \"depositRate\": 6.5,\n  \"hasHealthInsurance\": true,\n  \"includePandemicRisk\": false,\n  \"riskAnswers\": {\n    \"age\": 30,\n    \"gender\": \"male\",\n    \"sector\": \"Aktivitas Keuangan dan Asuransi\",\n    \"totalDebt\": 4000000,\n    \"loan_amount\": 4000000,\n    \"loan_duration_months\": 12,\n    \"interest_rate\": 8,\n    \"debt_to_income_ratio\": 0.03,\n    \"employment_stability_years\": 5,\n    \"previous_default_count\": 0,\n    \"hasHealthInsurance\": true,\n    \"includePandemicRisk\": false\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Patched Profile Confirms Update",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(200);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Profile hasil patch tersimpan\", function () { pm.expect(Number(json.data.financial.monthly_income)).to.eql(13000000); pm.expect(Number(json.data.pension.target_retirement_age)).to.eql(56); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "{{auth_cookie}}"
+              }
+            ],
+            "url": {
+              "raw": "{{backend_url}}/api/profile",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "profile"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "07 - Risk, Projection, and Advisor",
+      "item": [
+        {
+          "name": "Generate Risk Assessment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(200);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Risk assessment berhasil dibuat\", function () {",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "  pm.expect(json.data.assessment).to.be.an(\"object\");",
+                  "  pm.expect([\"conservative\", \"moderate\", \"aggressive\"]).to.include(json.data.riskCategory);",
+                  "  pm.expect(json.data.aiInput).to.be.an(\"object\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{auth_cookie}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"age\": 30,\n  \"annual_income\": 156000000,\n  \"loan_amount\": 5000000,\n  \"loan_duration_months\": 12,\n  \"interest_rate\": 8,\n  \"debt_to_income_ratio\": 0.04,\n  \"monthly_expenses\": 7000000,\n  \"savings_balance\": 50000000,\n  \"employment_stability_years\": 5,\n  \"previous_default_count\": 0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{backend_url}}/api/risk/assess",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "risk",
+                "assess"
+              ]
+            },
+            "description": "Endpoint ini boleh memakai fallback jika AI service tidak tersedia, tetapi tetap harus menyimpan assessment."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Latest Risk Result",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(200);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Risk result terbaru tersedia\", function () {",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "  pm.expect(json.data).to.be.an(\"object\");",
+                  "  pm.expect([\"conservative\", \"moderate\", \"aggressive\"]).to.include(json.data.risk_category);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "{{auth_cookie}}"
+              }
+            ],
+            "url": {
+              "raw": "{{backend_url}}/api/risk/result",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "risk",
+                "result"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Risk Assessment Rejects Negative Financial Values",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(400);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Response success false\", function () { pm.expect(json.success).to.eql(false); pm.expect(json.message).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{auth_cookie}}"
+              }
+            ],
+            "url": {
+              "raw": "{{backend_url}}/api/risk/assess",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "risk",
+                "assess"
+              ]
+            },
+            "description": "Production hardening: input finansial negatif untuk risk model sebaiknya ditolak.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"age\": 30,\n  \"annual_income\": -1,\n  \"loan_amount\": -5000000,\n  \"monthly_expenses\": -1000,\n  \"savings_balance\": -1000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Projection Rejects Non Numeric Custom Planning Age",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(400);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Response success false\", function () { pm.expect(json.success).to.eql(false); pm.expect(json.message).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "{{auth_cookie}}"
+              }
+            ],
+            "url": {
+              "raw": "{{backend_url}}/api/projection?custom_planning_age=abc",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "projection"
+              ],
+              "query": [
+                {
+                  "key": "custom_planning_age",
+                  "value": "abc"
+                }
+              ]
+            },
+            "description": "Production hardening: query custom_planning_age bukan angka sebaiknya tidak silently fallback."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Projection Cache Stats",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(200);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Cache stats tersedia\", function () {",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "  pm.expect(json.data).to.be.an(\"object\");",
+                  "  pm.expect(json.data.hitRate).to.be.a(\"number\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "{{auth_cookie}}"
+              }
+            ],
+            "url": {
+              "raw": "{{backend_url}}/api/projection/cache/stats",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "projection",
+                "cache",
+                "stats"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Calculate Retirement Projection Through Backend",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(200);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Projection backend berhasil\", function () {",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "  pm.expect(json.data.user_profile).to.be.an(\"object\");",
+                  "  pm.expect(json.data.projection).to.be.an(\"object\");",
+                  "  pm.expect(json.data.projection.median_p50).to.be.an(\"object\");",
+                  "  pm.expect(json.data.recommendations).to.be.an(\"object\");",
+                  "  pm.expect(json.data.metadata).to.be.an(\"object\");",
+                  "});",
+                  "pm.test(\"Projection memakai data user test\", function () {",
+                  "  pm.expect(Number(json.data.user_profile.age)).to.eql(30);",
+                  "  pm.expect(Number(json.data.user_profile.retirement_age)).to.eql(56);",
+                  "  pm.expect(json.data.user_profile.risk_profile).to.eql(\"moderate\");",
+                  "});",
+                  "pm.test(\"Response projection masih dalam timeout produksi\", function () {",
+                  "  pm.expect(pm.response.responseTime).to.be.below(Number(pm.collectionVariables.get(\"projection_max_ms\")));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "{{auth_cookie}}"
+              }
+            ],
+            "url": {
+              "raw": "{{backend_url}}/api/projection?custom_planning_age=85",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "projection"
+              ],
+              "query": [
+                {
+                  "key": "custom_planning_age",
+                  "value": "85"
+                }
+              ]
+            },
+            "description": "End-to-end backend -> FastAPI calculator -> backend. Ini sengaja strict agar service calculator yang mati terlihat sebagai failure."
+          },
+          "response": []
+        },
+        {
+          "name": "Clear Projection Cache",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(200);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Cache projection bisa dibersihkan\", function () {",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "{{auth_cookie}}"
+              }
+            ],
+            "url": {
+              "raw": "{{backend_url}}/api/projection/cache",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "projection",
+                "cache"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Advisor Empty Message Is Rejected",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(400);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Chat kosong ditolak\", function () {",
+                  "  pm.expect(json.success).to.eql(false);",
+                  "  pm.expect(json.message).to.be.a(\"string\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{auth_cookie}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{backend_url}}/api/advisor/chat",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "advisor",
+                "chat"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Active Advisor Conversation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(200);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Active conversation tersedia\", function () {",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "  pm.expect(json.data.conversation).to.be.an(\"object\");",
+                  "  pm.expect(json.data.conversation.id).to.be.a(\"string\");",
+                  "  pm.expect(json.data.messages).to.be.an(\"array\");",
+                  "});",
+                  "pm.collectionVariables.set(\"conversation_id\", json.data.conversation.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "{{auth_cookie}}"
+              }
+            ],
+            "url": {
+              "raw": "{{backend_url}}/api/advisor/active",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "advisor",
+                "active"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Send Advisor Chat Message SSE",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(200);",
+                  "const body = pm.response.text();",
+                  "pm.test(\"Chat memakai SSE\", function () {",
+                  "  const contentType = (pm.response.headers.get(\"Content-Type\") || \"\").toLowerCase();",
+                  "  pm.expect(contentType).to.include(\"text/event-stream\");",
+                  "  pm.expect(body).to.include(\"data:\");",
+                  "  pm.expect(body).to.include(\"conversation_id\");",
+                  "  pm.expect(body).to.include(\"done\");",
+                  "});",
+                  "const match = body.match(/\\\"conversationId\\\":\\\"([^\\\"]+)\\\"/);",
+                  "if (match) {",
+                  "  pm.collectionVariables.set(\"conversation_id\", match[1]);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{auth_cookie}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Tolong beri ringkasan singkat kondisi dana pensiun saya.\",\n  \"conversationId\": \"{{conversation_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{backend_url}}/api/advisor/chat",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "advisor",
+                "chat"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Advisor Conversations",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(200);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Daftar conversation tersedia\", function () {",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "  pm.expect(json.data).to.be.an(\"array\");",
+                  "  pm.expect(json.data.length).to.be.greaterThan(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "{{auth_cookie}}"
+              }
+            ],
+            "url": {
+              "raw": "{{backend_url}}/api/advisor/conversations",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "advisor",
+                "conversations"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Advisor Conversation Messages",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(200);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Messages conversation dapat dibaca\", function () {",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "  pm.expect(json.data).to.be.an(\"array\");",
+                  "  pm.expect(json.data.length).to.be.greaterThan(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "{{auth_cookie}}"
+              }
+            ],
+            "url": {
+              "raw": "{{backend_url}}/api/advisor/conversations/{{conversation_id}}/messages",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "advisor",
+                "conversations",
+                "{{conversation_id}}",
+                "messages"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Advisor Conversation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(200);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Conversation dapat dihapus\", function () {",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "{{auth_cookie}}"
+              }
+            ],
+            "url": {
+              "raw": "{{backend_url}}/api/advisor/conversations/{{conversation_id}}",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "advisor",
+                "conversations",
+                "{{conversation_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Advisor Messages Reject Unknown Conversation ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(404);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Response success false\", function () { pm.expect(json.success).to.eql(false); pm.expect(json.message).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "{{auth_cookie}}"
+              }
+            ],
+            "url": {
+              "raw": "{{backend_url}}/api/advisor/conversations/00000000-0000-0000-0000-000000000000/messages",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "advisor",
+                "conversations",
+                "00000000-0000-0000-0000-000000000000",
+                "messages"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Advisor Delete Unknown Conversation ID Returns 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(404);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Response success false\", function () { pm.expect(json.success).to.eql(false); pm.expect(json.message).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "{{auth_cookie}}"
+              }
+            ],
+            "url": {
+              "raw": "{{backend_url}}/api/advisor/conversations/00000000-0000-0000-0000-000000000000",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "advisor",
+                "conversations",
+                "00000000-0000-0000-0000-000000000000"
+              ]
+            },
+            "description": "Production hardening: delete unknown resource idealnya 404, bukan sukses semu."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "08 - Calculator Service Direct",
+      "item": [
+        {
+          "name": "Calculator Root",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(200);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Calculator root berjalan\", function () {",
+                  "  pm.expect(json.service).to.be.a(\"string\");",
+                  "  pm.expect(json.status).to.eql(\"running\");",
+                  "  pm.expect(json.n_simulations).to.be.a(\"number\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{calculator_url}}/",
+              "host": [
+                "{{calculator_url}}"
+              ],
+              "path": [
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Calculator Health",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(200);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Calculator healthy dan model sudah load\", function () {",
+                  "  pm.expect(json.status).to.eql(\"healthy\");",
+                  "  pm.expect(json.calculator_loaded).to.eql(true);",
+                  "  pm.expect(json.n_simulations).to.be.a(\"number\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{calculator_url}}/health",
+              "host": [
+                "{{calculator_url}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Calculator OpenAPI Contract",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(200);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"OpenAPI contract memuat endpoint utama\", function () {",
+                  "  pm.expect(json.openapi).to.be.a(\"string\");",
+                  "  pm.expect(json.paths).to.have.property(\"/calculate\");",
+                  "  pm.expect(json.paths).to.have.property(\"/mortality-info\");",
+                  "  pm.expect(json.paths).to.have.property(\"/health\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{calculator_url}}/openapi.json",
+              "host": [
+                "{{calculator_url}}"
+              ],
+              "path": [
+                "openapi.json"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Mortality Info Valid Request",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(200);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Mortality info sukses\", function () {",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "  pm.expect(json.data).to.be.an(\"object\");",
+                  "  pm.expect(json.data.current_age).to.eql(30);",
+                  "  pm.expect(json.data.gender).to.eql(\"male\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"age\": 30,\n  \"gender\": \"male\",\n  \"retirement_age\": 55\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{calculator_url}}/mortality-info",
+              "host": [
+                "{{calculator_url}}"
+              ],
+              "path": [
+                "mortality-info"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Calculate Projection Valid Request",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(200);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Calculator projection sukses\", function () {",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "  pm.expect(json.data.user_profile).to.be.an(\"object\");",
+                  "  pm.expect(json.data.projection.median_p50).to.be.an(\"object\");",
+                  "  pm.expect(json.data.recommendations).to.be.an(\"object\");",
+                  "  pm.expect(json.computation_time).to.be.a(\"number\");",
+                  "});",
+                  "pm.test(\"Response calculator masih dalam timeout produksi\", function () {",
+                  "  pm.expect(pm.response.responseTime).to.be.below(Number(pm.collectionVariables.get(\"projection_max_ms\")));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman Direct Calculator\",\n  \"age\": 30,\n  \"gender\": \"male\",\n  \"monthly_salary\": 12000000,\n  \"savings_rate\": 0.25,\n  \"retirement_age\": 55,\n  \"risk_profile\": \"moderate\",\n  \"sector\": \"Aktivitas Keuangan dan Asuransi\",\n  \"include_pandemic_risk\": false,\n  \"custom_deposit_rate\": 6,\n  \"custom_planning_age\": 85,\n  \"current_assets\": 50000000,\n  \"annual_bonus_months\": 1,\n  \"replacement_ratio\": 0.75,\n  \"has_health_insurance\": true,\n  \"monthly_expense\": 7000000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{calculator_url}}/calculate",
+              "host": [
+                "{{calculator_url}}"
+              ],
+              "path": [
+                "calculate"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Calculator Rejects Invalid Age",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(422);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Age di bawah schema ditolak\", function () {",
+                  "  pm.expect(json.detail).to.be.an(\"array\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Invalid Age\",\n  \"age\": 16,\n  \"gender\": \"male\",\n  \"monthly_salary\": 12000000,\n  \"savings_rate\": 0.25,\n  \"retirement_age\": 55,\n  \"risk_profile\": \"moderate\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{calculator_url}}/calculate",
+              "host": [
+                "{{calculator_url}}"
+              ],
+              "path": [
+                "calculate"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Calculator Rejects Invalid Risk Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(422);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Risk profile di luar pilihan ditolak\", function () {",
+                  "  pm.expect(json.detail).to.be.an(\"array\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Invalid Risk\",\n  \"age\": 30,\n  \"gender\": \"male\",\n  \"monthly_salary\": 12000000,\n  \"savings_rate\": 0.25,\n  \"retirement_age\": 55,\n  \"risk_profile\": \"reckless\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{calculator_url}}/calculate",
+              "host": [
+                "{{calculator_url}}"
+              ],
+              "path": [
+                "calculate"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Calculator Rejects Missing Required Field",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(422);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Field wajib yang hilang ditolak\", function () {",
+                  "  pm.expect(json.detail).to.be.an(\"array\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Missing Required\",\n  \"age\": 30,\n  \"gender\": \"male\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{calculator_url}}/calculate",
+              "host": [
+                "{{calculator_url}}"
+              ],
+              "path": [
+                "calculate"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Calculator Swagger Docs Page",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(200);",
+                  "pm.test(\"Swagger docs HTML tersedia\", function () { const body = pm.response.text().toLowerCase(); pm.expect((pm.response.headers.get(\"Content-Type\") || \"\").toLowerCase()).to.include(\"text/html\"); pm.expect(body).to.include(\"swagger\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{calculator_url}}/docs",
+              "host": [
+                "{{calculator_url}}"
+              ],
+              "path": [
+                "docs"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Calculator CORS Preflight From Frontend Origin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Calculator preflight diterima\", function () { pm.expect([200, 204]).to.include(pm.response.code); });",
+                  "pm.test(\"Calculator mengirim CORS header\", function () { pm.expect(pm.response.headers.get(\"Access-Control-Allow-Origin\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "OPTIONS",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{frontend_url}}"
+              },
+              {
+                "key": "Access-Control-Request-Method",
+                "value": "POST"
+              },
+              {
+                "key": "Access-Control-Request-Headers",
+                "value": "Content-Type"
+              }
+            ],
+            "url": {
+              "raw": "{{calculator_url}}/calculate",
+              "host": [
+                "{{calculator_url}}"
+              ],
+              "path": [
+                "calculate"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Calculator Rejects Invalid Gender",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(422);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Gender invalid ditolak schema\", function () { pm.expect(json.detail).to.be.an(\"array\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{calculator_url}}/calculate",
+              "host": [
+                "{{calculator_url}}"
+              ],
+              "path": [
+                "calculate"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Invalid Gender\",\n  \"age\": 30,\n  \"gender\": \"unknown\",\n  \"monthly_salary\": 12000000,\n  \"savings_rate\": 0.25,\n  \"retirement_age\": 55,\n  \"risk_profile\": \"moderate\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Calculator Rejects Savings Rate Above 1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(422);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Savings rate invalid ditolak schema\", function () { pm.expect(json.detail).to.be.an(\"array\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{calculator_url}}/calculate",
+              "host": [
+                "{{calculator_url}}"
+              ],
+              "path": [
+                "calculate"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Invalid Savings Rate\",\n  \"age\": 30,\n  \"gender\": \"male\",\n  \"monthly_salary\": 12000000,\n  \"savings_rate\": 1.5,\n  \"retirement_age\": 55,\n  \"risk_profile\": \"moderate\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Calculator Rejects Negative Salary",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(422);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Salary negatif ditolak schema\", function () { pm.expect(json.detail).to.be.an(\"array\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{calculator_url}}/calculate",
+              "host": [
+                "{{calculator_url}}"
+              ],
+              "path": [
+                "calculate"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Invalid Salary\",\n  \"age\": 30,\n  \"gender\": \"male\",\n  \"monthly_salary\": -1,\n  \"savings_rate\": 0.25,\n  \"retirement_age\": 55,\n  \"risk_profile\": \"moderate\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Calculator Rejects Deposit Rate Above 100",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(422);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Deposit rate invalid ditolak schema\", function () { pm.expect(json.detail).to.be.an(\"array\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{calculator_url}}/calculate",
+              "host": [
+                "{{calculator_url}}"
+              ],
+              "path": [
+                "calculate"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Invalid Deposit Rate\",\n  \"age\": 30,\n  \"gender\": \"male\",\n  \"monthly_salary\": 12000000,\n  \"savings_rate\": 0.25,\n  \"retirement_age\": 55,\n  \"risk_profile\": \"moderate\",\n  \"custom_deposit_rate\": 101\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Calculator Rejects Replacement Ratio Above 2",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(422);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Replacement ratio invalid ditolak schema\", function () { pm.expect(json.detail).to.be.an(\"array\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{calculator_url}}/calculate",
+              "host": [
+                "{{calculator_url}}"
+              ],
+              "path": [
+                "calculate"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Invalid Replacement Ratio\",\n  \"age\": 30,\n  \"gender\": \"male\",\n  \"monthly_salary\": 12000000,\n  \"savings_rate\": 0.25,\n  \"retirement_age\": 55,\n  \"risk_profile\": \"moderate\",\n  \"replacement_ratio\": 2.5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Mortality Info Rejects Invalid Gender",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(422);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Mortality gender invalid ditolak schema\", function () { pm.expect(json.detail).to.be.an(\"array\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{calculator_url}}/mortality-info",
+              "host": [
+                "{{calculator_url}}"
+              ],
+              "path": [
+                "mortality-info"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"age\": 30,\n  \"gender\": \"unknown\",\n  \"retirement_age\": 55\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Mortality Info Rejects Age Below 17",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(422);",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Mortality age invalid ditolak schema\", function () { pm.expect(json.detail).to.be.an(\"array\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{calculator_url}}/mortality-info",
+              "host": [
+                "{{calculator_url}}"
+              ],
+              "path": [
+                "mortality-info"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"age\": 16,\n  \"gender\": \"male\",\n  \"retirement_age\": 55\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "09 - Session Cleanup",
+      "item": [
+        {
+          "name": "Sign Out",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Sign out berhasil\", function () {",
+                  "  pm.expect(pm.response.code).to.be.within(200, 299);",
+                  "});",
+                  "pm.collectionVariables.unset(\"auth_cookie\");"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "{{auth_cookie}}"
+              },
+              {
+                "key": "Origin",
+                "value": "{{frontend_url}}"
+              }
+            ],
+            "url": {
+              "raw": "{{backend_url}}/api/auth/sign-out",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "sign-out"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

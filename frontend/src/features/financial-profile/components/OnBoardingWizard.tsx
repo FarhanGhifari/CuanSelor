@@ -53,6 +53,21 @@ const INITIAL: WizardData = {
 /* ── Helpers ────────────────────────────────────────────────────────── */
 const fmt = (n: number) => new Intl.NumberFormat("id-ID").format(n);
 
+const normalizeDecimalInput = (value: string) => {
+    const normalized = value.replace(/,/g, ".").replace(/[^\d.]/g, "");
+    const [integerPart, ...decimalParts] = normalized.split(".");
+
+    if (decimalParts.length === 0) return integerPart;
+    return `${integerPart}.${decimalParts.join("")}`;
+};
+
+const parseDecimalInput = (value: string) => {
+    if (value === "" || value === ".") return null;
+
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+};
+
 /* ── Design Tokens ──────────────────────────────────────────────────── */
 const T = {
     blue:     "#10B981", // CuanSelor Emerald Green
@@ -546,6 +561,11 @@ function S4_Savings({ data, set }: { data: WizardData; set: (p: Partial<WizardDa
     const [isCustom, setIsCustom] = useState(() => {
         return data.savingsPercentage !== null && ![10, 20].includes(data.savingsPercentage);
     });
+    const [customSavingsRaw, setCustomSavingsRaw] = useState(() => {
+        return data.savingsPercentage !== null && ![10, 20].includes(data.savingsPercentage)
+            ? String(data.savingsPercentage)
+            : "";
+    });
 
     const handleChipClick = (pct: number | null, custom: boolean) => {
         setIsCustom(custom);
@@ -553,9 +573,13 @@ function S4_Savings({ data, set }: { data: WizardData; set: (p: Partial<WizardDa
             const currentVal = data.savingsPercentage;
             if (currentVal === null || [10, 20].includes(currentVal)) {
                 set({ savingsPercentage: null });
+                setCustomSavingsRaw("");
+            } else {
+                setCustomSavingsRaw(String(currentVal));
             }
         } else {
             set({ savingsPercentage: pct });
+            setCustomSavingsRaw("");
         }
     };
 
@@ -597,16 +621,17 @@ function S4_Savings({ data, set }: { data: WizardData; set: (p: Partial<WizardDa
                         <div className="flex-1 flex items-center gap-2">
                             <input
                                 type="text"
-                                inputMode="numeric"
+                                inputMode="decimal"
                                 placeholder="30"
-                                value={data.savingsPercentage !== null && ![10, 20].includes(data.savingsPercentage) ? data.savingsPercentage : ""}
+                                value={customSavingsRaw}
                                 onChange={e => {
-                                    const val = e.target.value.replace(/\D/g, "");
-                                    const num = val === "" ? null : Number(val);
-                                    // Validasi: tidak boleh 0, tidak boleh > 100
-                                    if (num !== null && (num === 0 || num > 100)) {
+                                    const val = normalizeDecimalInput(e.target.value);
+                                    const num = parseDecimalInput(val);
+
+                                    if (num !== null && num > 100) {
                                         return; // Ignore invalid input
                                     }
+                                    setCustomSavingsRaw(val);
                                     set({ savingsPercentage: num });
                                 }}
                                 className="w-16 py-1.5 px-2 text-center bg-white border border-emerald-200 rounded-lg outline-none text-sm font-bold focus:border-[#10B981] focus:ring-2 focus:ring-[#10B981]/15 text-gray-900"
@@ -868,6 +893,7 @@ function S8_PlanningAge({ data, set }: { data: WizardData; set: (p: Partial<Wiza
 }
 
 function S9_Lifestyle({ data, set }: { data: WizardData; set: (p: Partial<WizardData>) => void }) {
+    const [lifestyleRaw, setLifestyleRaw] = useState(data.lifestylePercent !== null ? String(data.lifestylePercent) : "");
     const target = data.lifestylePercent && data.monthlyIncome
         ? Math.round(data.monthlyIncome * data.lifestylePercent / 100) : null;
 
@@ -881,12 +907,19 @@ function S9_Lifestyle({ data, set }: { data: WizardData; set: (p: Partial<Wizard
                 <div className="flex items-center gap-3">
                     <input
                         type="text"
-                        inputMode="numeric"
+                        inputMode="decimal"
                         placeholder="80"
-                        value={data.lifestylePercent ?? ""}
+                        value={lifestyleRaw}
                         onChange={e => {
-                            const val = e.target.value.replace(/\D/g, "");
-                            set({ lifestylePercent: val === "" ? null : Number(val) });
+                            const val = normalizeDecimalInput(e.target.value);
+                            const num = parseDecimalInput(val);
+
+                            if (num !== null && num > 200) {
+                                return;
+                            }
+
+                            setLifestyleRaw(val);
+                            set({ lifestylePercent: num });
                         }}
                         className={cn(
                             "w-28 py-4 px-4 bg-white border rounded-xl text-center outline-none transition-all duration-200 text-base font-bold focus:border-[#10B981] focus:ring-4 focus:ring-[#10B981]/10",
@@ -920,6 +953,11 @@ function S10_Risk({ data, set }: { data: WizardData; set: (p: Partial<WizardData
         const allDone = RISK_QUESTIONS.every(q => data.riskAnswers[q.id] !== undefined);
         if (allDone) return RISK_QUESTIONS.length - 1;
         return 0;
+    });
+    const [rawInputs, setRawInputs] = useState<Record<string, string>>(() => {
+        return Object.fromEntries(
+            Object.entries(data.riskAnswers).map(([key, value]) => [key, String(value)])
+        );
     });
 
     // Auto pre-populate fields from previous wizard steps
@@ -969,11 +1007,39 @@ function S10_Risk({ data, set }: { data: WizardData; set: (p: Partial<WizardData
         const next = { ...answers };
         if (value === null) {
             delete next[current.id];
+            setRawInputs(prev => {
+                const nextRaw = { ...prev };
+                delete nextRaw[current.id];
+                return nextRaw;
+            });
         } else {
             next[current.id] = value;
+            setRawInputs(prev => ({ ...prev, [current.id]: String(value) }));
         }
         set({ riskAnswers: next });
     }, [answers, current.id, set]);
+
+    const handleTextInputChange = useCallback((rawValue: string) => {
+        const normalizedValue = current.type === "percentage"
+            ? normalizeDecimalInput(rawValue)
+            : rawValue.replace(/\D/g, "");
+
+        setRawInputs(prev => ({
+            ...prev,
+            [current.id]: normalizedValue,
+        }));
+
+        const parsed = parseDecimalInput(normalizedValue);
+        const next = { ...answers };
+
+        if (parsed === null) {
+            delete next[current.id];
+        } else {
+            next[current.id] = parsed;
+        }
+
+        set({ riskAnswers: next });
+    }, [answers, current.id, current.type, set]);
 
     const handleNext = useCallback(() => {
         if (answers[current.id] !== undefined) {
@@ -1082,11 +1148,10 @@ function S10_Risk({ data, set }: { data: WizardData; set: (p: Partial<WizardData
                                 <div className="relative">
                                     <input
                                         type="text"
-                                        inputMode="numeric"
-                                        value={answers[current.id] !== undefined ? String(answers[current.id]) : ""}
+                                        inputMode={current.type === "percentage" ? "decimal" : "numeric"}
+                                        value={rawInputs[current.id] ?? (answers[current.id] !== undefined ? String(answers[current.id]) : "")}
                                         onChange={(e) => {
-                                            const val = e.target.value.replace(/\D/g, "");
-                                            handleInputChange(val === "" ? null : Number(val));
+                                            handleTextInputChange(e.target.value);
                                         }}
                                         placeholder={current.placeholder}
                                         autoFocus

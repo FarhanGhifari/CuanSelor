@@ -49,7 +49,7 @@ export default function HowItWorksSection() {
               fontWeight: 700,
               letterSpacing: "-0.03em",
               lineHeight: 1.1,
-              color: T.ink,
+              color: "#000000",
               marginBottom: 16,
             }}
           >

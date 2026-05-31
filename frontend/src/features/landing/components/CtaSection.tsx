@@ -65,21 +65,12 @@ export default function CtaSection() {
             fontWeight: 800,
             letterSpacing: "-0.03em",
             lineHeight: 1.12,
-            color: T.ink,
+            color: "#000000",
             marginBottom: 20,
           }}
         >
           Pensiunmu tidak akan<br />
-          <span
-            style={{
-              background: `linear-gradient(135deg, ${T.emerald} 0%, ${T.teal} 50%, ${T.indigo} 100%)`,
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-            }}
-          >
-            merencanakan dirinya sendiri.
-          </span>
+          merencanakan dirinya sendiri.
         </h2>
 
         <p
