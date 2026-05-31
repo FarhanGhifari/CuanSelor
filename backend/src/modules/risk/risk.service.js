@@ -268,7 +268,7 @@ export async function generateRiskAssessment(userId, overrides = {}) {
     console.warn("[RISK AI] Failed to contact AI service for risk assessment, using fallback:", err.message);
   }
 
-  const riskCategory = mapSegmentToRiskCategory(aiSegment, latestRisk?.risk_category || "moderate");
+  const riskCategory = latestRisk?.risk_category || "moderate";
 
   const { data, error } = await supabase
     .from("risk_profiles")

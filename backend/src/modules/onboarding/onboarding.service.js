@@ -1,5 +1,6 @@
 import { supabase } from "../../config/supabase.js";
 import { AppError } from "../../utils/app-error.js";
+import { clearUserCache } from "../../utils/cache.js";
 
 // ── Helpers validasi ──────────────────────────────────────────────────────────
 
@@ -90,6 +91,9 @@ export async function saveFinancialOnboarding(userId, payload) {
     throw new AppError("Gagal menyimpan data finansial", 500, error.message);
   }
 
+  await supabase.from("projection_results").delete().eq("user_id", userId);
+  clearUserCache(userId);
+
   return data;
 }
 
@@ -113,6 +117,15 @@ export async function savePensionOnboarding(userId, payload) {
     max: 100,
   });
 
+  // Validasi planning age jika ada
+  let planningAge = null;
+  if (payload.planningAge != null) {
+    planningAge = toPositiveNumber(payload.planningAge, "Usia target perencanaan dana", {
+      min: retirementAge,
+      max: 120,
+    });
+  }
+
   if (!VALID_RISK_PROFILES.includes(payload.riskProfile)) {
     throw new AppError(
       `Profil risiko tidak valid. Gunakan salah satu: ${VALID_RISK_PROFILES.join(", ")}`,
@@ -121,17 +134,21 @@ export async function savePensionOnboarding(userId, payload) {
   }
 
   // ── Simpan rencana pensiun ─────────────────────────────────────────────────
+  const retirementPlanData = {
+    user_id: userId,
+    target_retirement_age: retirementAge,
+    post_retirement_lifestyle: lifestylePercent,
+    updated_at: new Date().toISOString(),
+  };
+
+  // Tambahkan planning_age jika ada
+  if (planningAge !== null) {
+    retirementPlanData.planning_age = planningAge;
+  }
+
   const { data: retirementData, error: retirementError } = await supabase
     .from("retirement_plans")
-    .upsert(
-      {
-        user_id: userId,
-        target_retirement_age: retirementAge,
-        post_retirement_lifestyle: lifestylePercent,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "user_id" },
-    )
+    .upsert(retirementPlanData, { onConflict: "user_id" })
     .select()
     .single();
 
@@ -163,6 +180,9 @@ export async function savePensionOnboarding(userId, payload) {
   if (financialError) {
     throw new AppError("Gagal memperbarui return investasi", 500, financialError.message);
   }
+
+  await supabase.from("projection_results").delete().eq("user_id", userId);
+  clearUserCache(userId);
 
   return retirementData;
 }

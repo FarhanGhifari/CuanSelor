@@ -42,7 +42,9 @@ export async function getProfile(user) {
         .maybeSingle(),
       supabase
         .from("retirement_plans")
-        .select("target_retirement_age, post_retirement_lifestyle")
+        .select(
+          "target_retirement_age, post_retirement_lifestyle, planning_age",
+        )
         .eq("user_id", userId)
         .maybeSingle(),
       supabase
@@ -144,9 +146,35 @@ export async function upsertProfile(userId, payload) {
     },
   );
 
+  // Validasi planning age jika ada
+  let planningAge = null;
+  if (payload.planningAge != null && payload.planningAge > 0) {
+    planningAge = toPositiveNumber(
+      payload.planningAge,
+      "Usia target perencanaan dana",
+      {
+        min: retirementAge,
+        max: 120,
+      },
+    );
+  }
+
   // ── Hitung tanggal lahir dari usia ─────────────────────────────────────────
   const birthYear = new Date().getFullYear() - age;
   const dateOfBirth = `${birthYear}-01-01`;
+
+  // ── Prepare retirement plan data ───────────────────────────────────────────
+  const retirementPlanData = {
+    user_id: userId,
+    target_retirement_age: retirementAge,
+    post_retirement_lifestyle: lifestylePercent,
+    updated_at: new Date().toISOString(),
+  };
+
+  // Tambahkan planning_age jika ada
+  if (planningAge !== null) {
+    retirementPlanData.planning_age = planningAge;
+  }
 
   // ── Jalankan semua upsert secara paralel ───────────────────────────────────
   const [profileResult, financialResult, pensionResult] = await Promise.all([
@@ -186,15 +214,10 @@ export async function upsertProfile(userId, payload) {
       .single(),
     supabase
       .from("retirement_plans")
-      .upsert(
-        {
-          user_id: userId,
-          target_retirement_age: retirementAge,
-          post_retirement_lifestyle: lifestylePercent,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: "user_id", ignoreDuplicates: false },
-      )
+      .upsert(retirementPlanData, {
+        onConflict: "user_id",
+        ignoreDuplicates: false,
+      })
       .select()
       .single(),
   ]);
@@ -258,11 +281,9 @@ export async function upsertProfile(userId, payload) {
     throw new AppError("Gagal menyimpan profil risiko", 500, riskError.message);
   }
 
-  // Clear cache projection untuk user ini karena data sudah berubah
-  const clearedCount = clearUserCache(userId);
-  console.log(
-    `[CACHE CLEAR] Cleared ${clearedCount} cache entries untuk user ${userId}`,
-  );
+  await supabase.from("projection_results").delete().eq("user_id", userId);
+
+  clearUserCache(userId);
 
   return {
     profile: profileResult.data,

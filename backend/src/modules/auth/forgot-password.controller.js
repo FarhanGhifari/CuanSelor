@@ -1,6 +1,7 @@
 import { auth } from "../../config/auth.js";
 import { sendResetPasswordEmail } from "../../utils/email.js";
 import { env } from "../../config/env.js";
+import { hashPassword, verifyPassword } from "better-auth/crypto";
 import crypto from "crypto";
 
 /**
@@ -8,29 +9,29 @@ import crypto from "crypto";
  */
 export async function requestPasswordReset(req, res) {
   try {
-    const { email } = req.body;
+    const normalizedEmail = req.body?.email?.trim().toLowerCase();
 
-    if (!email) {
+    if (!normalizedEmail) {
       return res.status(400).json({
         success: false,
         message: "Email is required",
       });
     }
 
-    console.log(`[Forgot Password] Request for email: ${email}`);
-
-    // Check if user exists in database
+    // Check if user exists in database and has local password credentials
     const db = auth.options.database;
-    
-    // Better Auth uses lowercase table names with quotes
+
     const userResult = await db.query(
-      'SELECT id, email, name FROM "user" WHERE email = $1',
-      [email]
+      `SELECT u.id, u.email, u.name
+       FROM "user" u
+       INNER JOIN "account" a ON a."userId" = u.id
+       WHERE u.email = $1 AND a.password IS NOT NULL
+       LIMIT 1`,
+      [normalizedEmail],
     );
 
     if (userResult.rows.length === 0) {
       // Don't reveal if user exists or not (security best practice)
-      console.log(`[Forgot Password] User not found: ${email}`);
       return res.status(200).json({
         success: true,
         message: "If the email exists, a reset link has been sent",
@@ -38,7 +39,6 @@ export async function requestPasswordReset(req, res) {
     }
 
     const user = userResult.rows[0];
-    console.log(`[Forgot Password] User found: ${user.id}`);
 
     // Generate reset token
     const token = crypto.randomBytes(32).toString("hex");
@@ -49,10 +49,8 @@ export async function requestPasswordReset(req, res) {
     await db.query(
       `INSERT INTO "verification" (id, identifier, value, "expiresAt", "createdAt", "updatedAt")
        VALUES ($1, $2, $3, $4, NOW(), NOW())`,
-      [crypto.randomUUID(), email, token, expiresAt]
+      [crypto.randomUUID(), normalizedEmail, token, expiresAt],
     );
-
-    console.log(`[Forgot Password] Token created, expires at: ${expiresAt}`);
 
     // Create reset URL
     const resetUrl = `${env.frontendUrl}/auth/reset-password?token=${token}`;
@@ -64,14 +62,15 @@ export async function requestPasswordReset(req, res) {
     });
 
     if (!emailResult.success) {
-      console.error(`[Forgot Password] Failed to send email:`, emailResult.error);
+      console.error(
+        `[Forgot Password] Failed to send email:`,
+        emailResult.error,
+      );
       return res.status(500).json({
         success: false,
         message: "Failed to send reset email",
       });
     }
-
-    console.log(`[Forgot Password] Email sent successfully`);
 
     return res.status(200).json({
       success: true,
@@ -109,21 +108,19 @@ export async function resetPassword(req, res) {
       });
     }
 
-    console.log(`[Reset Password] Request with token: ${token.substring(0, 10)}...`);
-
     const db = auth.options.database;
 
     // Verify token
     const verificationResult = await db.query(
       'SELECT * FROM "verification" WHERE value = $1',
-      [token]
+      [token],
     );
 
     if (verificationResult.rows.length === 0) {
-      console.log(`[Reset Password] Token not found or already used`);
       return res.status(400).json({
         success: false,
-        message: "Link sudah digunakan atau tidak valid. Silakan request link reset password baru.",
+        message:
+          "Link sudah digunakan atau tidak valid. Silakan request link reset password baru.",
       });
     }
 
@@ -131,61 +128,68 @@ export async function resetPassword(req, res) {
 
     // Check if token expired
     if (new Date() > new Date(verification.expiresAt)) {
-      console.log(`[Reset Password] Token expired`);
       // Delete expired token
       await db.query('DELETE FROM "verification" WHERE value = $1', [token]);
       return res.status(400).json({
         success: false,
-        message: "Link sudah kedaluwarsa (expired). Silakan request link reset password baru.",
+        message:
+          "Link sudah kedaluwarsa (expired). Silakan request link reset password baru.",
       });
     }
 
     const email = verification.identifier;
-    console.log(`[Reset Password] Token valid for email: ${email}`);
 
-    // Get user with current password
-    const userResult = await db.query(
-      'SELECT id, password FROM "user" WHERE email = $1',
-      [email]
+    // Better Auth menyimpan hash password di tabel "account", bukan di "user".
+    const accountResult = await db.query(
+      `SELECT u.id AS "userId", a.id AS "accountId", a.password
+       FROM "user" u
+       INNER JOIN "account" a ON a."userId" = u.id
+       WHERE u.email = $1 AND a.password IS NOT NULL
+       LIMIT 1`,
+      [email],
     );
 
-    if (userResult.rows.length === 0) {
-      console.log(`[Reset Password] User not found: ${email}`);
+    if (accountResult.rows.length === 0) {
+      await db.query('DELETE FROM "verification" WHERE value = $1', [token]);
       return res.status(400).json({
         success: false,
-        message: "User not found",
+        message:
+          "Email ini tidak memiliki akun login dengan password. Jika biasanya masuk dengan Google, silakan gunakan tombol Google.",
       });
     }
 
-    const user = userResult.rows[0];
+    const account = accountResult.rows[0];
 
     // Check if new password is same as old password
-    const bcrypt = await import("bcrypt");
-    const isSamePassword = await bcrypt.compare(newPassword, user.password);
+    let isSamePassword = false;
+    try {
+      isSamePassword = await verifyPassword({
+        hash: account.password,
+        password: newPassword,
+      });
+    } catch {
+      // Hash lama yang pernah tersimpan dengan format salah tetap boleh dioverwrite.
+    }
 
     if (isSamePassword) {
-      console.log(`[Reset Password] New password is same as old password`);
       return res.status(400).json({
         success: false,
-        message: "Password baru tidak boleh sama dengan password lama. Silakan gunakan password yang berbeda.",
+        message:
+          "Password baru tidak boleh sama dengan password lama. Silakan gunakan password yang berbeda.",
       });
     }
 
     // Hash new password
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    const hashedPassword = await hashPassword(newPassword);
 
-    // Update password in user table
+    // Update password hash pada account credentials milik user
     await db.query(
-      'UPDATE "user" SET password = $1, "updatedAt" = NOW() WHERE id = $2',
-      [hashedPassword, user.id]
+      'UPDATE "account" SET password = $1, "updatedAt" = NOW() WHERE id = $2',
+      [hashedPassword, account.accountId],
     );
-
-    console.log(`[Reset Password] Password updated for user: ${user.id}`);
 
     // Delete used token
     await db.query('DELETE FROM "verification" WHERE value = $1', [token]);
-
-    console.log(`[Reset Password] Token deleted`);
 
     return res.status(200).json({
       success: true,
@@ -200,4 +204,3 @@ export async function resetPassword(req, res) {
     });
   }
 }
-

@@ -12,7 +12,6 @@ if (env.gmailUser && env.gmailAppPassword) {
       pass: env.gmailAppPassword,
     },
   });
-  console.log("[Email] Using Gmail SMTP");
 } else {
   console.warn("[Email] Gmail SMTP not configured. Set GMAIL_USER and GMAIL_APP_PASSWORD in .env");
 }
@@ -39,8 +38,6 @@ export async function sendEmail({ to, subject, html, text }) {
       html,
       text: text || html.replace(/<[^>]*>/g, ""),
     });
-
-    console.log(`[Email] Successfully sent to ${to} via Gmail:`, info.messageId);
     return { success: true, id: info.messageId };
   } catch (error) {
     console.error("[Email] Gmail SMTP error:", error);
@@ -52,12 +49,6 @@ export async function sendEmail({ to, subject, html, text }) {
  * Send verification email
  */
 export async function sendVerificationEmail({ user, url }) {
-  console.log(`[Email Service] ========================================`);
-  console.log(`[Email Service] SENDING VERIFICATION EMAIL`);
-  console.log(`[Email Service] To: ${user.email}`);
-  console.log(`[Email Service] URL: ${url}`);
-  console.log(`[Email Service] ========================================`);
-  
   const html = `
     <!DOCTYPE html>
     <html>

@@ -114,7 +114,6 @@ async function buildUserContext(userId) {
       conservative: "Konservatif (hati-hati)",
       moderate: "Moderat (seimbang)",
       aggressive: "Agresif (berani ambil risiko)",
-      very_aggressive: "Sangat Agresif",
     };
     parts.push(`Profil risiko: ${riskLabels[risk.risk_category] || risk.risk_category}`);
   } else {
