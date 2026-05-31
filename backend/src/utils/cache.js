@@ -19,6 +19,16 @@ export function generateCacheKey(data) {
 }
 
 /**
+ * Generate cache key yang di-scope per user agar invalidasi per user bekerja.
+ * @param {string} userId
+ * @param {string} inputHash
+ * @returns {string}
+ */
+export function generateUserProjectionCacheKey(userId, inputHash) {
+  return `projection:${userId}:${inputHash}`;
+}
+
+/**
  * Get cached projection result
  * @param {string} key - Cache key
  * @returns {Object|undefined} Cached data atau undefined jika tidak ada

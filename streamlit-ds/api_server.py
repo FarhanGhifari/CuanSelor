@@ -19,10 +19,8 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-# Add src to path untuk import calculator
-sys.path.insert(0, str(Path(__file__).parent / "src"))
-
-from calculator import RetirementCalculator, UserProfile
+# Import modules as packages
+from src.calculator import RetirementCalculator, UserProfile
 
 # Configuration
 HOST = os.getenv("HOST", "0.0.0.0")
@@ -49,9 +47,9 @@ class UserProfileInput(BaseModel):
     sector: Optional[str] = Field(None, description="Sektor pekerjaan (BPS category)")
     include_pandemic_risk: bool = Field(default=False, description="Include pandemic risk")
     custom_deposit_rate: Optional[float] = Field(
-        None, ge=0, le=1, description="Custom deposit rate (0-1)"
+        None, ge=0, le=100, description="Custom deposit rate (%)"
     )
-    custom_planning_age: Optional[int] = Field(None, ge=18, le=100, description="Custom planning age")
+    custom_planning_age: Optional[int] = Field(None, ge=18, le=120, description="Custom planning age")
     current_assets: float = Field(default=0, ge=0, description="Aset saat ini")
     annual_bonus_months: float = Field(default=1.0, ge=0, description="Bonus tahunan dalam bulan")
     replacement_ratio: float = Field(
@@ -59,6 +57,13 @@ class UserProfileInput(BaseModel):
     )
     has_health_insurance: bool = Field(default=False, description="Punya asuransi kesehatan")
     monthly_expense: Optional[float] = Field(None, ge=0, description="Pengeluaran bulanan")
+
+
+class MortalityInfoRequest(BaseModel):
+    """Request model untuk mortality info"""
+    age: int = Field(..., ge=17, le=80, description="Usia saat ini")
+    gender: str = Field(..., pattern="^(male|female)$", description="Jenis kelamin")
+    retirement_age: int = Field(..., ge=18, le=80, description="Usia pensiun target")
 
 
 class CalculationResponse(BaseModel):
@@ -133,6 +138,50 @@ async def health():
     }
 
 
+@app.post("/mortality-info")
+async def get_mortality_info(request: MortalityInfoRequest):
+    """
+    Endpoint untuk mendapatkan informasi tabel mortalitas saja.
+    Digunakan untuk menampilkan info aktuaria di onboarding wizard.
+    
+    Args:
+        request: Data usia, gender, dan retirement age
+        
+    Returns:
+        Informasi tabel mortalitas (P50, P90, expected death age, dll)
+    """
+    if calculator is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Calculator not initialized"
+        )
+    
+    try:
+        from src.actuarial import get_mortality_table
+        
+        mortality_table = get_mortality_table()
+        planning_summary = mortality_table.get_planning_summary(
+            current_age=request.age,
+            retirement_age=request.retirement_age,
+            gender=request.gender
+        )
+        
+        return {
+            "success": True,
+            "data": planning_summary
+        }
+        
+    except Exception as e:
+        print(f"[ERROR] Mortality info calculation failed: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        
+        raise HTTPException(
+            status_code=500,
+            detail=f"Mortality info calculation failed: {str(e)}"
+        )
+
+
 @app.post("/calculate", response_model=CalculationResponse)
 async def calculate_projection(input_data: UserProfileInput):
     """
@@ -184,6 +233,8 @@ async def calculate_projection(input_data: UserProfileInput):
         
         # Convert dataclass to dict
         result_dict = asdict(result)
+        if "user_profile" in result_dict:
+            result_dict["user_profile"]["custom_planning_age"] = input_data.custom_planning_age
         
         return CalculationResponse(
             success=True,

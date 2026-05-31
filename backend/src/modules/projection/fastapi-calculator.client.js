@@ -9,8 +9,6 @@ import { AppError } from "../../utils/app-error.js";
 export async function callFastAPICalculator(inputPayload) {
   const url = `${env.projectionServiceUrl}/calculate`;
 
-  console.log(`[FASTAPI CLIENT] Calling ${url}`);
-
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), env.projectionTimeoutMs);
@@ -40,10 +38,6 @@ export async function callFastAPICalculator(inputPayload) {
     if (!result.success) {
       throw new AppError("Kalkulasi gagal", 502, result.error);
     }
-
-    console.log(
-      `[FASTAPI CLIENT] Success (${result.computation_time?.toFixed(2)}s, ${result.data?.n_simulations || "?"} simulations)`
-    );
 
     return result.data;
   } catch (error) {
