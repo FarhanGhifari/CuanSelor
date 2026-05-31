@@ -1,10 +1,12 @@
 "use client";
 
 /* eslint-disable @next/next/no-img-element */
+/* eslint-disable react/no-unescaped-entities */
 
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ROUTES } from "@/lib/constants/routes";
+import { apiClient } from "@/lib/api/axios.config"; // PERBAIKAN: Import menggunakan { apiClient }
 import Link from "next/link";
 
 function VerifyEmailContent() {
@@ -16,14 +18,12 @@ function VerifyEmailContent() {
     const token = searchParams.get("token");
 
     useEffect(() => {
-        // Hanya verifikasi jika ada token di URL
         if (!token) {
             return;
         }
 
         const verifyEmail = async () => {
             try {
-                // Call Better Auth verify-email endpoint melalui backend URL global env kamu
                 const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
                 const verifyUrl = `${backendUrl}/api/auth/verify-email?token=${token}`;
                 
@@ -31,11 +31,6 @@ function VerifyEmailContent() {
                     method: "GET",
                     credentials: "include",
                 });
-
-                // Better Auth returns different status codes:
-                // 200 = Success
-                // 400 = Invalid/expired/already used token
-                // 404 = Token not found
                 
                 if (response.status === 400) {
                     setError("Link verifikasi sudah digunakan atau tidak valid");
@@ -46,8 +41,6 @@ function VerifyEmailContent() {
                     throw new Error("Verifikasi gagal");
                 }
 
-                // Success! Better Auth sudah verifikasi email dan auto-login user
-                // Langsung redirect ke callback page tanpa loading
                 router.replace(ROUTES.AUTH_CALLBACK);
             } catch {
                 setError("Link verifikasi tidak valid atau sudah kadaluarsa");
@@ -57,14 +50,11 @@ function VerifyEmailContent() {
         verifyEmail();
     }, [token, router]);
 
-    // Fungsi handle pengiriman ulang email verifikasi ke Backend Express di Railway
     const handleResendEmail = async () => {
         setResendLoading(true);
         setResendMessage(null);
 
         try {
-            // Mengambil data email yang disimpan di LocalStorage saat proses register/login terakhir
-            // Jika tidak ada data, cadangkan ke email default kamu
             const registeredEmail = localStorage.getItem("registered_email") || "al.ghifarifarhan2503@gmail.com";
 
             const response = await apiClient.post("/api/auth/resend-verification", {
@@ -90,19 +80,20 @@ function VerifyEmailContent() {
         }
     };
 
-    // Tampilan layout jika verifikasi via token URL mengalami kegagalan/error
     if (error) {
         return (
             <div className="min-h-screen w-full flex items-center justify-center bg-linear-to-br from-emerald-50 via-teal-50 to-cyan-50 relative">
-                {/* Absolute Logo */}
                 <div className="absolute top-6 left-6 lg:left-8 z-50">
-                    <Link href="/" className="flex items-center relative h-12 w-48 overflow-hidden">
+                    <button 
+                        onClick={() => router.push("/")}
+                        className="flex items-center relative h-12 w-48 overflow-hidden bg-transparent border-none cursor-pointer outline-none"
+                    >
                         <img
                             src="/logo.png"
                             alt="CuanSelor Logo"
                             className="absolute left-0 top-1/2 -translate-y-1/2 h-24 w-auto object-cover max-w-none"
                         />
-                    </Link>
+                    </button>
                 </div>
 
                 <div className="max-w-md w-full mx-4">
@@ -133,30 +124,29 @@ function VerifyEmailContent() {
                     </div>
                 </div>
 
-                {/* Decorative circles */}
                 <div className="absolute top-10 left-10 w-40 h-40 rounded-full bg-emerald-200/30 blur-2xl"></div>
                 <div className="absolute bottom-20 right-10 w-60 h-60 rounded-full bg-teal-200/20 blur-3xl"></div>
             </div>
         );
     }
 
-    // Halaman standby menunggu verifikasi email masuk (User baru saja mengklik tombol sign up)
     return (
         <div className="min-h-screen w-full flex items-center justify-center bg-linear-to-br from-emerald-50 via-teal-50 to-cyan-50 relative">
-            {/* Absolute Logo */}
             <div className="absolute top-6 left-6 lg:left-8 z-50">
-                <Link href="/" className="flex items-center relative h-12 w-48 overflow-hidden">
+                <button 
+                    onClick={() => router.push("/")}
+                    className="flex items-center relative h-12 w-48 overflow-hidden bg-transparent border-none cursor-pointer outline-none"
+                >
                     <img
                         src="/logo.png"
                         alt="CuanSelor Logo"
                         className="absolute left-0 top-1/2 -translate-y-1/2 h-24 w-auto object-cover max-w-none"
                     />
-                </Link>
+                </button>
             </div>
 
             <div className="max-w-md w-full mx-4">
                 <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8 text-center">
-                    {/* SVG Illustration with Bounce Animation */}
                     <div className="animate-bounce-gentle mb-6">
                         <img
                             src="/projection-illustration.svg"
@@ -172,7 +162,6 @@ function VerifyEmailContent() {
                         Kami sudah mengirim link verifikasi ke email kamu.
                     </p>
                     
-                    {/* Info Box - Panduan */}
                     <div className="mb-4 flex gap-2.5 p-3.5 bg-blue-50/50 border border-blue-100/80 rounded-xl text-xs text-blue-800 leading-relaxed items-center text-left">
                         <svg className="w-4 h-4 shrink-0 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -182,7 +171,6 @@ function VerifyEmailContent() {
                         </span>
                     </div>
 
-                    {/* Alert Box Dinamis untuk info hasil response kirim ulang email */}
                     {resendMessage && (
                         <div className={`mb-6 p-3 rounded-xl text-xs text-left border ${
                             resendMessage.type === "success" 
@@ -216,7 +204,6 @@ function VerifyEmailContent() {
                 </div>
             </div>
 
-            {/* Decorative circles */}
             <div className="absolute top-10 left-10 w-40 h-40 rounded-full bg-emerald-200/30 blur-2xl"></div>
             <div className="absolute bottom-20 right-10 w-60 h-60 rounded-full bg-teal-200/20 blur-3xl"></div>
         </div>
