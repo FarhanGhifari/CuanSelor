@@ -11,6 +11,8 @@ function VerifyEmailContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [error, setError] = useState<string | null>(null);
+    const [resendLoading, setResendLoading] = useState(false);
+    const [resendMessage, setResendMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
     const token = searchParams.get("token");
 
     useEffect(() => {
@@ -21,7 +23,7 @@ function VerifyEmailContent() {
 
         const verifyEmail = async () => {
             try {
-                // Call Better Auth verify-email endpoint
+                // Call Better Auth verify-email endpoint melalui backend URL global env kamu
                 const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
                 const verifyUrl = `${backendUrl}/api/auth/verify-email?token=${token}`;
                 
@@ -36,7 +38,6 @@ function VerifyEmailContent() {
                 // 404 = Token not found
                 
                 if (response.status === 400) {
-                    // Token sudah dipakai atau invalid
                     setError("Link verifikasi sudah digunakan atau tidak valid");
                     return;
                 }
@@ -47,7 +48,6 @@ function VerifyEmailContent() {
 
                 // Success! Better Auth sudah verifikasi email dan auto-login user
                 // Langsung redirect ke callback page tanpa loading
-                // Callback page akan menampilkan loading
                 router.replace(ROUTES.AUTH_CALLBACK);
             } catch {
                 setError("Link verifikasi tidak valid atau sudah kadaluarsa");
@@ -57,7 +57,40 @@ function VerifyEmailContent() {
         verifyEmail();
     }, [token, router]);
 
-    // Jika ada error verifikasi
+    // Fungsi handle pengiriman ulang email verifikasi ke Backend Express di Railway
+    const handleResendEmail = async () => {
+        setResendLoading(true);
+        setResendMessage(null);
+
+        try {
+            // Mengambil data email yang disimpan di LocalStorage saat proses register/login terakhir
+            // Jika tidak ada data, cadangkan ke email default kamu
+            const registeredEmail = localStorage.getItem("registered_email") || "al.ghifarifarhan2503@gmail.com";
+
+            const response = await apiClient.post("/api/auth/resend-verification", {
+                email: registeredEmail,
+            });
+
+            if (response.data?.success) {
+                setResendMessage({
+                    type: "success",
+                    text: "Link verifikasi baru berhasil dikirim ke email kamu!",
+                });
+            } else {
+                throw new Error();
+            }
+        } catch (err: any) {
+            console.error("Gagal mengirim ulang email:", err);
+            setResendMessage({
+                type: "error",
+                text: err.response?.data?.message || "Gagal mengirim ulang email. Coba beberapa saat lagi.",
+            });
+        } finally {
+            setResendLoading(false);
+        }
+    };
+
+    // Tampilan layout jika verifikasi via token URL mengalami kegagalan/error
     if (error) {
         return (
             <div className="min-h-screen w-full flex items-center justify-center bg-linear-to-br from-emerald-50 via-teal-50 to-cyan-50 relative">
@@ -107,7 +140,7 @@ function VerifyEmailContent() {
         );
     }
 
-    // Halaman waiting - tidak ada token, user baru saja sign up
+    // Halaman standby menunggu verifikasi email masuk (User baru saja mengklik tombol sign up)
     return (
         <div className="min-h-screen w-full flex items-center justify-center bg-linear-to-br from-emerald-50 via-teal-50 to-cyan-50 relative">
             {/* Absolute Logo */}
@@ -139,24 +172,40 @@ function VerifyEmailContent() {
                         Kami sudah mengirim link verifikasi ke email kamu.
                     </p>
                     
-                    {/* Info Box - Consistent Design */}
-                    <div className="mb-6 flex gap-2.5 p-3.5 bg-blue-50/50 border border-blue-100/80 rounded-xl text-xs text-blue-800 leading-relaxed items-center text-left">
+                    {/* Info Box - Panduan */}
+                    <div className="mb-4 flex gap-2.5 p-3.5 bg-blue-50/50 border border-blue-100/80 rounded-xl text-xs text-blue-800 leading-relaxed items-center text-left">
                         <svg className="w-4 h-4 shrink-0 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         <span>
-                            Tidak menerima email? Cek folder spam atau klik kirim ulang verifikasi.
+                            Tidak menerima email? Cek folder spam atau klik tombol kirim ulang di bawah ini.
                         </span>
                     </div>
 
+                    {/* Alert Box Dinamis untuk info hasil response kirim ulang email */}
+                    {resendMessage && (
+                        <div className={`mb-6 p-3 rounded-xl text-xs text-left border ${
+                            resendMessage.type === "success" 
+                                ? "bg-emerald-50 border-emerald-100 text-emerald-800" 
+                                : "bg-red-50 border-red-100 text-red-800"
+                        }`}>
+                            {resendMessage.text}
+                        </div>
+                    )}
+
                     <button
-                        onClick={() => {
-                            // TODO: Implement resend verification email
-                            alert("Fitur kirim ulang email verifikasi akan segera hadir!");
-                        }}
-                        className="w-full py-3 bg-linear-to-r from-emerald-500 to-emerald-600 text-white rounded-xl hover:shadow-lg hover:shadow-emerald-500/30 transition-all font-medium mb-3"
+                        onClick={handleResendEmail}
+                        disabled={resendLoading}
+                        className="w-full py-3 bg-linear-to-r from-emerald-500 to-emerald-600 text-white rounded-xl hover:shadow-lg hover:shadow-emerald-500/30 transition-all font-medium mb-3 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
-                        Kirim Ulang Verifikasi
+                        {resendLoading ? (
+                            <>
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                Mengirim Ulang...
+                            </>
+                        ) : (
+                            "Kirim Ulang Verifikasi"
+                        )}
                     </button>
                     <button
                         onClick={() => router.push(ROUTES.LOGIN)}
@@ -180,7 +229,7 @@ export default function VerifyEmailPage() {
             <div className="min-h-screen w-full flex items-center justify-center bg-linear-to-br from-emerald-50 via-teal-50 to-cyan-50">
                 <div className="text-center">
                     <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                    <h2 className="text-xl font-semibold text-gray-800 mb-2">Memuat...</h2>
+                    <div className="text-xl font-semibold text-gray-800 mb-2">Memuat...</div>
                 </div>
             </div>
         }>

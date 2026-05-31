@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import Link from "next/link"; // PERBAIKAN: Import komponen JSX Link dari next/link
+import { useSearchParams } from "next/navigation"; // useSearchParams tetap dari next/navigation
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { User, Mail, Lock, Loader2, Eye, EyeOff, X } from "lucide-react";
@@ -39,14 +39,12 @@ export function RegisterForm({ onSubmit, onGoogleSignUp, isLoading = false }: Re
 
   useEffect(() => {
     if (displayGoogleError) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setShowError(true);
       const timer = setTimeout(() => {
         setShowError(false);
       }, 30000);
       return () => clearTimeout(timer);
     } else {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setShowError(false);
     }
   }, [displayGoogleError]);
@@ -56,6 +54,16 @@ export function RegisterForm({ onSubmit, onGoogleSignUp, isLoading = false }: Re
     handleSubmit,
     formState: { errors },
   } = useForm<PersonalInfoInput>({ resolver: zodResolver(personalInfoSchema) });
+
+  // Handler interceptor untuk menyimpan email pendaftar secara lokal ke localStorage
+  const handleFormSubmit = (data: PersonalInfoInput) => {
+    try {
+      localStorage.setItem("registered_email", data.email);
+    } catch (err) {
+      console.warn("Gagal menyimpan session email pendaftar ke localStorage:", err);
+    }
+    onSubmit(data);
+  };
 
   const handleGoogleSignUp = async () => {
     setIsGoogleLoading(true);
@@ -92,7 +100,7 @@ export function RegisterForm({ onSubmit, onGoogleSignUp, isLoading = false }: Re
         </div>
       )}
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-5">
         {/* Nama Lengkap */}
         <div className="space-y-2">
           <label htmlFor="fullName" className="text-[14px] font-medium text-gray-700 block">

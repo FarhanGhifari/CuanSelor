@@ -48,7 +48,7 @@ export default function InteractiveSimulationPreview() {
     return (
         <section
             id="simulation-preview"
-            className="relative flex min-h-[100svh] items-center overflow-hidden bg-white px-5 py-16 md:px-[5%] lg:py-20 xl:py-24"
+            className="relative flex min-h-svh items-center overflow-hidden bg-white px-5 py-16 md:px-[5%] lg:py-20 xl:py-24"
         >
             {/* No ambient/gradient background overlays */}
 
@@ -69,7 +69,7 @@ export default function InteractiveSimulationPreview() {
 
                     <h2 className="max-w-xl text-[clamp(38px,4.7vw,64px)] font-black leading-[1.01] tracking-[-2px] text-slate-950">
                         Ubah Angka,
-                        <span className="block bg-gradient-to-r from-emerald-500 via-teal-500 to-indigo-600 bg-clip-text text-transparent">
+                        <span className="block bg-linear-to-r from-emerald-500 via-teal-500 to-indigo-600 bg-clip-text text-transparent">
                             Lihat Dampaknya.
                         </span>
                     </h2>
@@ -308,7 +308,7 @@ export default function InteractiveSimulationPreview() {
                                         />
                                     </div>
 
-                                    <div className="mt-4 rounded-[24px] border border-white/10 bg-white/[0.04] p-4">
+                                    <div className="mt-4 rounded-[24px] border border-white/10 bg-white/4 p-4">
                                         <div className="mb-3 flex items-center justify-between gap-4">
                                             <div>
                                                 <p className="text-sm font-semibold text-slate-300">
@@ -344,7 +344,7 @@ export default function InteractiveSimulationPreview() {
                                                 {Array.from({ length: 5 }).map((_, index) => (
                                                     <div
                                                         key={index}
-                                                        className="h-px w-full bg-white/[0.06]"
+                                                        className="h-px w-full bg-white/6"
                                                     />
                                                 ))}
                                             </div>
@@ -474,7 +474,7 @@ function ResultCard({
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -8, scale: 0.98 }}
                 transition={{ duration: 0.2 }}
-                className="rounded-2xl border border-white/10 bg-white/[0.05] p-4"
+                className="rounded-2xl border border-white/10 bg-white/5 p-4"
             >
                 <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 text-emerald-300">
                     {icon}
