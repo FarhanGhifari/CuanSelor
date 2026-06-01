@@ -1,20 +1,18 @@
 "use client";
 
 /* eslint-disable @next/next/no-img-element */
-/* eslint-disable react/no-unescaped-entities */
 
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ROUTES } from "@/lib/constants/routes";
 import { authClient } from "@/lib/auth/auth-client";
-import { APP_BASE_URL } from "@/lib/constants/env";
 import { AuthLoadingScreen } from "@/features/auth/components/AuthLoadingScreen";
 import { buildVerifyEmailUrl } from "@/features/auth/utils/verify-email-url";
+import { buildAuthRedirectUrl } from "@/features/auth/utils/auth-redirect-url";
 
 function VerifyEmailContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const [error, setError] = useState<string | null>(null);
     const [resendLoading, setResendLoading] = useState(false);
     const [resendMessage, setResendMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
     const token = searchParams.get("token");
@@ -43,12 +41,9 @@ function VerifyEmailContent() {
         }
 
         try {
-            const appUrl =
-                typeof window !== "undefined" ? window.location.origin : APP_BASE_URL;
-
             const { error } = await authClient.sendVerificationEmail({
                 email: registeredEmail,
-                callbackURL: `${appUrl}${ROUTES.ONBOARDING}`,
+                callbackURL: buildAuthRedirectUrl(ROUTES.ONBOARDING),
             });
 
             if (error) {
@@ -60,7 +55,6 @@ function VerifyEmailContent() {
                 text: "Link verifikasi baru berhasil dikirim ke email kamu!",
             });
         } catch (err: unknown) {
-            console.error("Gagal mengirim ulang email:", err);
             const message =
                 err instanceof Error
                     ? err.message
@@ -74,56 +68,6 @@ function VerifyEmailContent() {
             setResendLoading(false);
         }
     };
-
-    if (error) {
-        return (
-            <div className="min-h-screen w-full flex items-center justify-center bg-linear-to-br from-emerald-50 via-teal-50 to-cyan-50 relative">
-                <div className="absolute top-6 left-6 lg:left-8 z-50">
-                    <button 
-                        onClick={() => router.push("/")}
-                        className="flex items-center relative h-12 w-48 overflow-hidden bg-transparent border-none cursor-pointer outline-none"
-                    >
-                        <img
-                            src="/logo.png"
-                            alt="CuanSelor Logo"
-                            className="absolute left-0 top-1/2 -translate-y-1/2 h-24 w-auto object-cover max-w-none"
-                        />
-                    </button>
-                </div>
-
-                <div className="max-w-md w-full mx-4">
-                    <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8 text-center">
-                        <div className="w-20 h-20 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-6">
-                            <svg className="w-10 h-10 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </div>
-                        <h1 className="text-2xl font-bold text-gray-800 mb-2">
-                            Verifikasi Gagal
-                        </h1>
-                        <p className="text-gray-600 mb-6">
-                            {error}
-                        </p>
-                        <button
-                            onClick={() => router.push(ROUTES.REGISTER)}
-                            className="w-full py-3 bg-linear-to-r from-emerald-500 to-emerald-600 text-white rounded-xl hover:shadow-lg hover:shadow-emerald-500/30 transition-all font-medium mb-3"
-                        >
-                            Daftar Ulang
-                        </button>
-                        <button
-                            onClick={() => router.push(ROUTES.LOGIN)}
-                            className="w-full py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all font-medium"
-                        >
-                            Coba Login
-                        </button>
-                    </div>
-                </div>
-
-                <div className="absolute top-10 left-10 w-40 h-40 rounded-full bg-emerald-200/30 blur-2xl"></div>
-                <div className="absolute bottom-20 right-10 w-60 h-60 rounded-full bg-teal-200/20 blur-3xl"></div>
-            </div>
-        );
-    }
 
     if (token) {
         return <AuthLoadingScreen message="Memverifikasi email..." />;

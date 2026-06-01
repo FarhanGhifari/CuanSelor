@@ -12,6 +12,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ROUTES } from "@/lib/constants/routes";
 import { GoogleAuthButton } from "./GoogleAuthButton";
 import { getAuthErrorMessage } from "../utils/auth-errors";
+import { buildAuthRedirectUrl } from "../utils/auth-redirect-url";
 
 type FormErrorState = {
   id: string;
@@ -123,9 +124,9 @@ export default function LoginForm() {
     try {
       const result = await authClient.signIn.social({
         provider: "google",
-        callbackURL: ROUTES.AUTH_CALLBACK,
-        newUserCallbackURL: ROUTES.AUTH_CALLBACK,
-        errorCallbackURL: ROUTES.LOGIN,
+        callbackURL: buildAuthRedirectUrl(ROUTES.AUTH_CALLBACK),
+        newUserCallbackURL: buildAuthRedirectUrl(ROUTES.AUTH_CALLBACK),
+        errorCallbackURL: buildAuthRedirectUrl(ROUTES.LOGIN),
       });
 
       if (result.error) {
