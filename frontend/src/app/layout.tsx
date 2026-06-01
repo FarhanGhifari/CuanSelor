@@ -16,11 +16,10 @@ export const metadata: Metadata = {
   description: "Platform perencanaan keuangan pensiun berbasis AI. Analisis, proyeksi, dan rekomendasi investasi personal.",
   icons: {
     icon: [
-      { url: "/CuanSelorIcon.png" },
-      { url: "/icon.png" },
+      { url: "/CuanSelorIcon.png", type: "image/png" },
     ],
-    shortcut: "/CuanSelorIcon.png",
-    apple: "/CuanSelorIcon.png",
+    shortcut: [{ url: "/CuanSelorIcon.png", type: "image/png" }],
+    apple: [{ url: "/CuanSelorIcon.png", type: "image/png" }],
   },
 };
 
@@ -34,6 +33,10 @@ export default function RootLayout({
       lang="id"
       className={`${plusJakarta.variable} h-full w-full antialiased`}
     >
+      <head>
+        <link rel="icon" type="image/png" href="/CuanSelorIcon.png" />
+        <link rel="apple-touch-icon" href="/CuanSelorIcon.png" />
+      </head>
       <body className="min-h-full w-full flex flex-col">
         <LayoutWrapper>{children}</LayoutWrapper>
       </body>

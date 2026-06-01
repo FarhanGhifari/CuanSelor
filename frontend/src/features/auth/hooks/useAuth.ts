@@ -135,10 +135,9 @@ export function useGoogleLogin() {
       await authClient.signIn.social({
         provider: "google",
         callbackURL: buildAuthRedirectUrl(ROUTES.AUTH_CALLBACK),
-        newUserCallbackURL: buildAuthRedirectUrl(ROUTES.AUTH_CALLBACK),
-        errorCallbackURL: buildAuthRedirectUrl(ROUTES.LOGIN),
       });
-    } catch {
+    } catch (err) {
+      console.error("Google login exception:", err);
       setError("Google login gagal. Coba lagi.");
     } finally {
       setIsPending(false);

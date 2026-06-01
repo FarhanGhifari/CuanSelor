@@ -125,8 +125,6 @@ export default function LoginForm() {
       const result = await authClient.signIn.social({
         provider: "google",
         callbackURL: buildAuthRedirectUrl(ROUTES.AUTH_CALLBACK),
-        newUserCallbackURL: buildAuthRedirectUrl(ROUTES.AUTH_CALLBACK),
-        errorCallbackURL: buildAuthRedirectUrl(ROUTES.LOGIN),
       });
 
       if (result.error) {
@@ -134,7 +132,8 @@ export default function LoginForm() {
           createErrorState("google", result.error.message || "Masuk dengan Google gagal")
         );
       }
-    } catch {
+    } catch (err) {
+      console.error("Google sign-in exception:", err);
       setLoginError(createErrorState("google", "Terjadi kesalahan saat masuk dengan Google"));
     } finally {
       setIsGoogleLoading(false);

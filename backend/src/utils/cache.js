@@ -5,8 +5,17 @@ import crypto from "crypto";
 const projectionCache = new NodeCache({
   stdTTL: 3600,
   checkperiod: 600, // Check expired keys setiap 10 menit
-  useClones: false, // Untuk performa, tidak clone object
+  useClones: true, // ✅ Enable clones untuk safety (prevent mutation)
 });
+
+// Cache metrics untuk monitoring
+let cacheMetrics = {
+  hits: 0,
+  misses: 0,
+  sets: 0,
+  deletes: 0,
+  lastReset: new Date(),
+};
 
 /**
  * Generate cache key dari user profile data
@@ -34,7 +43,16 @@ export function generateUserProjectionCacheKey(userId, inputHash) {
  * @returns {Object|undefined} Cached data atau undefined jika tidak ada
  */
 export function getCachedProjection(key) {
-  return projectionCache.get(key);
+  const data = projectionCache.get(key);
+  
+  // Track metrics
+  if (data !== undefined) {
+    cacheMetrics.hits++;
+  } else {
+    cacheMetrics.misses++;
+  }
+  
+  return data;
 }
 
 /**
@@ -44,6 +62,7 @@ export function getCachedProjection(key) {
  * @param {number} [ttl] - Custom TTL dalam detik (optional)
  */
 export function setCachedProjection(key, data, ttl) {
+  cacheMetrics.sets++;
   return projectionCache.set(key, data, ttl);
 }
 
@@ -55,6 +74,10 @@ export function clearUserCache(pattern) {
   const keys = projectionCache.keys();
   const deleted = keys.filter((key) => key.includes(pattern));
   deleted.forEach((key) => projectionCache.del(key));
+  
+  cacheMetrics.deletes += deleted.length;
+  
+  console.log(`[CACHE] Cleared ${deleted.length} cache entries for pattern: ${pattern}`);
   return deleted.length;
 }
 
@@ -62,12 +85,74 @@ export function clearUserCache(pattern) {
  * Get cache statistics
  */
 export function getCacheStats() {
-  return projectionCache.getStats();
+  const nodeCacheStats = projectionCache.getStats();
+  const totalRequests = cacheMetrics.hits + cacheMetrics.misses;
+  const hitRate = totalRequests > 0 
+    ? ((cacheMetrics.hits / totalRequests) * 100).toFixed(2) 
+    : 0;
+  
+  return {
+    // NodeCache built-in stats
+    keys: nodeCacheStats.keys,
+    ksize: nodeCacheStats.ksize,
+    vsize: nodeCacheStats.vsize,
+    
+    // Custom metrics
+    hits: cacheMetrics.hits,
+    misses: cacheMetrics.misses,
+    sets: cacheMetrics.sets,
+    deletes: cacheMetrics.deletes,
+    hitRate: `${hitRate}%`,
+    totalRequests,
+    uptime: Math.floor((new Date() - cacheMetrics.lastReset) / 1000), // seconds
+  };
+}
+
+/**
+ * Log cache metrics (for monitoring)
+ */
+export function logCacheMetrics() {
+  const stats = getCacheStats();
+  console.log('[CACHE METRICS]', {
+    hitRate: stats.hitRate,
+    hits: stats.hits,
+    misses: stats.misses,
+    totalKeys: stats.keys,
+    uptime: `${stats.uptime}s`,
+  });
+}
+
+/**
+ * Reset cache metrics
+ */
+export function resetCacheMetrics() {
+  cacheMetrics = {
+    hits: 0,
+    misses: 0,
+    sets: 0,
+    deletes: 0,
+    lastReset: new Date(),
+  };
+  console.log('[CACHE] Metrics reset');
 }
 
 /**
  * Clear all cache
  */
 export function clearAllCache() {
-  return projectionCache.flushAll();
+  const keysCount = projectionCache.keys().length;
+  projectionCache.flushAll();
+  cacheMetrics.deletes += keysCount;
+  console.log(`[CACHE] Cleared all cache (${keysCount} entries)`);
+  return keysCount;
+}
+
+// Log cache metrics every 5 minutes in production
+if (process.env.NODE_ENV === 'production') {
+  setInterval(logCacheMetrics, 5 * 60 * 1000); // 5 minutes
+}
+
+// Log cache metrics every minute in development
+if (process.env.NODE_ENV === 'development') {
+  setInterval(logCacheMetrics, 60 * 1000); // 1 minute
 }

@@ -8,10 +8,7 @@ import { getCacheStats, clearAllCache } from "../../utils/cache.js";
  */
 export const getCacheStatistics = asyncHandler(async (req, res) => {
   const stats = getCacheStats();
-  return ok(res, {
-    ...stats,
-    hitRate: stats.hits / (stats.hits + stats.misses) || 0,
-  });
+  return ok(res, stats, "Cache statistics retrieved successfully");
 });
 
 /**
@@ -19,6 +16,6 @@ export const getCacheStatistics = asyncHandler(async (req, res) => {
  * Clear semua cache (untuk admin/debugging)
  */
 export const clearCache = asyncHandler(async (req, res) => {
-  clearAllCache();
-  return ok(res, null, "Cache berhasil dibersihkan");
+  const clearedCount = clearAllCache();
+  return ok(res, { clearedCount }, `Cache cleared successfully (${clearedCount} entries)`);
 });

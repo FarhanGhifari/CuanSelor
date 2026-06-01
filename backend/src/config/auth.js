@@ -2,11 +2,34 @@ import { betterAuth } from "better-auth";
 import { Pool } from "pg";
 import { env, requireEnv } from "./env.js";
 import { sendVerificationEmail, sendResetPasswordEmail } from "../utils/email.js";
+import { readFileSync } from "fs";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 requireEnv(["databaseUrl", "betterAuthSecret"]);
 
 const isLocalDatabase =
   env.databaseUrl.includes("localhost") || env.databaseUrl.includes("127.0.0.1");
+
+// Load Supabase CA certificate
+let sslConfig = false;
+if (env.pgSsl !== "false" && !isLocalDatabase) {
+  try {
+    const caPath = join(__dirname, "certs", "supabase-ca.crt");
+    const ca = readFileSync(caPath, "utf8");
+    sslConfig = {
+      rejectUnauthorized: true,
+      ca: ca,
+    };
+    console.log("✓ Loaded Supabase CA certificate");
+  } catch (error) {
+    console.warn("⚠ Could not load CA certificate, using rejectUnauthorized: false");
+    sslConfig = { rejectUnauthorized: false };
+  }
+}
 
 const trustedOrigins = Array.from(
   new Set(
@@ -29,12 +52,7 @@ export const auth = betterAuth({
   },
   database: new Pool({
     connectionString: env.databaseUrl,
-    // Gunakan rejectUnauthorized: true di production untuk mencegah MITM attack.
-    // Jika error SSL, tambahkan CA cert dari dashboard Supabase ke env PGSSLROOTCERT.
-    ssl:
-      env.pgSsl === "false" || isLocalDatabase
-        ? false
-        : { rejectUnauthorized: true },
+    ssl: sslConfig,
   }),
   emailAndPassword: {
     enabled: true,
@@ -88,3 +106,11 @@ export const auth = betterAuth({
         }
       : {},
 });
+
+// Log untuk debugging
+console.log("=== Better Auth Configuration ===");
+console.log("Google OAuth enabled:", !!(env.googleClientId && env.googleClientSecret));
+console.log("Google Client ID:", env.googleClientId ? `${env.googleClientId.substring(0, 20)}...` : "NOT SET");
+console.log("Base URL:", env.betterAuthUrl);
+console.log("Trusted Origins:", trustedOrigins);
+console.log("================================");

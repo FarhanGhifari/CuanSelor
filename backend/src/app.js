@@ -70,10 +70,21 @@ export function createApp() {
     "/api/auth/resend-verification",
   ]);
 
-  app.all("/api/auth/*splat", (req, res, next) => {
+  // Use regex pattern instead of wildcard for Express compatibility
+  app.all(/^\/api\/auth\/.*/, async (req, res, next) => {
     if (compatibilityAuthPaths.has(req.path)) return next();
 
-    return betterAuthHandler(req, res);
+    try {
+      console.log(`[Better Auth] ${req.method} ${req.path}`);
+      return await betterAuthHandler(req, res);
+    } catch (error) {
+      console.error("[Better Auth] Error:", error);
+      return res.status(500).json({ 
+        error: "Internal server error", 
+        message: error.message,
+        path: req.path 
+      });
+    }
   });
 
   app.use(express.json({ limit: "1mb" }));

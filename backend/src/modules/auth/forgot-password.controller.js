@@ -5,6 +5,13 @@ import { hashPassword, verifyPassword } from "better-auth/crypto";
 import crypto from "crypto";
 
 /**
+ * Helper function to delete verification token
+ */
+async function deleteVerificationToken(db, token) {
+  await db.query('DELETE FROM "verification" WHERE value = $1', [token]);
+}
+
+/**
  * Request password reset - send email with reset link
  */
 export async function requestPasswordReset(req, res) {
@@ -129,7 +136,7 @@ export async function resetPassword(req, res) {
     // Check if token expired
     if (new Date() > new Date(verification.expiresAt)) {
       // Delete expired token
-      await db.query('DELETE FROM "verification" WHERE value = $1', [token]);
+      await deleteVerificationToken(db, token);
       return res.status(400).json({
         success: false,
         message:
@@ -150,7 +157,7 @@ export async function resetPassword(req, res) {
     );
 
     if (accountResult.rows.length === 0) {
-      await db.query('DELETE FROM "verification" WHERE value = $1', [token]);
+      await deleteVerificationToken(db, token);
       return res.status(400).json({
         success: false,
         message:
@@ -189,7 +196,7 @@ export async function resetPassword(req, res) {
     );
 
     // Delete used token
-    await db.query('DELETE FROM "verification" WHERE value = $1', [token]);
+    await deleteVerificationToken(db, token);
 
     return res.status(200).json({
       success: true,

@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -10,7 +9,6 @@ import {
   Briefcase,
   AlertTriangle,
   Landmark,
-  Shield,
   CheckSquare,
 } from "lucide-react";
 import {
@@ -18,7 +16,6 @@ import {
   type PensionOnboardingInput,
 } from "@/features/auth/validations/auth.schema";
 import { StepIndicator } from "@/components/shared/StepIndicator";
-import { RiskQuestionnaireInline } from "./RiskQuestionnaireInline";
 
 // ── Sektor Pekerjaan Options ──────────────────────────────────
 const SECTORS = [
@@ -38,15 +35,13 @@ const SECTORS = [
 
 // ── Props ────────────────────────────────────────────────────
 interface PensionFormProps {
-  onSubmit: (data: PensionOnboardingInput & { riskAnswers?: Record<string, number> }) => void;
+  onSubmit: (data: PensionOnboardingInput) => void;
   isPending: boolean;
   error: string | null;
 }
 
 // ── Component ────────────────────────────────────────────────
 export function PensionForm({ onSubmit, isPending, error }: PensionFormProps) {
-  const [riskAnswers, setRiskAnswers] = useState<Record<string, number>>({});
-
   const {
     register,
     handleSubmit,
@@ -64,18 +59,9 @@ export function PensionForm({ onSubmit, isPending, error }: PensionFormProps) {
   });
 
   const hasInsurance = watch("hasHealthInsurance");
-  const riskProfile = watch("riskProfile");
-
-  const handleRiskComplete = (
-    profile: "conservative" | "moderate" | "aggressive",
-    answers: Record<string, number>
-  ) => {
-    setValue("riskProfile", profile, { shouldValidate: true });
-    setRiskAnswers(answers);
-  };
 
   const onFormSubmit = (data: PensionOnboardingInput) => {
-    onSubmit({ ...data, riskAnswers });
+    onSubmit(data);
   };
 
   return (
@@ -96,7 +82,7 @@ export function PensionForm({ onSubmit, isPending, error }: PensionFormProps) {
         {/* Error banner */}
         {error && (
           <div className="mb-6 flex items-center gap-2.5 p-4 bg-destructive/10 border border-destructive/20 rounded-xl text-sm text-destructive">
-            <Shield className="w-4 h-4 shrink-0" />
+            <AlertTriangle className="w-4 h-4 shrink-0" />
             {error}
           </div>
         )}
@@ -196,25 +182,6 @@ export function PensionForm({ onSubmit, isPending, error }: PensionFormProps) {
                   </p>
                 </div>
               </div>
-            )}
-          </div>
-
-          {/* ── Profil Risiko (Inline Questionnaire) ─────────── */}
-          <div>
-            <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center">
-                <Shield className="w-4 h-4 text-violet-500" />
-              </div>
-              Profil Risiko Investasi
-            </h3>
-
-            <RiskQuestionnaireInline
-              onComplete={handleRiskComplete}
-              initialProfile={riskProfile || null}
-            />
-
-            {errors.riskProfile && (
-              <p className="text-xs text-destructive mt-2">{errors.riskProfile.message}</p>
             )}
           </div>
 

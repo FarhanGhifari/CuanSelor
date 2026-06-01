@@ -42,16 +42,15 @@ export default function RegisterPage() {
             const result = await authClient.signIn.social({
                 provider: "google",
                 callbackURL: buildAuthRedirectUrl(ROUTES.AUTH_CALLBACK),
-                newUserCallbackURL: buildAuthRedirectUrl(ROUTES.AUTH_CALLBACK),
-                errorCallbackURL: buildAuthRedirectUrl(ROUTES.REGISTER),
             });
 
             if (result.error) {
+                console.error("Google sign-up error:", JSON.stringify(result.error));
                 setStep("form");
             }
             // If no error, the browser will redirect via OAuth flow.
-            // The loading screen stays visible until redirect happens.
-        } catch {
+        } catch (err) {
+            console.error("Google sign-up exception:", err instanceof Error ? err.message : 'Unknown error');
             setStep("form");
         }
     }, []);

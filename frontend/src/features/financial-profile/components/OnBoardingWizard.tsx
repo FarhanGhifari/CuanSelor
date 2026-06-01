@@ -565,9 +565,9 @@ function S0_Personal({ data, set }: { data: WizardData; set: (p: Partial<WizardD
                         Perempuan
                     </Chip>
                 </div>
-                <div className="mt-3 flex gap-2.5 p-3.5 bg-blue-50/50 border border-blue-100/80 rounded-xl text-xs text-blue-800 leading-relaxed items-center">
-                    <Info className="w-4 h-4 shrink-0 text-blue-600" />
-                    <span>
+                <div className="mt-3 flex gap-3 p-3.5 bg-yellow-50 border border-yellow-200 rounded-xl text-xs text-yellow-900 leading-relaxed items-center">
+                    <Info className="w-5 h-5 shrink-0 text-yellow-600 self-center" />
+                    <span className="flex-1">
                         Data ini digunakan untuk kalkulasi harapan hidup berdasarkan tabel mortalitas Indonesia
                     </span>
                 </div>
@@ -582,7 +582,7 @@ function S1_Income({ data, set }: { data: WizardData; set: (p: Partial<WizardDat
 
     return (
         <div>
-            <StepHeader emoji="💰" headline="Berapa gaji bersihmu per bulan?" sub="Pendapatan setelah pajak & potongan lainnya." />
+            <StepHeader headline="Berapa gaji bersihmu per bulan?" sub="Pendapatan setelah pajak & potongan lainnya." />
             <CurrencyField value={data.monthlyIncome} onChange={v => set({ monthlyIncome: v })} placeholder="5.000.000" autoFocus />
             {showSuccess && (
                 <motion.p initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} className="mt-3 text-sm font-medium" style={{ color: T.blue }}>
@@ -612,7 +612,7 @@ function S2_Bonus({ data, set }: { data: WizardData; set: (p: Partial<WizardData
 
     return (
         <div>
-            <StepHeader emoji="🎁" headline="Dapat bonus atau THR?" sub="Ini akan kami jadikan komponen penghasilan tahunanmu." />
+            <StepHeader headline="Dapat bonus atau THR?" sub="Ini akan kami jadikan komponen penghasilan tahunanmu." />
             <div className="space-y-3">
                 <Chip
                     selected={!isCustom && data.annualBonusMonths === 0}
@@ -729,7 +729,7 @@ function S4_Savings({ data, set }: { data: WizardData; set: (p: Partial<WizardDa
 
     return (
         <div>
-            <StepHeader emoji="🐷" headline="Berapa % yang kamu alokasikan untuk nabung?" sub="Pilih persentase dari gaji bulanan Anda yang disisihkan untuk ditabung/investasi (contoh: 20% dari gaji bulanan)." />
+            <StepHeader headline="Berapa % yang kamu alokasikan untuk nabung?" sub="Pilih persentase dari gaji bulanan Anda yang disisihkan untuk ditabung/investasi (contoh: 20% dari gaji bulanan)." />
             <div className="space-y-3">
                 {savingsOpts.map(o => (
                     <Chip key={o.pct} selected={!isCustom && data.savingsPercentage === o.pct}
@@ -756,25 +756,28 @@ function S4_Savings({ data, set }: { data: WizardData; set: (p: Partial<WizardDa
                             ✏️
                         </div>
                         <div className="flex-1 flex items-center gap-2">
-                            <input
-                                type="text"
-                                inputMode="decimal"
-                                placeholder="30"
-                                value={customSavingsRaw}
-                                onChange={e => {
-                                    const val = normalizeDecimalInput(e.target.value);
-                                    const num = parseDecimalInput(val);
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    inputMode="decimal"
+                                    placeholder="30"
+                                    value={customSavingsRaw}
+                                    onChange={e => {
+                                        const val = normalizeDecimalInput(e.target.value);
+                                        const num = parseDecimalInput(val);
 
-                                    if (num !== null && num > 100) {
-                                        return; // Ignore invalid input
-                                    }
-                                    setCustomSavingsRaw(val);
-                                    set({ savingsPercentage: num });
-                                }}
-                                className="w-16 py-1.5 px-2 text-center bg-white border border-emerald-200 rounded-lg outline-none text-sm font-bold focus:border-[#10B981] focus:ring-2 focus:ring-[#10B981]/15 text-gray-900"
-                                autoFocus
-                            />
-                            <span className="text-sm font-semibold text-gray-700">% dari gaji</span>
+                                        if (num !== null && num > 100) {
+                                            return; // Ignore invalid input
+                                        }
+                                        setCustomSavingsRaw(val);
+                                        set({ savingsPercentage: num });
+                                    }}
+                                    className="w-16 py-1.5 pl-2 pr-7 text-center bg-white border border-emerald-200 rounded-lg outline-none text-sm font-bold focus:border-[#10B981] focus:ring-2 focus:ring-[#10B981]/15 text-gray-900"
+                                    autoFocus
+                                />
+                                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-sm font-semibold pointer-events-none text-gray-400">%</span>
+                            </div>
+                            <span className="text-sm font-semibold text-gray-700">dari gaji</span>
                         </div>
                         <button
                             type="button"
@@ -815,7 +818,7 @@ function S4_Savings({ data, set }: { data: WizardData; set: (p: Partial<WizardDa
 function S5_CurrentSavings({ data, set }: { data: WizardData; set: (p: Partial<WizardData>) => void }) {
     return (
         <div>
-            <StepHeader emoji="🏦" headline="Total tabungan & investasimu saat ini?" sub="Rekening, deposito, reksa dana, saham, emas - semuanya. Kalau belum ada, isi 0." />
+            <StepHeader headline="Total tabungan & investasimu saat ini?" sub="Rekening, deposito, reksa dana, saham, emas - semuanya. Kalau belum ada, isi 0." />
             <CurrencyField value={data.currentSavings} onChange={v => set({ currentSavings: v ?? 0 })} placeholder="0" autoFocus />
             {data.currentSavings !== null && data.currentSavings > 0 && (
                 <motion.p initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
@@ -884,7 +887,7 @@ function S7_RetirementAge({ data, set }: { data: WizardData; set: (p: Partial<Wi
 
     return (
         <div>
-            <StepHeader emoji="🌴" headline="Kapan kamu ingin pensiun?" sub="Tidak harus angka pasti. Estimasi sudah cukup - bisa diubah nanti." />
+            <StepHeader headline="Kapan kamu ingin pensiun?" sub="Tidak harus angka pasti. Estimasi sudah cukup - bisa diubah nanti." />
             <div className="space-y-3">
                 {ageOpts.map(o => {
                     const disabled = !isValidRetirementAge(o.age);
@@ -1056,16 +1059,16 @@ function S8_PlanningAge({ data, set }: { data: WizardData; set: (p: Partial<Wiza
                     <span>Menghitung tabel mortalitas TMPI 2023...</span>
                 </div>
             ) : mortalityInfo ? (
-                <div className="mb-5 flex gap-2.5 p-3.5 bg-gray-50/50 border border-gray-200/80 rounded-xl text-xs text-gray-800 leading-relaxed items-center">
-                    <Info className="w-4 h-4 shrink-0 text-gray-600" />
-                    <span>
+                <div className="mb-5 flex gap-3 p-3.5 bg-yellow-50 border border-yellow-200 rounded-xl text-xs text-yellow-900 leading-relaxed items-center">
+                    <Info className="w-5 h-5 shrink-0 text-yellow-600 self-center" />
+                    <span className="flex-1">
                         <strong>Informasi Aktuaria:</strong> Usia harapan hidup rata-rata adalah <strong>{mortalityInfo.expected_death_age} tahun</strong>. Terdapat probabilitas <strong>50%</strong> untuk mencapai usia <strong>{mortalityInfo.p50_survival_age} tahun</strong>, dan probabilitas <strong>10%</strong> untuk mencapai usia <strong>{mortalityInfo.p90_survival_age} tahun</strong>.
                     </span>
                 </div>
             ) : (
-                <div className="mb-5 flex gap-2.5 p-3.5 bg-gray-50/50 border border-gray-200/80 rounded-xl text-xs text-gray-800 leading-relaxed items-center">
-                    <Info className="w-4 h-4 shrink-0 text-gray-600" />
-                    <span>
+                <div className="mb-5 flex gap-3 p-3.5 bg-yellow-50 border border-yellow-200 rounded-xl text-xs text-yellow-900 leading-relaxed items-center">
+                    <Info className="w-5 h-5 shrink-0 text-yellow-600 self-center" />
+                    <span className="flex-1">
                         <strong>Informasi Aktuaria:</strong> {fetchError ?? "Sistem akan menghitung usia harapan hidup berdasarkan tabel mortalitas Indonesia (TMPI 2023) sesuai dengan usia dan jenis kelamin kamu."}
                     </span>
                 </div>
@@ -1120,38 +1123,40 @@ function S9_Lifestyle({ data, set }: { data: WizardData; set: (p: Partial<Wizard
 
     return (
         <div>
-            <StepHeader emoji="🏡" headline="Gaya hidup saat pensiun?" sub="Masukkan persentase dari gaji terakhir yang kamu butuhkan per bulan." />
+            <StepHeader headline="Gaya hidup saat pensiun?" sub="Masukkan persentase dari gaji terakhir yang kamu butuhkan per bulan." />
             <div className="mb-4">
                 <label className="text-[14px] font-medium text-gray-700 block mb-2">
                     Persentase kebutuhan
                 </label>
                 <div className="flex items-center gap-3">
-                    <input
-                        type="text"
-                        inputMode="decimal"
-                        placeholder="80"
-                        value={lifestyleRaw}
-                        onChange={e => {
-                            const val = normalizeDecimalInput(e.target.value);
-                            const num = parseDecimalInput(val);
+                    <div className="relative">
+                        <input
+                            type="text"
+                            inputMode="decimal"
+                            placeholder="80"
+                            value={lifestyleRaw}
+                            onChange={e => {
+                                const val = normalizeDecimalInput(e.target.value);
+                                const num = parseDecimalInput(val);
 
-                            if (num !== null && num > 200) {
-                                return;
-                            }
+                                if (num !== null && num > 200) {
+                                    return;
+                                }
 
-                            setLifestyleRaw(val);
-                            set({ lifestylePercent: num });
-                        }}
-                        className={cn(
-                            "w-28 py-4 px-4 bg-white border rounded-xl text-center outline-none transition-all duration-200 text-base font-bold focus:border-[#10B981] focus:ring-4 focus:ring-[#10B981]/10",
-                            data.lifestylePercent !== null && !stepValidation.valid
-                                ? "border-red-300 focus:border-red-400 focus:ring-red-500/10"
-                                : data.lifestylePercent
-                                    ? "border-[#10B981]"
-                                    : "border-gray-200"
-                        )}
-                    />
-                    <span className="text-base font-medium text-gray-500">% dari gaji terakhir</span>
+                                setLifestyleRaw(val);
+                                set({ lifestylePercent: num });
+                            }}
+                            className={cn(
+                                "w-28 py-4 px-4 pr-9 bg-white border rounded-xl text-left outline-none transition-all duration-200 text-base font-bold focus:border-[#10B981] focus:ring-4 focus:ring-[#10B981]/10",
+                                data.lifestylePercent !== null && !stepValidation.valid
+                                    ? "border-red-300 focus:border-red-400 focus:ring-red-500/10"
+                                    : data.lifestylePercent
+                                        ? "border-[#10B981]"
+                                        : "border-gray-200"
+                            )}
+                        />
+                        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-base font-semibold pointer-events-none text-gray-400">%</span>
+                    </div>
                 </div>
                 <p className="text-xs mt-2 text-gray-500">
                     Contoh: 80 berarti kebutuhanmu 80% dari gaji terakhir.
@@ -1289,7 +1294,7 @@ function S10_Risk({ data, set }: { data: WizardData; set: (p: Partial<WizardData
 
     return (
         <div>
-            <StepHeader emoji="🧠" headline="Analisis Profil Finansial" sub={`${RISK_QUESTIONS.length} pertanyaan untuk menentukan profil risiko kamu`} />
+            <StepHeader headline="Analisis Profil Finansial" sub={`${RISK_QUESTIONS.length} pertanyaan untuk menentukan profil risiko kamu`} />
 
             {/* Progress Dots */}
             <div className="flex gap-2 mb-6">
@@ -1319,27 +1324,27 @@ function S10_Risk({ data, set }: { data: WizardData; set: (p: Partial<WizardData
                         )}
 
                         {current.id === "annual_income" && (
-                            <div className="mb-4 flex gap-2.5 p-3.5 bg-blue-50/50 border border-blue-100/80 rounded-xl text-xs text-blue-800 leading-relaxed items-center">
-                                <Info className="w-4 h-4 shrink-0 text-blue-600" />
-                                <span>
+                            <div className="mb-4 flex gap-3 p-3.5 bg-yellow-50 border border-yellow-200 rounded-xl text-xs text-yellow-900 leading-relaxed items-center">
+                                <Info className="w-5 h-5 shrink-0 text-yellow-600 self-center" />
+                                <span className="flex-1">
                                     Nilai terisi otomatis dari <strong>(Gaji Bulanan × 12) + (Gaji Bulanan × Bonus Bulan)</strong>. Anda dapat mengubah nilai ini jika diperlukan. Nilai ini hanya untuk analisis profil risiko finansial, tidak mempengaruhi proyeksi pensiun.
                                 </span>
                             </div>
                         )}
 
                         {current.id === "age" && (
-                            <div className="mb-4 flex gap-2.5 p-3.5 bg-blue-50/50 border border-blue-100/80 rounded-xl text-xs text-blue-800 leading-relaxed items-center">
-                                <Info className="w-4 h-4 shrink-0 text-blue-600" />
-                                <span>
+                            <div className="mb-4 flex gap-3 p-3.5 bg-yellow-50 border border-yellow-200 rounded-xl text-xs text-yellow-900 leading-relaxed items-center">
+                                <Info className="w-5 h-5 shrink-0 text-yellow-600 self-center" />
+                                <span className="flex-1">
                                     Nilai terisi otomatis dari <strong>usia</strong> yang anda masukkan sebelumnya. Anda tetap dapat mengubah nilai ini secara manual jika diperlukan.
                                 </span>
                             </div>
                         )}
 
                         {current.id === "savings_balance" && (
-                            <div className="mb-4 flex gap-2.5 p-3.5 bg-amber-50/50 border border-amber-100/80 rounded-xl text-xs text-amber-800 leading-relaxed items-center">
-                                <Info className="w-4 h-4 shrink-0 text-amber-600" />
-                                <span>
+                            <div className="mb-4 flex gap-3 p-3.5 bg-yellow-50 border border-yellow-200 rounded-xl text-xs text-yellow-900 leading-relaxed items-center">
+                                <Info className="w-5 h-5 shrink-0 text-yellow-600 self-center" />
+                                <span className="flex-1">
                                     Nilai terisi otomatis dari <strong>total tabungan & investasi</strong> yang anda masukkan sebelumnya. Anda tetap dapat mengubah nilai ini secara manual jika diperlukan.
                                 </span>
                             </div>
@@ -1385,24 +1390,26 @@ function S10_Risk({ data, set }: { data: WizardData; set: (p: Partial<WizardData
                                             Porsi cicilan/hutang
                                         </label>
                                         <div className="flex items-center gap-3">
-                                            <input
-                                                type="text"
-                                                inputMode="decimal"
-                                                value={rawInputs[current.id] ?? (answers[current.id] !== undefined ? String(answers[current.id]) : "")}
-                                                onChange={(e) => {
-                                                    handleTextInputChange(e.target.value);
-                                                }}
-                                                placeholder="30"
-                                                autoFocus
-                                                className={cn(
-                                                    "w-28 py-4 px-4 bg-white border rounded-xl text-center outline-none transition-all duration-200 text-base font-bold focus:border-[#10B981] focus:ring-4 focus:ring-[#10B981]/10",
-                                                    answers[current.id] !== undefined ? "border-[#10B981]" : "border-gray-200"
-                                                )}
-                                            />
+                                            <div className="relative w-full">
+                                                <input
+                                                    type="text"
+                                                    inputMode="decimal"
+                                                    value={rawInputs[current.id] ?? (answers[current.id] !== undefined ? String(answers[current.id]) : "")}
+                                                    onChange={(e) => {
+                                                        handleTextInputChange(e.target.value);
+                                                    }}
+                                                    placeholder="30"
+                                                    autoFocus
+                                                    className={cn(
+                                                        "w-full py-4 pl-4 pr-12 bg-white border rounded-xl outline-none transition-all duration-200 text-base font-semibold focus:border-[#10B981] focus:ring-4 focus:ring-[#10B981]/10",
+                                                        answers[current.id] !== undefined ? "border-[#10B981]" : "border-gray-200"
+                                                    )}
+                                                />
+                                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-base font-semibold pointer-events-none text-gray-400">
+                                                    %
+                                                </span>
+                                            </div>
                                         </div>
-                                        <p className="text-xs mt-2 text-gray-500">
-                                            Contoh: 30 berarti cicilanmu 30% dari pendapatan bulanan. Jika tidak ada hutang/cicilan, masukkan 0.
-                                        </p>
                                         {debtMonthly !== null && (
                                             <motion.div
                                                 initial={{ opacity: 0, y: 6 }}
@@ -1491,7 +1498,7 @@ function S11_Sector({ data, set }: { data: WizardData; set: (p: Partial<WizardDa
 
     return (
         <div>
-            <StepHeader emoji="🏢" headline="Kamu kerja di sektor apa?" sub="Ini membantu kami menyesuaikan proyeksi dengan kondisi nyata Indonesia." />
+            <StepHeader headline="Kamu kerja di sektor apa?" sub="Ini membantu kami menyesuaikan proyeksi dengan kondisi nyata Indonesia." />
             <div className="mb-4">
                 <label className="text-[14px] font-medium text-gray-700 block mb-2">
                     Pilih sektor pekerjaan
@@ -1569,7 +1576,7 @@ function S12_Assumptions({ data, set }: { data: WizardData; set: (p: Partial<Wiz
 
     return (
         <div>
-            <StepHeader emoji="⚙️" headline="Asumsi terakhir..." sub="Ini dipakai untuk menghitung proyeksi yang lebih akurat." />
+            <StepHeader headline="Asumsi terakhir..." sub="Ini dipakai untuk menghitung proyeksi yang lebih akurat." />
             <div className="mb-6">
                 <p className="text-[14px] font-medium text-gray-700 block mb-2">Asumsi bunga deposito/tahun</p>
                 <div className="grid grid-cols-4 gap-2">
@@ -1608,9 +1615,9 @@ function S12_Assumptions({ data, set }: { data: WizardData; set: (p: Partial<Wiz
 
                 {!data.hasHealthInsurance && (
                     <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}
-                        className="flex gap-2.5 p-3.5 rounded-xl overflow-hidden bg-gray-50/80 border border-gray-200/80">
-                        <Info className="w-4 h-4 shrink-0 mt-0.5 text-gray-500" />
-                        <p className="text-xs leading-relaxed text-gray-600">
+                        className="flex gap-3 p-3.5 rounded-xl overflow-hidden bg-yellow-50 border border-yellow-200">
+                        <Info className="w-5 h-5 shrink-0 text-yellow-600 self-center" />
+                        <p className="text-xs leading-relaxed text-yellow-900 flex-1">
                             Tanpa centang pun boleh lanjut. Info: inflasi biaya kesehatan di Indonesia sering &gt;10%/tahun — pertimbangkan BPJS jika belum punya.
                         </p>
                     </motion.div>
@@ -1635,9 +1642,9 @@ function S12_Assumptions({ data, set }: { data: WizardData; set: (p: Partial<Wiz
 
                 {!data.includePandemicRisk && (
                     <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}
-                        className="flex gap-2.5 p-3.5 rounded-xl overflow-hidden bg-gray-50/80 border border-gray-200/80">
-                        <Info className="w-4 h-4 shrink-0 mt-0.5 text-gray-500" />
-                        <p className="text-xs leading-relaxed text-gray-600">
+                        className="flex gap-3 p-3.5 rounded-xl overflow-hidden bg-yellow-50 border border-yellow-200">
+                        <Info className="w-5 h-5 shrink-0 text-yellow-600 self-center" />
+                        <p className="text-xs leading-relaxed text-yellow-900 flex-1">
                             Tanpa centang pun boleh lanjut. Centang jika ingin proyeksi lebih konservatif (buffer risiko krisis).
                         </p>
                     </motion.div>
