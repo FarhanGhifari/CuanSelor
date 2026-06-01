@@ -217,6 +217,7 @@ export default function InteractiveSimulationPreview() {
                                                 <button
                                                     key={profile.id}
                                                     type="button"
+                                                    suppressHydrationWarning
                                                     onClick={() => setRiskProfile(profile.id)}
                                                     aria-pressed={isActive}
                                                     className={[

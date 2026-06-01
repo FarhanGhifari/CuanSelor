@@ -297,7 +297,7 @@ function CurrencyField({
 
 /* ── Choice Chip ────────────────────────────────────────────────────── */
 function Chip({
-    selected, onClick, children, sub, icon, color,
+    selected, onClick, children, sub, icon, color, disabled = false,
 }: {
     selected: boolean;
     onClick: () => void;
@@ -305,13 +305,18 @@ function Chip({
     sub?: string;
     icon?: React.ReactNode;
     color?: string;
+    disabled?: boolean;
 }) {
     const activeColor = color ?? T.blue;
     return (
         <button
             type="button"
-            onClick={onClick}
-            className="w-full text-left flex items-center gap-4 px-4 py-3.5 rounded-xl border transition-all duration-200 active:scale-[0.98]"
+            onClick={disabled ? undefined : onClick}
+            disabled={disabled}
+            className={cn(
+                "w-full text-left flex items-center gap-4 px-4 py-3.5 rounded-xl border transition-all duration-200",
+                disabled ? "cursor-not-allowed opacity-45" : "active:scale-[0.98]"
+            )}
             style={{
                 borderColor:  selected ? activeColor : "rgb(229, 231, 235)",
                 background:   selected ? `${activeColor}0d` : T.canvas,
@@ -401,7 +406,17 @@ function S0_Personal({ data, set }: { data: WizardData; set: (p: Partial<WizardD
                         value={data.age ?? ""}
                         onChange={e => {
                             const val = e.target.value.replace(/\D/g, "");
-                            set({ age: val === "" ? null : Number(val) });
+                            const nextAge = val === "" ? null : Number(val);
+                            const shouldResetRetirementAge =
+                                nextAge !== null
+                                && data.retirementAge !== null
+                                && data.retirementAge <= nextAge;
+
+                            set({
+                                age: nextAge,
+                                retirementAge: shouldResetRetirementAge ? null : data.retirementAge,
+                                planningAge: shouldResetRetirementAge ? null : data.planningAge,
+                            });
                         }}
                         className={cn(
                             "w-28 py-4 px-4 bg-white border rounded-xl text-center outline-none transition-all duration-200 text-base font-bold focus:border-[#10B981] focus:ring-4 focus:ring-[#10B981]/10",
@@ -699,21 +714,47 @@ function S5_CurrentSavings({ data, set }: { data: WizardData; set: (p: Partial<W
 }
 
 function S7_RetirementAge({ data, set }: { data: WizardData; set: (p: Partial<WizardData>) => void }) {
+    const presetAges = [45, 50, 55];
+    const minimumRetirementAge = data.age !== null ? data.age + 1 : 18;
+    const isValidRetirementAge = (age: number) => age >= minimumRetirementAge && age <= 80;
     const [isCustom, setIsCustom] = useState(() => {
-        return data.retirementAge !== null && ![45, 50, 55].includes(data.retirementAge);
+        return data.retirementAge !== null && !presetAges.includes(data.retirementAge);
+    });
+    const [customAgeRaw, setCustomAgeRaw] = useState(() => {
+        return data.retirementAge !== null && !presetAges.includes(data.retirementAge)
+            ? String(data.retirementAge)
+            : "";
     });
 
     const handleChipClick = (age: number | null, custom: boolean) => {
         setIsCustom(custom);
         if (custom) {
             const currentVal = data.retirementAge;
-            if (currentVal === null || [45, 50, 55].includes(currentVal)) {
+            const canKeepCurrent = currentVal !== null
+                && !presetAges.includes(currentVal)
+                && isValidRetirementAge(currentVal);
+
+            setCustomAgeRaw(canKeepCurrent ? String(currentVal) : "");
+
+            if (!canKeepCurrent) {
                 set({ retirementAge: null });
             }
         } else {
+            if (age !== null && !isValidRetirementAge(age)) return;
+            setCustomAgeRaw("");
             set({ retirementAge: age });
         }
     };
+
+    const fallbackAge = presetAges.find(age => isValidRetirementAge(age)) ?? null;
+    const customAgeNumber = customAgeRaw === "" ? null : Number(customAgeRaw);
+    const customAgeError = customAgeNumber === null
+        ? null
+        : customAgeNumber < minimumRetirementAge
+            ? `Minimal ${minimumRetirementAge} tahun karena usia kamu ${data.age} tahun.`
+            : customAgeNumber > 80
+                ? "Maksimal 80 tahun."
+                : null;
 
     const ageOpts = [
         { age: 45, label: "Umur 45", sub: "Pensiun dini - butuh persiapan ekstra keras", emoji: "⚡" },
@@ -725,14 +766,19 @@ function S7_RetirementAge({ data, set }: { data: WizardData; set: (p: Partial<Wi
         <div>
             <StepHeader emoji="🌴" headline="Kapan kamu ingin pensiun?" sub="Tidak harus angka pasti. Estimasi sudah cukup - bisa diubah nanti." />
             <div className="space-y-3">
-                {ageOpts.map(o => (
-                    <Chip key={o.age} selected={!isCustom && data.retirementAge === o.age}
-                        onClick={() => handleChipClick(o.age, false)}
-                        icon={<span className="text-lg">{o.emoji}</span>}
-                        sub={o.sub}>
-                        {o.label}
-                    </Chip>
-                ))}
+                {ageOpts.map(o => {
+                    const disabled = !isValidRetirementAge(o.age);
+
+                    return (
+                        <Chip key={o.age} selected={!isCustom && data.retirementAge === o.age}
+                            onClick={() => handleChipClick(o.age, false)}
+                            disabled={disabled}
+                            icon={<span className="text-lg">{o.emoji}</span>}
+                            sub={disabled ? `Tidak tersedia karena usia kamu ${data.age} tahun` : o.sub}>
+                            {o.label}
+                        </Chip>
+                    );
+                })}
 
                 {isCustom ? (
                     <motion.div
@@ -752,13 +798,26 @@ function S7_RetirementAge({ data, set }: { data: WizardData; set: (p: Partial<Wi
                             <input
                                 type="text"
                                 inputMode="numeric"
-                                placeholder="60"
-                                value={data.retirementAge !== null && ![45, 50, 55].includes(data.retirementAge) ? data.retirementAge : ""}
+                                placeholder={String(Math.max(60, minimumRetirementAge))}
+                                value={customAgeRaw}
                                 onChange={e => {
                                     const val = e.target.value.replace(/\D/g, "");
-                                    set({ retirementAge: val === "" ? null : Number(val) });
+                                    const nextAge = val === "" ? null : Number(val);
+
+                                    setCustomAgeRaw(val);
+                                    set({
+                                        retirementAge: nextAge !== null && isValidRetirementAge(nextAge)
+                                            ? nextAge
+                                            : null,
+                                    });
                                 }}
-                                className="w-16 py-1.5 px-2 text-center bg-white border border-emerald-200 rounded-lg outline-none text-sm font-bold focus:border-[#10B981] focus:ring-2 focus:ring-[#10B981]/15 text-gray-900"
+                                aria-invalid={customAgeError ? "true" : "false"}
+                                className={cn(
+                                    "w-16 py-1.5 px-2 text-center bg-white border rounded-lg outline-none text-sm font-bold focus:ring-2 text-gray-900",
+                                    customAgeError
+                                        ? "border-red-300 focus:border-red-400 focus:ring-red-500/15"
+                                        : "border-emerald-200 focus:border-[#10B981] focus:ring-[#10B981]/15"
+                                )}
                                 autoFocus
                             />
                             <span className="text-sm font-semibold text-gray-700">tahun</span>
@@ -767,7 +826,8 @@ function S7_RetirementAge({ data, set }: { data: WizardData; set: (p: Partial<Wi
                             type="button"
                             onClick={() => {
                                 setIsCustom(false);
-                                set({ retirementAge: 55 });
+                                setCustomAgeRaw("");
+                                set({ retirementAge: fallbackAge });
                             }}
                             className="text-xs px-2.5 py-1 rounded-full border border-gray-200 bg-white text-gray-500 hover:bg-gray-50 transition-colors"
                         >
@@ -784,13 +844,23 @@ function S7_RetirementAge({ data, set }: { data: WizardData; set: (p: Partial<Wi
                         Input Sendiri
                     </Chip>
                 )}
+                {isCustom && customAgeError && (
+                    <p className="text-xs font-medium text-red-500">
+                        {customAgeError}
+                    </p>
+                )}
+                <p className="text-xs text-gray-500">
+                    Target pensiun harus lebih besar dari usia kamu saat ini. Minimal {minimumRetirementAge} tahun.
+                </p>
             </div>
         </div>
     );
 }
 
 function S8_PlanningAge({ data, set }: { data: WizardData; set: (p: Partial<WizardData>) => void }) {
-    const shouldFetchMortalityInfo = Boolean(data.age && data.gender && data.retirementAge);
+    const shouldFetchMortalityInfo = Boolean(
+        data.age && data.gender && data.retirementAge && data.retirementAge > data.age
+    );
     const [mortalityInfo, setMortalityInfo] = useState<{
         expected_death_age: number;
         p50_survival_age: number;
@@ -1168,27 +1238,55 @@ function S10_Risk({ data, set }: { data: WizardData; set: (p: Partial<WizardData
                             </div>
                         ) : current.type === "number" || current.type === "percentage" ? (
                             <div>
-                                <div className="relative">
-                                    <input
-                                        type="text"
-                                        inputMode={current.type === "percentage" ? "decimal" : "numeric"}
-                                        value={rawInputs[current.id] ?? (answers[current.id] !== undefined ? String(answers[current.id]) : "")}
-                                        onChange={(e) => {
-                                            handleTextInputChange(e.target.value);
-                                        }}
-                                        placeholder={current.placeholder}
-                                        autoFocus
-                                        className={cn(
-                                            "w-full px-4 py-4 bg-white border rounded-xl outline-none transition-all duration-200 text-base font-semibold focus:border-[#10B981] focus:ring-4 focus:ring-[#10B981]/10",
-                                            answers[current.id] !== undefined ? "border-[#10B981]" : "border-gray-200"
+                                {current.id === "debt_to_income_ratio" ? (
+                                    <div className="mb-4">
+                                        <label className="text-[14px] font-medium text-gray-700 block mb-2">
+                                            Porsi cicilan/hutang
+                                        </label>
+                                        <div className="flex items-center gap-3">
+                                            <input
+                                                type="text"
+                                                inputMode="decimal"
+                                                value={rawInputs[current.id] ?? (answers[current.id] !== undefined ? String(answers[current.id]) : "")}
+                                                onChange={(e) => {
+                                                    handleTextInputChange(e.target.value);
+                                                }}
+                                                placeholder="30"
+                                                autoFocus
+                                                className={cn(
+                                                    "w-28 py-4 px-4 bg-white border rounded-xl text-center outline-none transition-all duration-200 text-base font-bold focus:border-[#10B981] focus:ring-4 focus:ring-[#10B981]/10",
+                                                    answers[current.id] !== undefined ? "border-[#10B981]" : "border-gray-200"
+                                                )}
+                                            />
+                                            <span className="text-base font-medium text-gray-500">% dari pendapatan bulanan</span>
+                                        </div>
+                                        <p className="text-xs mt-2 text-gray-500">
+                                            Contoh: 30 berarti cicilanmu 30% dari pendapatan bulanan.
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            inputMode={current.type === "percentage" ? "decimal" : "numeric"}
+                                            value={rawInputs[current.id] ?? (answers[current.id] !== undefined ? String(answers[current.id]) : "")}
+                                            onChange={(e) => {
+                                                handleTextInputChange(e.target.value);
+                                            }}
+                                            placeholder={current.placeholder}
+                                            autoFocus
+                                            className={cn(
+                                                "w-full px-4 py-4 bg-white border rounded-xl outline-none transition-all duration-200 text-base font-semibold focus:border-[#10B981] focus:ring-4 focus:ring-[#10B981]/10",
+                                                answers[current.id] !== undefined ? "border-[#10B981]" : "border-gray-200"
+                                            )}
+                                        />
+                                        {current.unit && (
+                                            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-base font-semibold pointer-events-none text-gray-400">
+                                                {current.unit}
+                                            </span>
                                         )}
-                                    />
-                                    {current.unit && (
-                                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-base font-semibold pointer-events-none text-gray-400">
-                                            {current.unit}
-                                        </span>
-                                    )}
-                                </div>
+                                    </div>
+                                )}
                                 <button
                                     type="button"
                                     onClick={handleNext}
@@ -1528,7 +1626,10 @@ const STEP_CONFIG = [
     { label: "Bonus",        validate: (d: WizardData) => d.annualBonusMonths !== null },
     { label: "Nabung",       validate: (d: WizardData) => d.savingsPercentage !== null },
     { label: "Tabungan",     validate: (d: WizardData) => d.currentSavings !== null },
-    { label: "Pensiun",      validate: (d: WizardData) => d.retirementAge !== null },
+    { label: "Pensiun",      validate: (d: WizardData) => {
+        if (d.retirementAge === null || d.age === null) return false;
+        return d.retirementAge > d.age && d.retirementAge <= 80;
+    }},
     { label: "Usia Target",  validate: (d: WizardData) => {
         if (d.planningAge === null || d.retirementAge === null) return false;
         return d.planningAge > d.retirementAge && d.planningAge <= 120;
