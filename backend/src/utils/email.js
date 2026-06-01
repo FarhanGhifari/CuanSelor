@@ -1,37 +1,105 @@
-import { Resend } from 'resend';
+import nodemailer from "nodemailer";
+import { Resend } from "resend";
 import { env } from "../config/env.js";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = process.env.RESEND_API_KEY
+  ? new Resend(process.env.RESEND_API_KEY)
+  : null;
 
-/**
- * Fungsi pengiriman email utama
- */
-async function sendEmail({ to, subject, html }) {
-  if (!process.env.RESEND_API_KEY) {
-    throw new Error("RESEND_API_KEY belum dikonfigurasi di server");
+function hasGmailConfig() {
+  return Boolean(env.gmailUser && env.gmailAppPassword);
+}
+
+function formatResendFrom() {
+  if (env.resendFromEmail.includes("<")) {
+    return env.resendFromEmail;
+  }
+  return `${env.emailFromName} <${env.resendFromEmail}>`;
+}
+
+function explainResendError(message) {
+  if (
+    message?.includes("only send testing emails") ||
+    message?.includes("verify a domain")
+  ) {
+    return (
+      "Resend mode testing: email hanya bisa ke alamat pemilik akun Resend. " +
+      "Agar user bisa pakai email apa saja, verify domain di resend.com/domains lalu set " +
+      "RESEND_FROM_EMAIL=noreply@domain-terverify.com di Railway (redeploy)."
+    );
+  }
+  return message || "Gagal mengirim email";
+}
+
+async function sendViaGmail({ to, subject, html }) {
+  const transport = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: env.gmailUser,
+      pass: env.gmailAppPassword,
+    },
+  });
+
+  const info = await transport.sendMail({
+    from: `"${env.emailFromName}" <${env.gmailUser}>`,
+    to,
+    subject,
+    html,
+  });
+
+  return { success: true, id: info.messageId };
+}
+
+async function sendViaResend({ to, subject, html }) {
+  const from = formatResendFrom();
+
+  const { data, error } = await resend.emails.send({
+    from,
+    to,
+    subject,
+    html,
+  });
+
+  if (error) {
+    throw new Error(explainResendError(error.message));
   }
 
-  try {
-    const { data, error } = await resend.emails.send({
-      from: `${env.emailFromName} <onboarding@resend.dev>`,
-      to,
-      subject,
-      html,
-    });
-
-    if (error) {
-      throw new Error(error.message || "Gagal mengirim email");
-    }
-
-    return { success: true, id: data?.id };
-  } catch (error) {
-    console.error("[Email] Resend Error:", error);
-    throw error instanceof Error ? error : new Error("Gagal mengirim email");
-  }
+  return { success: true, id: data?.id };
 }
 
 /**
- * Template Email yang kamu inginkan
+ * Railway: pakai Resend (HTTP API). Gmail SMTP sering gagal karena port 587/465 diblokir.
+ */
+async function sendEmail({ to, subject, html }) {
+  if (resend) {
+    try {
+      return await sendViaResend({ to, subject, html });
+    } catch (error) {
+      console.error("[Email] Resend Error:", error);
+      throw error instanceof Error ? error : new Error("Gagal mengirim email");
+    }
+  }
+
+  if (hasGmailConfig()) {
+    try {
+      return await sendViaGmail({ to, subject, html });
+    } catch (error) {
+      console.error("[Email] Gmail Error:", error);
+      throw error instanceof Error
+        ? error
+        : new Error(
+            "Gmail SMTP gagal (umum di Railway karena port SMTP diblokir). Pakai RESEND_API_KEY di production.",
+          );
+    }
+  }
+
+  throw new Error(
+    "Email belum dikonfigurasi. Production (Railway): RESEND_API_KEY + RESEND_FROM_EMAIL setelah domain diverifikasi di Resend.",
+  );
+}
+
+/**
+ * Template Email
  */
 const getEmailTemplate = (title, content, buttonText, url, footerNote) => `
 <!DOCTYPE html>
@@ -90,7 +158,7 @@ export async function sendVerificationEmail({ user, url }) {
     "Halo! Terima kasih sudah mendaftar di CuanSelor. Klik tombol di bawah untuk verifikasi email Anda.",
     "Verifikasi Email",
     url,
-    "Link ini akan kadaluarsa dalam 24 jam. Jika Anda tidak mendaftar di CuanSelor, abaikan email ini."
+    "Link ini akan kadaluarsa dalam 24 jam. Jika Anda tidak mendaftar di CuanSelor, abaikan email ini.",
   );
 
   return sendEmail({ to: user.email, subject: "Verifikasi Email Anda - CuanSelor", html });
@@ -102,7 +170,7 @@ export async function sendResetPasswordEmail({ user, url }) {
     "Kami menerima permintaan untuk reset password akun Anda. Klik tombol di bawah untuk membuat password baru.",
     "Reset Password",
     url,
-    "Link ini akan kadaluarsa dalam 1 jam. Jika Anda tidak meminta reset password, abaikan email ini."
+    "Link ini akan kadaluarsa dalam 1 jam. Jika Anda tidak meminta reset password, abaikan email ini.",
   );
 
   return sendEmail({ to: user.email, subject: "Reset Password - CuanSelor", html });

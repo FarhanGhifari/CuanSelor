@@ -54,7 +54,9 @@ export const env = {
   projectionRateLimitMax: Number(process.env.PROJECTION_RATE_LIMIT_MAX || 10),
   // Email verification - set ke true di production setelah konfigurasi email provider
   requireEmailVerification: process.env.REQUIRE_EMAIL_VERIFICATION === "true",
-  // Email provider configuration (Gmail SMTP only)
+  // Email — Resend (production/Railway) atau Gmail SMTP (lokal; Railway sering blokir port SMTP)
+  resendFromEmail:
+    process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev",
   gmailUser: process.env.GMAIL_USER,
   gmailAppPassword: process.env.GMAIL_APP_PASSWORD,
   emailFromName: process.env.EMAIL_FROM_NAME || "CuanSelor",
