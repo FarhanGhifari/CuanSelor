@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
     Target, ChevronRight, ChevronLeft,
     Check, Sparkles, Info, AlertCircle,
-    PiggyBank,
+    PiggyBank, Wallet,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { Modal } from "@/components/ui/Modal";
@@ -70,6 +70,116 @@ const parseDecimalInput = (value: string) => {
     return Number.isFinite(parsed) ? parsed : null;
 };
 
+type StepValidationResult = { valid: boolean; error: string | null };
+
+/** Validasi per langkah — dipakai untuk tombol Lanjut + pesan error di step */
+export function getStepValidation(step: number, d: WizardData): StepValidationResult {
+    switch (step) {
+        case 0: {
+            const name = d.fullName?.trim();
+            if (!name) return { valid: false, error: "Nama lengkap wajib diisi." };
+            if (d.age === null) return { valid: false, error: "Usia wajib diisi." };
+            if (d.age < 18) return { valid: false, error: "Usia minimal 18 tahun." };
+            if (d.age > 100) return { valid: false, error: "Usia maksimal 100 tahun." };
+            if (!d.gender) return { valid: false, error: "Pilih jenis kelamin." };
+            return { valid: true, error: null };
+        }
+        case 1: {
+            if (d.monthlyIncome === null) return { valid: false, error: "Masukkan gaji bersih per bulan." };
+            if (d.monthlyIncome <= 0) return { valid: false, error: "Gaji harus lebih dari Rp 0." };
+            return { valid: true, error: null };
+        }
+        case 2: {
+            if (d.annualBonusMonths === null) {
+                return { valid: false, error: "Pilih atau masukkan bonus/THR per tahun." };
+            }
+            if (d.annualBonusMonths < 0 || d.annualBonusMonths > 12) {
+                return { valid: false, error: "Bonus/THR antara 0–12× gaji per tahun." };
+            }
+            return { valid: true, error: null };
+        }
+        case 3: {
+            if (d.savingsPercentage === null) {
+                return { valid: false, error: "Pilih atau masukkan persentase nabung." };
+            }
+            if (d.savingsPercentage < 0 || d.savingsPercentage > 100) {
+                return { valid: false, error: "Persentase nabung antara 0–100%." };
+            }
+            return { valid: true, error: null };
+        }
+        case 4: {
+            if (d.currentSavings === null) {
+                return { valid: false, error: "Masukkan total tabungan (isi 0 jika belum ada)." };
+            }
+            if (d.currentSavings < 0) return { valid: false, error: "Tabungan tidak boleh negatif." };
+            return { valid: true, error: null };
+        }
+        case 5: {
+            if (d.age === null) {
+                return { valid: false, error: "Lengkapi usia di langkah Data Diri terlebih dahulu." };
+            }
+            if (d.retirementAge === null) {
+                return { valid: false, error: "Pilih atau masukkan target usia pensiun." };
+            }
+            if (d.retirementAge <= d.age) {
+                return {
+                    valid: false,
+                    error: `Target pensiun harus lebih besar dari usia kamu sekarang (${d.age} tahun). Minimal ${d.age + 1} tahun.`,
+                };
+            }
+            if (d.retirementAge > 80) {
+                return { valid: false, error: "Usia pensiun maksimal 80 tahun." };
+            }
+            return { valid: true, error: null };
+        }
+        case 6: {
+            if (d.retirementAge === null) {
+                return { valid: false, error: "Lengkapi target usia pensiun di langkah sebelumnya." };
+            }
+            if (d.planningAge === null) {
+                return { valid: false, error: "Masukkan usia rencana dana pensiun." };
+            }
+            if (d.planningAge <= d.retirementAge) {
+                return {
+                    valid: false,
+                    error: `Usia rencana harus lebih besar dari usia pensiun (${d.retirementAge} tahun). Minimal ${d.retirementAge + 1} tahun.`,
+                };
+            }
+            if (d.planningAge > 120) {
+                return { valid: false, error: "Usia rencana maksimal 120 tahun." };
+            }
+            return { valid: true, error: null };
+        }
+        case 7: {
+            if (d.lifestylePercent === null) {
+                return { valid: false, error: "Masukkan persentase kebutuhan pensiun." };
+            }
+            if (d.lifestylePercent <= 0 || d.lifestylePercent > 200) {
+                return { valid: false, error: "Persentase kebutuhan antara 1–200%." };
+            }
+            return { valid: true, error: null };
+        }
+        case 8: {
+            if (!d.riskProfile) {
+                return { valid: false, error: "Selesaikan semua pertanyaan profil finansial." };
+            }
+            return { valid: true, error: null };
+        }
+        case 9: {
+            if (!d.sector) return { valid: false, error: "Pilih sektor pekerjaan." };
+            return { valid: true, error: null };
+        }
+        case 10: {
+            if (d.depositRate === null) {
+                return { valid: false, error: "Pilih asumsi bunga deposito (wajib). Checkbox di bawah opsional." };
+            }
+            return { valid: true, error: null };
+        }
+        default:
+            return { valid: true, error: null };
+    }
+}
+
 /* ── Design Tokens ──────────────────────────────────────────────────── */
 const T = {
     blue:     "#10B981", // CuanSelor Emerald Green
@@ -84,6 +194,26 @@ const T = {
     warning:  "#f59e0b",
 };
 
+function StepFieldError({ message }: { message: string | null }) {
+    if (!message) return null;
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-4 flex gap-2.5 p-3.5 rounded-xl text-sm leading-relaxed"
+            style={{
+                background: "rgba(239,68,68,0.08)",
+                border: "1px solid rgba(239,68,68,0.2)",
+                color: T.danger,
+            }}
+        >
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+            <span>{message}</span>
+        </motion.div>
+    );
+}
+
 /* ── Risk Assessment Definitions ───────────────────────────────────── */
 export const RISK_QUESTIONS = [
     {
@@ -91,7 +221,7 @@ export const RISK_QUESTIONS = [
         q: "Berapa usia kamu saat ini?",
         emoji: "🎂",
         type: "number",
-        placeholder: "Contoh: 32",
+        placeholder: "Contoh: 24",
         unit: "tahun",
     },
     {
@@ -104,7 +234,7 @@ export const RISK_QUESTIONS = [
     },
     {
         id: "loan_amount",
-        q: "Berapa jumlah pinjaman yang ingin kamu ajukan atau analisis?",
+        q: "Berapa jumlah pinjaman saat ini atau rencana pinjaman ke depan?",
         emoji: "💳",
         type: "currency",
         placeholder: "Contoh: 35000000",
@@ -371,6 +501,10 @@ function StepHeader({
 /* ── Steps ──────────────────────────────────────────────────────────── */
 
 function S0_Personal({ data, set }: { data: WizardData; set: (p: Partial<WizardData>) => void }) {
+    const stepValidation = getStepValidation(0, data);
+    const ageInvalid =
+        data.age !== null && (data.age < 18 || data.age > 100);
+
     return (
         <div>
             <StepHeader headline="Kenalan dulu, yuk 👋"/>
@@ -420,7 +554,11 @@ function S0_Personal({ data, set }: { data: WizardData; set: (p: Partial<WizardD
                         }}
                         className={cn(
                             "w-28 py-4 px-4 bg-white border rounded-xl text-center outline-none transition-all duration-200 text-base font-bold focus:border-[#10B981] focus:ring-4 focus:ring-[#10B981]/10",
-                            data.age ? "border-[#10B981]" : "border-gray-200"
+                            ageInvalid
+                                ? "border-red-300 focus:border-red-400 focus:ring-red-500/10"
+                                : data.age
+                                    ? "border-[#10B981]"
+                                    : "border-gray-200"
                         )}
                     />
                     <span className="text-base font-medium text-gray-500">tahun</span>
@@ -455,25 +593,32 @@ function S0_Personal({ data, set }: { data: WizardData; set: (p: Partial<WizardD
                     </span>
                 </div>
             </div>
+            <StepFieldError message={stepValidation.valid ? null : stepValidation.error} />
         </div>
     );
 }
 
 function S1_Income({ data, set }: { data: WizardData; set: (p: Partial<WizardData>) => void }) {
+    const stepValidation = getStepValidation(1, data);
+    const showSuccess =
+        stepValidation.valid && data.monthlyIncome !== null && data.monthlyIncome > 0;
+
     return (
         <div>
             <StepHeader emoji="💰" headline="Berapa gaji bersihmu per bulan?" sub="Pendapatan setelah pajak & potongan lainnya." />
             <CurrencyField value={data.monthlyIncome} onChange={v => set({ monthlyIncome: v })} placeholder="5.000.000" autoFocus />
-            {data.monthlyIncome !== null && (
+            {showSuccess && (
                 <motion.p initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} className="mt-3 text-sm font-medium" style={{ color: T.blue }}>
-                    👍 Oke, Rp {fmt(data.monthlyIncome)}/bulan tercatat!
+                    👍 Oke, Rp {fmt(data.monthlyIncome!)}/bulan tercatat!
                 </motion.p>
             )}
+            <StepFieldError message={stepValidation.valid ? null : stepValidation.error} />
         </div>
     );
 }
 
 function S2_Bonus({ data, set }: { data: WizardData; set: (p: Partial<WizardData>) => void }) {
+    const stepValidation = getStepValidation(2, data);
     const [isCustom, setIsCustom] = useState(() => {
         return data.annualBonusMonths !== null && ![0, 1, 2].includes(data.annualBonusMonths);
     });
@@ -570,11 +715,13 @@ function S2_Bonus({ data, set }: { data: WizardData; set: (p: Partial<WizardData
                     </Chip>
                 )}
             </div>
+            <StepFieldError message={stepValidation.valid ? null : stepValidation.error} />
         </div>
     );
 }
 
 function S4_Savings({ data, set }: { data: WizardData; set: (p: Partial<WizardData>) => void }) {
+    const stepValidation = getStepValidation(3, data);
     const [isCustom, setIsCustom] = useState(() => {
         return data.savingsPercentage !== null && ![10, 20].includes(data.savingsPercentage);
     });
@@ -688,11 +835,14 @@ function S4_Savings({ data, set }: { data: WizardData; set: (p: Partial<WizardDa
                     </p>
                 </motion.div>
             )}
+            <StepFieldError message={stepValidation.valid ? null : stepValidation.error} />
         </div>
     );
 }
 
 function S5_CurrentSavings({ data, set }: { data: WizardData; set: (p: Partial<WizardData>) => void }) {
+    const stepValidation = getStepValidation(4, data);
+
     return (
         <div>
             <StepHeader emoji="🏦" headline="Total tabungan & investasimu saat ini?" sub="Rekening, deposito, reksa dana, saham, emas - semuanya. Kalau belum ada, isi 0." />
@@ -709,11 +859,13 @@ function S5_CurrentSavings({ data, set }: { data: WizardData; set: (p: Partial<W
                     Tidak apa-apa! Semua orang mulai dari nol 💪
                 </motion.p>
             )}
+            <StepFieldError message={stepValidation.valid ? null : stepValidation.error} />
         </div>
     );
 }
 
 function S7_RetirementAge({ data, set }: { data: WizardData; set: (p: Partial<WizardData>) => void }) {
+    const stepValidation = getStepValidation(5, data);
     const presetAges = [45, 50, 55];
     const minimumRetirementAge = data.age !== null ? data.age + 1 : 18;
     const isValidRetirementAge = (age: number) => age >= minimumRetirementAge && age <= 80;
@@ -755,6 +907,12 @@ function S7_RetirementAge({ data, set }: { data: WizardData; set: (p: Partial<Wi
             : customAgeNumber > 80
                 ? "Maksimal 80 tahun."
                 : null;
+    const displayError =
+        isCustom && customAgeError
+            ? customAgeError
+            : stepValidation.valid
+                ? null
+                : stepValidation.error;
 
     const ageOpts = [
         { age: 45, label: "Umur 45", sub: "Pensiun dini - butuh persiapan ekstra keras", emoji: "⚡" },
@@ -844,20 +1002,19 @@ function S7_RetirementAge({ data, set }: { data: WizardData; set: (p: Partial<Wi
                         Input Sendiri
                     </Chip>
                 )}
-                {isCustom && customAgeError && (
-                    <p className="text-xs font-medium text-red-500">
-                        {customAgeError}
-                    </p>
-                )}
                 <p className="text-xs text-gray-500">
                     Target pensiun harus lebih besar dari usia kamu saat ini. Minimal {minimumRetirementAge} tahun.
                 </p>
+                <StepFieldError message={displayError} />
             </div>
         </div>
     );
 }
 
 function S8_PlanningAge({ data, set }: { data: WizardData; set: (p: Partial<WizardData>) => void }) {
+    const stepValidation = getStepValidation(6, data);
+    const planningInvalid =
+        data.planningAge !== null && !stepValidation.valid;
     const shouldFetchMortalityInfo = Boolean(
         data.age && data.gender && data.retirementAge && data.retirementAge > data.age
     );
@@ -964,7 +1121,11 @@ function S8_PlanningAge({ data, set }: { data: WizardData; set: (p: Partial<Wiza
                         }}
                         className={cn(
                             "w-28 py-4 px-4 bg-white border rounded-xl text-center outline-none transition-all duration-200 text-base font-bold focus:border-[#10B981] focus:ring-4 focus:ring-[#10B981]/10",
-                            data.planningAge ? "border-[#10B981]" : "border-gray-200"
+                            planningInvalid
+                                ? "border-red-300 focus:border-red-400 focus:ring-red-500/10"
+                                : data.planningAge
+                                    ? "border-[#10B981]"
+                                    : "border-gray-200"
                         )}
                         autoFocus
                     />
@@ -980,12 +1141,14 @@ function S8_PlanningAge({ data, set }: { data: WizardData; set: (p: Partial<Wiza
                         Minimal {data.retirementAge + 1} tahun, maksimal 120 tahun
                     </p>
                 )}
+                <StepFieldError message={stepValidation.valid ? null : stepValidation.error} />
             </div>
         </div>
     );
 }
 
 function S9_Lifestyle({ data, set }: { data: WizardData; set: (p: Partial<WizardData>) => void }) {
+    const stepValidation = getStepValidation(7, data);
     const [lifestyleRaw, setLifestyleRaw] = useState(data.lifestylePercent !== null ? String(data.lifestylePercent) : "");
     const target = data.lifestylePercent && data.monthlyIncome
         ? Math.round(data.monthlyIncome * data.lifestylePercent / 100) : null;
@@ -1016,7 +1179,11 @@ function S9_Lifestyle({ data, set }: { data: WizardData; set: (p: Partial<Wizard
                         }}
                         className={cn(
                             "w-28 py-4 px-4 bg-white border rounded-xl text-center outline-none transition-all duration-200 text-base font-bold focus:border-[#10B981] focus:ring-4 focus:ring-[#10B981]/10",
-                            data.lifestylePercent ? "border-[#10B981]" : "border-gray-200"
+                            data.lifestylePercent !== null && !stepValidation.valid
+                                ? "border-red-300 focus:border-red-400 focus:ring-red-500/10"
+                                : data.lifestylePercent
+                                    ? "border-[#10B981]"
+                                    : "border-gray-200"
                         )}
                     />
                     <span className="text-base font-medium text-gray-500">% dari gaji terakhir</span>
@@ -1024,6 +1191,7 @@ function S9_Lifestyle({ data, set }: { data: WizardData; set: (p: Partial<Wizard
                 <p className="text-xs mt-2 text-gray-500">
                     Contoh: 80 berarti kebutuhanmu 80% dari gaji terakhir.
                 </p>
+                <StepFieldError message={stepValidation.valid ? null : stepValidation.error} />
             </div>
             {target && (
                 <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
@@ -1146,6 +1314,15 @@ function S10_Risk({ data, set }: { data: WizardData; set: (p: Partial<WizardData
 
     const profile = data.riskProfile;
 
+    const debtPct =
+        current.id === "debt_to_income_ratio" ? answers.debt_to_income_ratio : undefined;
+    const debtMonthly =
+        current.id === "debt_to_income_ratio" &&
+        data.monthlyIncome !== null &&
+        debtPct !== undefined
+            ? Math.round(data.monthlyIncome * debtPct / 100)
+            : null;
+
     return (
         <div>
             <StepHeader emoji="🧠" headline="Analisis Profil Finansial" sub={`${RISK_QUESTIONS.length} pertanyaan untuk menentukan profil risiko kamu`} />
@@ -1258,11 +1435,23 @@ function S10_Risk({ data, set }: { data: WizardData; set: (p: Partial<WizardData
                                                     answers[current.id] !== undefined ? "border-[#10B981]" : "border-gray-200"
                                                 )}
                                             />
-                                            <span className="text-base font-medium text-gray-500">% dari pendapatan bulanan</span>
                                         </div>
                                         <p className="text-xs mt-2 text-gray-500">
-                                            Contoh: 30 berarti cicilanmu 30% dari pendapatan bulanan.
+                                            Contoh: 30 berarti cicilanmu 30% dari pendapatan bulanan. Jika tidak ada hutang/cicilan, masukkan 0.
                                         </p>
+                                        {debtMonthly !== null && (
+                                            <motion.div
+                                                initial={{ opacity: 0, y: 6 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                className="mt-4 p-3.5 rounded-2xl flex items-center gap-3"
+                                                style={{ background: T.blueLight }}
+                                            >
+                                                <Wallet className="w-5 h-5 shrink-0" style={{ color: T.blue }} />
+                                                <p className="text-sm font-medium" style={{ color: T.blue }}>
+                                                    Perkiraan cicilan/hutang: Rp {fmt(debtMonthly)}/bulan
+                                                </p>
+                                            </motion.div>
+                                        )}
                                     </div>
                                 ) : (
                                     <div className="relative">
@@ -1334,6 +1523,7 @@ function S10_Risk({ data, set }: { data: WizardData; set: (p: Partial<WizardData
 }
 
 function S11_Sector({ data, set }: { data: WizardData; set: (p: Partial<WizardData>) => void }) {
+    const stepValidation = getStepValidation(9, data);
     const [isOpen, setIsOpen] = useState(false);
 
     return (
@@ -1401,12 +1591,14 @@ function S11_Sector({ data, set }: { data: WizardData; set: (p: Partial<WizardDa
                 <p className="text-xs mt-2 text-gray-500">
                     Kamu bisa pilih sektor yang paling mendekati pekerjaanmu.
                 </p>
+                <StepFieldError message={stepValidation.valid ? null : stepValidation.error} />
             </div>
         </div>
     );
 }
 
 function S12_Assumptions({ data, set }: { data: WizardData; set: (p: Partial<WizardData>) => void }) {
+    const stepValidation = getStepValidation(10, data);
     const rateOpts = [
         { r: 3.5, label: "3,5%", sub: "Konservatif" },
         { r: 4.0, label: "4,0%", sub: "Standar bank" },
@@ -1436,6 +1628,9 @@ function S12_Assumptions({ data, set }: { data: WizardData; set: (p: Partial<Wiz
             </div>
 
             <div className="space-y-3">
+                <p className="text-xs text-gray-500 mb-1">
+                    Pilihan di bawah opsional — boleh dicentang atau tidak, sesuai kondisimu.
+                </p>
                 <label className="flex items-center gap-4 p-4 rounded-xl border cursor-pointer transition-all"
                     style={{ borderColor: data.hasHealthInsurance ? T.blue : "rgb(229, 231, 235)", background: data.hasHealthInsurance ? T.blueLight : T.canvas }}>
                     <div className="relative">
@@ -1455,11 +1650,10 @@ function S12_Assumptions({ data, set }: { data: WizardData; set: (p: Partial<Wiz
 
                 {!data.hasHealthInsurance && (
                     <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}
-                        className="flex gap-2.5 p-3.5 rounded-xl overflow-hidden"
-                        style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.3)" }}>
-                        <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: T.warning }} />
-                        <p className="text-xs leading-relaxed text-[#92400e]">
-                            Inflasi biaya kesehatan Indonesia mencapai &gt;10%/tahun. Kami sarankan kamu segera mendaftar BPJS.
+                        className="flex gap-2.5 p-3.5 rounded-xl overflow-hidden bg-gray-50/80 border border-gray-200/80">
+                        <Info className="w-4 h-4 shrink-0 mt-0.5 text-gray-500" />
+                        <p className="text-xs leading-relaxed text-gray-600">
+                            Tanpa centang pun boleh lanjut. Info: inflasi biaya kesehatan di Indonesia sering &gt;10%/tahun — pertimbangkan BPJS jika belum punya.
                         </p>
                     </motion.div>
                 )}
@@ -1483,15 +1677,15 @@ function S12_Assumptions({ data, set }: { data: WizardData; set: (p: Partial<Wiz
 
                 {!data.includePandemicRisk && (
                     <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}
-                        className="flex gap-2.5 p-3.5 rounded-xl overflow-hidden"
-                        style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.3)" }}>
-                        <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: T.warning }} />
-                        <p className="text-xs leading-relaxed text-[#92400e]">
-                            Tanpa buffer pandemi, proyeksi finansial akan berasumsi kondisi pasar selalu stabil. Mengaktifkannya membantu menyimulasikan ketahanan dana Anda terhadap potensi krisis ekonomi global tak terduga.
+                        className="flex gap-2.5 p-3.5 rounded-xl overflow-hidden bg-gray-50/80 border border-gray-200/80">
+                        <Info className="w-4 h-4 shrink-0 mt-0.5 text-gray-500" />
+                        <p className="text-xs leading-relaxed text-gray-600">
+                            Tanpa centang pun boleh lanjut. Centang jika ingin proyeksi lebih konservatif (buffer risiko krisis).
                         </p>
                     </motion.div>
                 )}
             </div>
+            <StepFieldError message={stepValidation.valid ? null : stepValidation.error} />
         </div>
     );
 }
@@ -1621,23 +1815,17 @@ function TopProgress({ step, total }: { step: number; total: number }) {
 const TOTAL = 11; // steps 0-10 (0 = personal, 10 = assumptions), + summary
 
 const STEP_CONFIG = [
-    { label: "Data Diri",    validate: (d: WizardData) => d.fullName !== null && d.age !== null && d.gender !== null },
-    { label: "Gaji",         validate: (d: WizardData) => d.monthlyIncome !== null },
-    { label: "Bonus",        validate: (d: WizardData) => d.annualBonusMonths !== null },
-    { label: "Nabung",       validate: (d: WizardData) => d.savingsPercentage !== null },
-    { label: "Tabungan",     validate: (d: WizardData) => d.currentSavings !== null },
-    { label: "Pensiun",      validate: (d: WizardData) => {
-        if (d.retirementAge === null || d.age === null) return false;
-        return d.retirementAge > d.age && d.retirementAge <= 80;
-    }},
-    { label: "Usia Target",  validate: (d: WizardData) => {
-        if (d.planningAge === null || d.retirementAge === null) return false;
-        return d.planningAge > d.retirementAge && d.planningAge <= 120;
-    }},
-    { label: "Gaya Hidup",   validate: (d: WizardData) => d.lifestylePercent !== null },
-    { label: "Risiko",       validate: (d: WizardData) => d.riskProfile !== null },
-    { label: "Pekerjaan",    validate: (d: WizardData) => d.sector !== null },
-    { label: "Asumsi",       validate: (d: WizardData) => d.depositRate !== null },
+    { label: "Data Diri",    validate: (d: WizardData) => getStepValidation(0, d).valid },
+    { label: "Gaji",         validate: (d: WizardData) => getStepValidation(1, d).valid },
+    { label: "Bonus",        validate: (d: WizardData) => getStepValidation(2, d).valid },
+    { label: "Nabung",       validate: (d: WizardData) => getStepValidation(3, d).valid },
+    { label: "Tabungan",     validate: (d: WizardData) => getStepValidation(4, d).valid },
+    { label: "Pensiun",      validate: (d: WizardData) => getStepValidation(5, d).valid },
+    { label: "Usia Target",  validate: (d: WizardData) => getStepValidation(6, d).valid },
+    { label: "Gaya Hidup",   validate: (d: WizardData) => getStepValidation(7, d).valid },
+    { label: "Risiko",       validate: (d: WizardData) => getStepValidation(8, d).valid },
+    { label: "Pekerjaan",    validate: (d: WizardData) => getStepValidation(9, d).valid },
+    { label: "Asumsi",       validate: (d: WizardData) => getStepValidation(10, d).valid },
 ];
 
 export function OnboardingWizard({
@@ -1666,7 +1854,8 @@ export function OnboardingWizard({
         topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, [step, showSummary]);
 
-    const canNext = showSummary ? confirmAccuracy : STEP_CONFIG[step]?.validate(data) ?? true;
+    const stepValidation = getStepValidation(step, data);
+    const canNext = showSummary ? confirmAccuracy : stepValidation.valid;
 
     const goNext = () => {
         if (showSummary) {
@@ -1762,6 +1951,9 @@ export function OnboardingWizard({
                 </div>
 
                 {/* Nav */}
+                {!showSummary && !stepValidation.valid && step === 8 && (
+                    <StepFieldError message={stepValidation.error} />
+                )}
                 <div className="flex gap-3 mt-6 pt-6 border-t border-gray-100 shrink-0">
                     {(step > 0 || showSummary) && (
                         <button type="button" onClick={goBack}
