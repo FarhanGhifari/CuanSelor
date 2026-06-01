@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth/auth-client";
 import { authMock } from "../services/auth.mock";
 import { ROUTES } from "@/lib/constants/routes";
+import { buildAuthRedirectUrl } from "../utils/auth-redirect-url";
 import type { LoginInput, RegisterInput } from "../validations/auth.schema";
 
 const IS_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === "true";
@@ -35,7 +36,7 @@ export function useLogin() {
       const { error: authErr } = await authClient.signIn.email({
         email,
         password,
-        callbackURL: ROUTES.AUTH_CALLBACK,
+        callbackURL: buildAuthRedirectUrl(ROUTES.AUTH_CALLBACK),
         rememberMe: true,
         fetchOptions: {
           onError: (ctx) => setError(ctx.error.message ?? "Email atau password salah"),
@@ -133,9 +134,9 @@ export function useGoogleLogin() {
 
       await authClient.signIn.social({
         provider: "google",
-        callbackURL: ROUTES.AUTH_CALLBACK,
-        newUserCallbackURL: ROUTES.AUTH_CALLBACK,
-        errorCallbackURL: ROUTES.LOGIN,
+        callbackURL: buildAuthRedirectUrl(ROUTES.AUTH_CALLBACK),
+        newUserCallbackURL: buildAuthRedirectUrl(ROUTES.AUTH_CALLBACK),
+        errorCallbackURL: buildAuthRedirectUrl(ROUTES.LOGIN),
       });
     } catch {
       setError("Google login gagal. Coba lagi.");

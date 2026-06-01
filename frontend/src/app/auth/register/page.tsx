@@ -12,6 +12,7 @@ import { AuthPageGuard } from "@/features/auth/components/AuthPageGuard";
 import { AuthLoadingScreen } from "@/features/auth/components/AuthLoadingScreen";
 import { authClient } from "@/lib/auth/auth-client";
 import { ROUTES } from "@/lib/constants/routes";
+import { buildAuthRedirectUrl } from "@/features/auth/utils/auth-redirect-url";
 
 type RegisterStep = "form" | "loading";
 
@@ -40,9 +41,9 @@ export default function RegisterPage() {
         try {
             const result = await authClient.signIn.social({
                 provider: "google",
-                callbackURL: ROUTES.AUTH_CALLBACK,
-                newUserCallbackURL: ROUTES.AUTH_CALLBACK,
-                errorCallbackURL: ROUTES.REGISTER,
+                callbackURL: buildAuthRedirectUrl(ROUTES.AUTH_CALLBACK),
+                newUserCallbackURL: buildAuthRedirectUrl(ROUTES.AUTH_CALLBACK),
+                errorCallbackURL: buildAuthRedirectUrl(ROUTES.REGISTER),
             });
 
             if (result.error) {
