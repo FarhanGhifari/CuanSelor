@@ -16,8 +16,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
+# Load environment variables (.env.local | .env.production)
+_env_file = (
+    ".env.production"
+    if os.getenv("NODE_ENV", "development") == "production"
+    else ".env.local"
+)
+load_dotenv(Path(__file__).parent / _env_file)
 
 # Import modules as packages
 from src.calculator import RetirementCalculator, UserProfile
