@@ -1618,7 +1618,7 @@ function S12_Assumptions({ data, set }: { data: WizardData; set: (p: Partial<Wiz
                         className="flex gap-3 p-3.5 rounded-xl overflow-hidden bg-yellow-50 border border-yellow-200">
                         <Info className="w-5 h-5 shrink-0 text-yellow-600 self-center" />
                         <p className="text-xs leading-relaxed text-yellow-900 flex-1">
-                            Tanpa centang pun boleh lanjut. Info: inflasi biaya kesehatan di Indonesia sering &gt;10%/tahun — pertimbangkan BPJS jika belum punya.
+                            Info: inflasi biaya kesehatan di Indonesia sering &gt;10%/tahun — pertimbangkan BPJS jika belum punya.
                         </p>
                     </motion.div>
                 )}
@@ -1645,7 +1645,7 @@ function S12_Assumptions({ data, set }: { data: WizardData; set: (p: Partial<Wiz
                         className="flex gap-3 p-3.5 rounded-xl overflow-hidden bg-yellow-50 border border-yellow-200">
                         <Info className="w-5 h-5 shrink-0 text-yellow-600 self-center" />
                         <p className="text-xs leading-relaxed text-yellow-900 flex-1">
-                            Tanpa centang pun boleh lanjut. Centang jika ingin proyeksi lebih konservatif (buffer risiko krisis).
+                            Info: Centang jika ingin proyeksi lebih konservatif (buffer risiko krisis).
                         </p>
                     </motion.div>
                 )}
