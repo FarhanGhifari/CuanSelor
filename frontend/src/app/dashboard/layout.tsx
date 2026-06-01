@@ -125,7 +125,7 @@ export default function DashboardLayout({
           onClick={() => setIsMobileMenuOpen(false)}
         >
           <Image
-            src="/logo.png"
+            src="/CuanSelor.png"
             alt="Logo CuanSelor"
             width={140}
             height={40}
@@ -154,7 +154,7 @@ export default function DashboardLayout({
           onClick={() => setIsMobileMenuOpen(false)}
         >
           <Image
-            src="/logo.png"
+            src="/CuanSelor.png"
             alt="Logo CuanSelor"
             width={540}
             height={156}

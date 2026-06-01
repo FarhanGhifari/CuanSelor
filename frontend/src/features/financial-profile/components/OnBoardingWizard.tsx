@@ -171,7 +171,7 @@ export function getStepValidation(step: number, d: WizardData): StepValidationRe
         }
         case 10: {
             if (d.depositRate === null) {
-                return { valid: false, error: "Pilih asumsi bunga deposito (wajib). Checkbox di bawah opsional." };
+                return { valid: false, error: "Pilih asumsi bunga deposito. Checkbox di bawah opsional." };
             }
             return { valid: true, error: null };
         }
@@ -193,26 +193,6 @@ const T = {
     danger:   "#ef4444",
     warning:  "#f59e0b",
 };
-
-function StepFieldError({ message }: { message: string | null }) {
-    if (!message) return null;
-
-    return (
-        <motion.div
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-4 flex gap-2.5 p-3.5 rounded-xl text-sm leading-relaxed"
-            style={{
-                background: "rgba(239,68,68,0.08)",
-                border: "1px solid rgba(239,68,68,0.2)",
-                color: T.danger,
-            }}
-        >
-            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-            <span>{message}</span>
-        </motion.div>
-    );
-}
 
 /* ── Risk Assessment Definitions ───────────────────────────────────── */
 export const RISK_QUESTIONS = [
@@ -501,7 +481,6 @@ function StepHeader({
 /* ── Steps ──────────────────────────────────────────────────────────── */
 
 function S0_Personal({ data, set }: { data: WizardData; set: (p: Partial<WizardData>) => void }) {
-    const stepValidation = getStepValidation(0, data);
     const ageInvalid =
         data.age !== null && (data.age < 18 || data.age > 100);
 
@@ -593,15 +572,13 @@ function S0_Personal({ data, set }: { data: WizardData; set: (p: Partial<WizardD
                     </span>
                 </div>
             </div>
-            <StepFieldError message={stepValidation.valid ? null : stepValidation.error} />
         </div>
     );
 }
 
 function S1_Income({ data, set }: { data: WizardData; set: (p: Partial<WizardData>) => void }) {
-    const stepValidation = getStepValidation(1, data);
     const showSuccess =
-        stepValidation.valid && data.monthlyIncome !== null && data.monthlyIncome > 0;
+        data.monthlyIncome !== null && data.monthlyIncome > 0;
 
     return (
         <div>
@@ -612,13 +589,11 @@ function S1_Income({ data, set }: { data: WizardData; set: (p: Partial<WizardDat
                     👍 Oke, Rp {fmt(data.monthlyIncome!)}/bulan tercatat!
                 </motion.p>
             )}
-            <StepFieldError message={stepValidation.valid ? null : stepValidation.error} />
         </div>
     );
 }
 
 function S2_Bonus({ data, set }: { data: WizardData; set: (p: Partial<WizardData>) => void }) {
-    const stepValidation = getStepValidation(2, data);
     const [isCustom, setIsCustom] = useState(() => {
         return data.annualBonusMonths !== null && ![0, 1, 2].includes(data.annualBonusMonths);
     });
@@ -715,13 +690,11 @@ function S2_Bonus({ data, set }: { data: WizardData; set: (p: Partial<WizardData
                     </Chip>
                 )}
             </div>
-            <StepFieldError message={stepValidation.valid ? null : stepValidation.error} />
         </div>
     );
 }
 
 function S4_Savings({ data, set }: { data: WizardData; set: (p: Partial<WizardData>) => void }) {
-    const stepValidation = getStepValidation(3, data);
     const [isCustom, setIsCustom] = useState(() => {
         return data.savingsPercentage !== null && ![10, 20].includes(data.savingsPercentage);
     });
@@ -835,14 +808,11 @@ function S4_Savings({ data, set }: { data: WizardData; set: (p: Partial<WizardDa
                     </p>
                 </motion.div>
             )}
-            <StepFieldError message={stepValidation.valid ? null : stepValidation.error} />
         </div>
     );
 }
 
 function S5_CurrentSavings({ data, set }: { data: WizardData; set: (p: Partial<WizardData>) => void }) {
-    const stepValidation = getStepValidation(4, data);
-
     return (
         <div>
             <StepHeader emoji="🏦" headline="Total tabungan & investasimu saat ini?" sub="Rekening, deposito, reksa dana, saham, emas - semuanya. Kalau belum ada, isi 0." />
@@ -859,13 +829,11 @@ function S5_CurrentSavings({ data, set }: { data: WizardData; set: (p: Partial<W
                     Tidak apa-apa! Semua orang mulai dari nol 💪
                 </motion.p>
             )}
-            <StepFieldError message={stepValidation.valid ? null : stepValidation.error} />
         </div>
     );
 }
 
 function S7_RetirementAge({ data, set }: { data: WizardData; set: (p: Partial<WizardData>) => void }) {
-    const stepValidation = getStepValidation(5, data);
     const presetAges = [45, 50, 55];
     const minimumRetirementAge = data.age !== null ? data.age + 1 : 18;
     const isValidRetirementAge = (age: number) => age >= minimumRetirementAge && age <= 80;
@@ -907,12 +875,6 @@ function S7_RetirementAge({ data, set }: { data: WizardData; set: (p: Partial<Wi
             : customAgeNumber > 80
                 ? "Maksimal 80 tahun."
                 : null;
-    const displayError =
-        isCustom && customAgeError
-            ? customAgeError
-            : stepValidation.valid
-                ? null
-                : stepValidation.error;
 
     const ageOpts = [
         { age: 45, label: "Umur 45", sub: "Pensiun dini - butuh persiapan ekstra keras", emoji: "⚡" },
@@ -1002,10 +964,14 @@ function S7_RetirementAge({ data, set }: { data: WizardData; set: (p: Partial<Wi
                         Input Sendiri
                     </Chip>
                 )}
+                {isCustom && customAgeError && (
+                    <p className="text-xs font-medium text-red-500">
+                        {customAgeError}
+                    </p>
+                )}
                 <p className="text-xs text-gray-500">
                     Target pensiun harus lebih besar dari usia kamu saat ini. Minimal {minimumRetirementAge} tahun.
                 </p>
-                <StepFieldError message={displayError} />
             </div>
         </div>
     );
@@ -1141,7 +1107,6 @@ function S8_PlanningAge({ data, set }: { data: WizardData; set: (p: Partial<Wiza
                         Minimal {data.retirementAge + 1} tahun, maksimal 120 tahun
                     </p>
                 )}
-                <StepFieldError message={stepValidation.valid ? null : stepValidation.error} />
             </div>
         </div>
     );
@@ -1191,7 +1156,6 @@ function S9_Lifestyle({ data, set }: { data: WizardData; set: (p: Partial<Wizard
                 <p className="text-xs mt-2 text-gray-500">
                     Contoh: 80 berarti kebutuhanmu 80% dari gaji terakhir.
                 </p>
-                <StepFieldError message={stepValidation.valid ? null : stepValidation.error} />
             </div>
             {target && (
                 <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
@@ -1523,7 +1487,6 @@ function S10_Risk({ data, set }: { data: WizardData; set: (p: Partial<WizardData
 }
 
 function S11_Sector({ data, set }: { data: WizardData; set: (p: Partial<WizardData>) => void }) {
-    const stepValidation = getStepValidation(9, data);
     const [isOpen, setIsOpen] = useState(false);
 
     return (
@@ -1591,14 +1554,12 @@ function S11_Sector({ data, set }: { data: WizardData; set: (p: Partial<WizardDa
                 <p className="text-xs mt-2 text-gray-500">
                     Kamu bisa pilih sektor yang paling mendekati pekerjaanmu.
                 </p>
-                <StepFieldError message={stepValidation.valid ? null : stepValidation.error} />
             </div>
         </div>
     );
 }
 
 function S12_Assumptions({ data, set }: { data: WizardData; set: (p: Partial<WizardData>) => void }) {
-    const stepValidation = getStepValidation(10, data);
     const rateOpts = [
         { r: 3.5, label: "3,5%", sub: "Konservatif" },
         { r: 4.0, label: "4,0%", sub: "Standar bank" },
@@ -1628,9 +1589,6 @@ function S12_Assumptions({ data, set }: { data: WizardData; set: (p: Partial<Wiz
             </div>
 
             <div className="space-y-3">
-                <p className="text-xs text-gray-500 mb-1">
-                    Pilihan di bawah opsional — boleh dicentang atau tidak, sesuai kondisimu.
-                </p>
                 <label className="flex items-center gap-4 p-4 rounded-xl border cursor-pointer transition-all"
                     style={{ borderColor: data.hasHealthInsurance ? T.blue : "rgb(229, 231, 235)", background: data.hasHealthInsurance ? T.blueLight : T.canvas }}>
                     <div className="relative">
@@ -1685,7 +1643,6 @@ function S12_Assumptions({ data, set }: { data: WizardData; set: (p: Partial<Wiz
                     </motion.div>
                 )}
             </div>
-            <StepFieldError message={stepValidation.valid ? null : stepValidation.error} />
         </div>
     );
 }
@@ -1951,9 +1908,6 @@ export function OnboardingWizard({
                 </div>
 
                 {/* Nav */}
-                {!showSummary && !stepValidation.valid && step === 8 && (
-                    <StepFieldError message={stepValidation.error} />
-                )}
                 <div className="flex gap-3 mt-6 pt-6 border-t border-gray-100 shrink-0">
                     {(step > 0 || showSummary) && (
                         <button type="button" onClick={goBack}

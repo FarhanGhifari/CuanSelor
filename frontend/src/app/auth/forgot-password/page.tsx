@@ -17,7 +17,7 @@ export default function ForgotPasswordPage() {
                 {/* Logo for mobile/full-form view */}
                 <div className="flex justify-center mb-8">
                     <Link href="/">
-                        <img src="/logo.png" alt="CuanSelor Logo" className="h-32 w-auto" />
+                        <img src="/CuanSelor.png" alt="CuanSelor Logo" className="h-32 w-auto" />
                     </Link>
                 </div>
 

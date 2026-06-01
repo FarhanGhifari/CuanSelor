@@ -14,6 +14,11 @@ const plusJakarta = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   title: "CuanSelor - Your Partner for Fearless Financial Freedom",
   description: "Platform perencanaan keuangan pensiun berbasis AI. Analisis, proyeksi, dan rekomendasi investasi personal.",
+  icons: {
+    icon: "/CuanSelorIcon.png",
+    shortcut: "/CuanSelorIcon.png",
+    apple: "/CuanSelorIcon.png",
+  },
 };
 
 export default function RootLayout({

@@ -81,7 +81,7 @@ function VerifyEmailContent() {
                     className="flex items-center relative h-12 w-48 overflow-hidden bg-transparent border-none cursor-pointer outline-none"
                 >
                     <img
-                        src="/logo.png"
+                        src="/CuanSelor.png"
                         alt="CuanSelor Logo"
                         className="absolute left-0 top-1/2 -translate-y-1/2 h-24 w-auto object-cover max-w-none"
                     />

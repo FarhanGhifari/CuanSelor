@@ -20,7 +20,7 @@ export default function LoginPage() {
             <div className="absolute top-6 left-6 lg:left-8 z-50">
                 <Link href="/" className="flex items-center relative h-12 w-48 overflow-hidden">
                     <img
-                        src="/logo.png"
+                        src="/CuanSelor.png"
                         alt="CuanSelor Logo"
                         className="absolute left-0 top-1/2 -translate-y-1/2 h-24 w-auto object-cover max-w-none"
                     />

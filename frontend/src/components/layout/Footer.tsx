@@ -37,7 +37,7 @@ export function Footer() {
                     <div>
                         <div className="flex items-center gap-2 mb-4">
                             <div className="relative h-10 w-40 overflow-hidden">
-                                <img src="/logo.png" alt="CuanSelor Logo" className="absolute left-0 top-1/2 -translate-y-1/2 h-20 w-auto object-cover max-w-none" />
+                                <img src="/CuanSelor.png" alt="CuanSelor Logo" className="absolute left-0 top-1/2 -translate-y-1/2 h-20 w-auto object-cover max-w-none" />
                             </div>
                         </div>
                         <p className="text-muted-foreground text-sm leading-relaxed">

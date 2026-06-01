@@ -27,7 +27,7 @@ export default function ResetPasswordPage() {
                 {/* Logo for branding */}
                 <div className="mb-6 flex h-20 items-center justify-center sm:mb-8">
                     <Link href="/">
-                        <img src="/logo.png" alt="CuanSelor Logo" className="h-32 w-auto" />
+                        <img src="/CuanSelor.png" alt="CuanSelor Logo" className="h-32 w-auto" />
                     </Link>
                 </div>
 
