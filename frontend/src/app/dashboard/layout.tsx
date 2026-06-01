@@ -12,8 +12,7 @@ import {
   Smile, 
   Menu,
   X,
-  LogOut,
-  Bell
+  LogOut
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { ROUTES } from "@/lib/constants/routes";
@@ -119,7 +118,12 @@ export default function DashboardLayout({
     <div className="min-h-screen bg-[#F8F9FA] font-sans selection:bg-[#10B981]/30">
       {/* Mobile Navbar */}
       <nav className="lg:hidden fixed top-0 w-full bg-white/80 backdrop-blur-xl border-b border-gray-100 z-50 px-4 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
+        <Link
+          href={ROUTES.HOME}
+          aria-label="Kembali ke homepage CuanSelor"
+          className="flex items-center gap-2"
+          onClick={() => setIsMobileMenuOpen(false)}
+        >
           <Image
             src="/logo.png"
             alt="Logo CuanSelor"
@@ -128,7 +132,7 @@ export default function DashboardLayout({
             className="h-10 w-auto object-contain"
             priority
           />
-        </div>
+        </Link>
         <button 
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           className="p-2 rounded-full hover:bg-gray-100 transition-colors"
@@ -143,7 +147,12 @@ export default function DashboardLayout({
         isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         {/* Brand */}
-        <div className="h-28 flex items-center justify-center px-4 pt-3">
+        <Link
+          href={ROUTES.HOME}
+          aria-label="Kembali ke homepage CuanSelor"
+          className="h-28 flex items-center justify-center px-4 pt-3"
+          onClick={() => setIsMobileMenuOpen(false)}
+        >
           <Image
             src="/logo.png"
             alt="Logo CuanSelor"
@@ -152,7 +161,7 @@ export default function DashboardLayout({
             className="h-36 w-auto object-contain"
             priority
           />
-        </div>
+        </Link>
         <div className="mx-auto w-44 border-b-2 border-emerald-800" />
 
         {/* Navigation */}
@@ -207,17 +216,6 @@ export default function DashboardLayout({
           <div>
             <h1 className="text-xl font-bold text-gray-900">Hi, Gen Z! 👋</h1>
             <p className="text-sm text-gray-500 font-medium">Siap untuk merencanakan pensiunmu hari ini?</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <button className="relative p-2.5 rounded-full bg-white hover:bg-gray-50 border border-gray-100 transition-colors">
-              <Bell size={20} className="text-gray-600" />
-              <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-red-500 border-2 border-white"></span>
-            </button>
-            <div className="h-10 w-10 rounded-full bg-linear-to-tr from-emerald-400 to-[#10B981] p-0.5 cursor-pointer">
-              <div className="w-full h-full rounded-full bg-white flex items-center justify-center border-2 border-white">
-                <Smile className="text-[#10B981]" size={20} />
-              </div>
-            </div>
           </div>
         </header>
 

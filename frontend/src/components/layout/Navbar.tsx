@@ -2,6 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element */
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ROUTES } from "@/lib/constants/routes";
@@ -15,8 +16,14 @@ const NAV_LINK = [
 
 export function Navbar() {
     const pathname = usePathname();
+    const [mounted, setMounted] = useState(false);
     const { data: session, isPending } = useSession();
     const isAuthenticated = Boolean(session?.user);
+
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setMounted(true);
+    }, []);
 
     return (
         <nav
@@ -93,7 +100,7 @@ export function Navbar() {
 
             {/* CTA */}
             <div className="flex items-center gap-4">
-                {isPending ? (
+                {!mounted || isPending ? (
                     <span
                         style={{
                             fontSize: 14,
