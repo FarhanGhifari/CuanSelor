@@ -108,7 +108,7 @@ export default function ProblemSection() {
         style={{
           background: T.bgBase,
           fontFamily: FONT,
-          padding: "100px 24px",
+          padding: "60px 16px",
           position: "relative",
           overflow: "hidden",
         }}
@@ -116,22 +116,23 @@ export default function ProblemSection() {
         {/* Ambient glow */}
         <div className="ps-ambient-glow" />
 
-        <div style={{ maxWidth: 1200, margin: "0 auto", position: "relative", zIndex: 1 }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", position: "relative", zIndex: 1, width: "100%" }}>
           {/* ── Header ── */}
-          <div style={{ textAlign: "center", marginBottom: 64 }}>
+          <div style={{ textAlign: "center", marginBottom: 48 }}>
 
             {/* Heading */}
             <h2
               className="ps-fade-up ps-d1"
               style={{
                 fontFamily: FONT,
-                fontSize: "clamp(28px, 3.5vw, 44px)",
+                fontSize: "clamp(24px, 5vw, 44px)",
                 fontWeight: 800,
                 letterSpacing: "-0.03em",
                 lineHeight: 1.2,
                 color: "#000000",
                 maxWidth: 760,
-                margin: "0 auto 20px",
+                margin: "0 auto 16px",
+                padding: "0 8px",
               }}
             >
               Masalahnya bukan kamu tidak peduli masa depan,
@@ -143,12 +144,13 @@ export default function ProblemSection() {
               className="ps-fade-up ps-d2"
               style={{
                 fontFamily: FONT,
-                fontSize: "clamp(15px, 1.4vw, 18px)",
+                fontSize: "clamp(14px, 2vw, 18px)",
                 fontWeight: 400,
                 lineHeight: 1.65,
                 color: T.inkMuted,
                 maxWidth: 640,
                 margin: "0 auto",
+                padding: "0 8px",
               }}
             >
               Tanpa data yang rapi, simulasi yang mudah dipahami, dan rekomendasi yang personal,
@@ -174,28 +176,28 @@ export default function ProblemSection() {
                   <div
                     className="ps-icon-box"
                     style={{
-                      width: 56,
-                      height: 56,
-                      borderRadius: 16,
+                      width: "clamp(48px, 12vw, 56px)",
+                      height: "clamp(48px, 12vw, 56px)",
+                      borderRadius: "clamp(12px, 3vw, 16px)",
                       background: card.accentBg,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      marginBottom: 24,
+                      marginBottom: "clamp(16px, 4vw, 24px)",
                       transition: "transform 0.3s ease",
                     }}
                   >
-                    <Icon style={{ color: card.accentColor, width: 28, height: 28 }} />
+                    <Icon style={{ color: card.accentColor, width: "clamp(24px, 6vw, 28px)", height: "clamp(24px, 6vw, 28px)" }} />
                   </div>
 
                   {/* Title */}
                   <h3
                     style={{
                       fontFamily: FONT,
-                      fontSize: card.isMain ? "clamp(24px, 2.5vw, 28px)" : "clamp(20px, 2vw, 24px)",
+                      fontSize: card.isMain ? "clamp(20px, 4vw, 28px)" : "clamp(18px, 3.5vw, 24px)",
                       fontWeight: 700,
                       color: T.ink,
-                      marginBottom: 12,
+                      marginBottom: "clamp(8px, 2vw, 12px)",
                       letterSpacing: "-0.01em",
                       lineHeight: 1.3,
                     }}
@@ -207,7 +209,7 @@ export default function ProblemSection() {
                   <p
                     style={{
                       fontFamily: FONT,
-                      fontSize: "clamp(15px, 1.5vw, 17px)",
+                      fontSize: "clamp(14px, 2.5vw, 17px)",
                       fontWeight: 400,
                       lineHeight: 1.65,
                       color: T.inkMuted,
@@ -216,7 +218,7 @@ export default function ProblemSection() {
                     {card.description}
                   </p>
 
-                  {/* Mini flow text with dividers — main card only */}
+                  {/* Mini flow text with dividers - main card only */}
                   {card.isMain && (
                     <div
                       className="ps-flow-steps"
@@ -225,17 +227,17 @@ export default function ProblemSection() {
                         flexWrap: "wrap",
                         alignItems: "center",
                         rowGap: 8,
-                        columnGap: 16,
-                        marginTop: 32,
+                        columnGap: 12,
+                        marginTop: "clamp(20px, 5vw, 32px)",
                         fontFamily: FONT,
-                        fontSize: "clamp(13px, 1.2vw, 15px)",
+                        fontSize: "clamp(12px, 2vw, 15px)",
                         fontWeight: 600,
                         color: "#059669",
                         letterSpacing: "0.02em",
                       }}
                     >
                       {FLOW_STEPS.map((step, idx) => (
-                        <span key={step} style={{ display: "inline-flex", alignItems: "center", gap: 16 }}>
+                        <span key={step} style={{ display: "inline-flex", alignItems: "center", gap: 12 }}>
                           <span>{step}</span>
                           {idx < FLOW_STEPS.length - 1 && (
                             <span style={{ color: "rgba(16, 185, 129, 0.4)", fontWeight: 400 }}>·</span>
@@ -272,10 +274,10 @@ const badgeStyle: React.CSSProperties = {
 };
 
 const cardBaseStyle: React.CSSProperties = {
-  borderRadius: 24,
+  borderRadius: 20,
   border: "1px solid rgba(15, 23, 42, 0.06)",
   boxShadow: "0 10px 40px rgba(15, 23, 42, 0.03)",
-  padding: "clamp(32px, 4vw, 48px)",
+  padding: "clamp(24px, 5vw, 48px)",
   display: "flex",
   flexDirection: "column",
   justifyContent: "flex-start",
@@ -306,12 +308,18 @@ const scopedCSS = `
 .ps-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 20px;
+  gap: 16px;
 }
-@media (min-width: 768px) {
+@media (min-width: 640px) {
+  .ps-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+}
+@media (min-width: 1024px) {
   .ps-grid {
     grid-template-columns: repeat(3, 1fr);
-    gap: 32px;
+    gap: 24px;
   }
   .ps-card-main {
     grid-column: span 2;
