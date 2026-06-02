@@ -10,6 +10,7 @@ interface PillCTAProps {
   variant?: "primary" | "ghost";
   style?: React.CSSProperties;
   dark?: boolean;
+  className?: string;
 }
 
 export default function PillCTA({
@@ -17,6 +18,7 @@ export default function PillCTA({
   children,
   variant = "primary",
   style,
+  className,
 }: PillCTAProps) {
   const isPrimary = variant === "primary";
 
@@ -27,7 +29,7 @@ export default function PillCTA({
         isPrimary
           ? "hover:shadow-[0_12px_32px_rgba(16,185,129,0.50)] hover:-translate-y-0.5 hover:scale-[1.03]"
           : "hover:bg-black/5 hover:-translate-y-0.5 hover:scale-[1.03]"
-      }`}
+      } ${className || ""}`}
       style={{
         display: "inline-flex",
         alignItems: "center",

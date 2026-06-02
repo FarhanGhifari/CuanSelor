@@ -14,6 +14,7 @@ interface AuthAwarePillCTAProps {
   variant?: "primary" | "ghost";
   style?: React.CSSProperties;
   dark?: boolean;
+  className?: string;
 }
 
 export default function AuthAwarePillCTA({
@@ -24,6 +25,7 @@ export default function AuthAwarePillCTA({
   variant = "primary",
   style,
   dark,
+  className,
 }: AuthAwarePillCTAProps) {
   const [mounted, setMounted] = useState(false);
   const { data: session, isPending } = useSession();
@@ -36,7 +38,7 @@ export default function AuthAwarePillCTA({
 
   if (!mounted) {
     return (
-      <PillCTA href={href} variant={variant} style={style} dark={dark}>
+      <PillCTA href={href} variant={variant} style={style} dark={dark} className={className}>
         {children}
       </PillCTA>
     );
@@ -48,6 +50,7 @@ export default function AuthAwarePillCTA({
       variant={variant}
       style={style}
       dark={dark}
+      className={className}
     >
       {isPending ? loadingChildren : isAuthenticated ? dashboardChildren : children}
     </PillCTA>
