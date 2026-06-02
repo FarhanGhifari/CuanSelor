@@ -19,6 +19,7 @@ Platform perencanaan pensiun berbasis web dengan kalkulasi aktuaria menggunakan 
 - [Deployment](#deployment)
 - [Features](#features)
 - [API Documentation](#api-documentation)
+- [AI Financial Profile Segmentation](#ai-financial-profile-segmentation)
 - [Troubleshooting](#troubleshooting)
 - [FAQ](#faq)
 
@@ -65,6 +66,13 @@ CuanSelor adalah platform perencanaan pensiun yang membantu pengguna:
 - **Simulation**: Monte Carlo (10.000 iterations)
 - **Mortality Table**: TMPI 2023 (Indonesia)
 
+### AI Risk Service
+- **Language**: Python 3.10+
+- **Framework**: FastAPI
+- **ML Framework**: TensorFlow CPU
+- **Model Format**: Keras (`risk_profile_model.keras`)
+- **Purpose**: Financial profile segmentation for backend risk assessment
+
 ---
 
 ## 📁 Struktur Project
@@ -100,7 +108,12 @@ CuanSelor/
 │   ├── api_server.py     # FastAPI server
 │   └── requirements.txt  # Python dependencies
 │
-└── ai-service/            # Future AI features
+└── ai/                    # Financial profile AI service (Port 8002 local)
+    ├── app.py             # FastAPI inference API
+    ├── classification.ipynb
+    ├── clustering.ipynb
+    ├── risk_profile_model.keras
+    └── requirements.txt
 ```
 
 ---
@@ -341,6 +354,10 @@ GEMINI_API_KEY=your_gemini_api_key_here
 # FastAPI Calculator Service
 FASTAPI_URL=http://localhost:8001
 
+# TensorFlow AI Risk Service
+AI_SERVICE_URL=http://localhost:8002
+AI_SERVICE_TIMEOUT_MS=15000
+
 # CORS (Frontend URLs)
 FRONTEND_URL=http://localhost:3000
 
@@ -459,6 +476,28 @@ pip install -r requirements.txt
 - `python-dotenv` - Environment variables
 - `pydantic` - Data validation
 
+#### C. Install AI Service Dependencies
+
+```bash
+cd ai
+python -m venv .venv
+
+# Windows
+.\.venv\Scripts\activate
+
+# Linux/Mac
+source .venv/bin/activate
+
+pip install -r requirements.txt
+```
+
+**AI Service packages** yang akan diinstall:
+- `fastapi` - Web framework
+- `uvicorn` - ASGI server
+- `tensorflow-cpu` - TensorFlow inference runtime
+- `numpy` - Numerical computing
+- `pydantic` - Data validation
+
 ---
 
 ### 7. Jalankan Aplikasi
@@ -467,7 +506,7 @@ Ada 2 cara menjalankan aplikasi:
 
 #### A. Manual (Recommended untuk Development)
 
-Lebih mudah untuk debugging. Buka **3 terminal** terpisah:
+Lebih mudah untuk debugging. Buka **4 terminal** terpisah jika ingin semua service berjalan:
 
 **Terminal 1 - Calculator Service**:
 ```bash
@@ -498,9 +537,24 @@ npm run dev
 # ✅ Ready on http://localhost:3000
 ```
 
+**Terminal 4 - AI Risk Service**:
+```bash
+cd ai
+uvicorn app:app --reload --host 0.0.0.0 --port 8002
+
+# Health check:
+# http://localhost:8002/health
+```
+
+Pastikan `backend/.env.local` memakai:
+
+```env
+AI_SERVICE_URL=http://localhost:8002
+```
+
 #### B. All at Once (1 Terminal)
 
-Jalankan semua services sekaligus (logs akan tercampur):
+Jalankan frontend, backend, dan calculator sekaligus (logs akan tercampur):
 
 ```bash
 # Dari root folder
@@ -510,6 +564,8 @@ npm run dev
 npm run dev:no-calculator
 ```
 
+AI Risk Service belum termasuk di script root `npm run dev`, jadi jalankan manual di terminal terpisah ketika fitur risk assessment berbasis model dibutuhkan.
+
 #### C. Verifikasi Services
 
 Buka browser dan test:
@@ -517,6 +573,7 @@ Buka browser dan test:
 1. **Frontend**: [http://localhost:3000](http://localhost:3000)
 2. **Backend Health**: [http://localhost:8000/api/health](http://localhost:8000/api/health)
 3. **Calculator Health**: [http://localhost:8001/health](http://localhost:8001/health)
+4. **AI Risk Service Health**: [http://localhost:8002/health](http://localhost:8002/health)
 
 Expected responses:
 ```json
@@ -525,6 +582,9 @@ Expected responses:
 
 // Calculator
 {"status":"healthy","n_simulations":10000,"message":"Ready to accept requests"}
+
+// AI Risk Service
+{"status":"ok"}
 ```
 
 ---
@@ -792,6 +852,284 @@ Content-Type: application/json
 
 ---
 
+## AI Financial Profile Segmentation
+
+AI service di folder `ai/` melakukan segmentasi profil finansial pengguna menggunakan label hasil unsupervised clustering dan TensorFlow classifier untuk inference API.
+
+Service ini dipakai backend untuk membantu risk assessment melalui endpoint `/predict`. Outputnya berupa segmen profil finansial, bukan skor kredit dan bukan keputusan kelayakan pinjaman.
+
+### Scope
+
+Sistem ini tidak menggunakan `credit_score`. Sistem juga tidak membuat default, imputasi, atau synthetic credit score.
+
+Output adalah segmen profil finansial berdasarkan kemiripan karakteristik finansial pengguna. Output ini bukan probabilitas gagal bayar, credit score, hasil kelayakan pinjaman, approval prediction, atau keputusan kredit resmi.
+
+### Running AI Service Locally
+
+Jalankan AI service di port `8002` agar tidak bentrok dengan backend utama di port `8000` dan calculator service di port `8001`.
+
+```bash
+cd ai
+python -m venv .venv
+
+# Windows
+.\.venv\Scripts\activate
+
+# Linux/Mac
+source .venv/bin/activate
+
+pip install -r requirements.txt
+uvicorn app:app --reload --host 0.0.0.0 --port 8002
+```
+
+Pastikan file model berikut tetap berada di folder yang sama dengan `app.py`:
+
+```text
+ai/risk_profile_model.keras
+```
+
+Health check:
+
+```text
+http://localhost:8002/health
+```
+
+API docs:
+
+```text
+http://localhost:8002/docs
+```
+
+Backend perlu diarahkan ke service ini:
+
+```env
+AI_SERVICE_URL=http://localhost:8002
+AI_SERVICE_TIMEOUT_MS=15000
+```
+
+### AI Service API Input
+
+Endpoint `/predict` menerima input berikut:
+
+| API Field | User Question | Expected Answer |
+| --- | --- | --- |
+| `age` | Berapa usia kamu saat ini? | Number of years, for example `32`. |
+| `annual_income` | Berapa total pendapatan kamu dalam 1 tahun? | Numeric money amount, for example `120000000`. Use the same currency across all money fields. |
+| `loan_amount` | Berapa jumlah pinjaman yang ingin kamu ajukan atau analisis? | Numeric money amount, for example `35000000`. |
+| `loan_duration_months` | Berapa lama durasi pinjaman? | Number of months, for example `24`. |
+| `interest_rate` | Berapa bunga pinjaman per tahun? | Percentage number, for example `8.5` for 8.5%, not `0.085`. |
+| `debt_to_income_ratio` | Berapa porsi cicilan/hutang bulanan dibanding pendapatan bulanan? | Decimal ratio, for example `0.30` for 30%. Prefer calculating this from monthly debt payment. |
+| `monthly_expenses` | Berapa total pengeluaran rutin kamu per bulan? | Numeric monthly money amount, for example `4500000`. |
+| `savings_balance` | Berapa total tabungan atau dana darurat kamu saat ini? | Numeric money amount, for example `25000000`. |
+| `employment_stability_years` | Sudah berapa tahun kamu memiliki pekerjaan atau penghasilan yang stabil? | Number of years, for example `6`. |
+| `previous_default_count` | Berapa kali kamu pernah gagal bayar atau telat berat membayar pinjaman/tagihan? | Count, for example `0`, `1`, or `2`. |
+
+Untuk form frontend yang lebih ramah pengguna, tanyakan `monthly_debt_payment`, lalu hitung:
+
+```text
+debt_to_income_ratio = monthly_debt_payment / (annual_income / 12)
+```
+
+Dataset asli memiliki kolom tambahan seperti `education_years`, `work_experience_years`, `credit_score`, `investment_balance`, dan skor encoded lain. Kolom tersebut tidak dibutuhkan oleh API dan tidak digunakan oleh deployed model.
+
+### Test AI Prediction
+
+```powershell
+$body = @{
+    age = 32
+    annual_income = 120000000
+    loan_amount = 35000000
+    loan_duration_months = 24
+    interest_rate = 8.5
+    debt_to_income_ratio = 0.30
+    monthly_expenses = 4500000
+    savings_balance = 25000000
+    employment_stability_years = 6
+    previous_default_count = 0
+} | ConvertTo-Json
+
+Invoke-RestMethod `
+    -Uri "http://localhost:8002/predict" `
+    -Method Post `
+    -ContentType "application/json" `
+    -Body $body
+```
+
+### Feature Engineering
+
+Pipeline menghasilkan rasio berikut:
+
+```text
+loan_to_income_ratio = loan_amount / annual_income
+expenses_to_income_ratio = monthly_expenses / (annual_income / 12)
+savings_to_income_ratio = savings_balance / annual_income
+```
+
+### Final Model Features
+
+Clustering dan classification menggunakan final features berikut:
+
+```text
+loan_to_income_ratio
+expenses_to_income_ratio
+savings_to_income_ratio
+debt_to_income_ratio
+previous_default_count
+loan_duration_months
+interest_rate
+age
+employment_stability_years
+```
+
+### Interpretation
+
+Clusters diinterpretasikan secara post-hoc dengan membandingkan centroid cluster terhadap global feature averages.
+
+Repayment Capacity:
+
+```text
+loan_to_income_ratio
+expenses_to_income_ratio
+debt_to_income_ratio
+```
+
+Financial Resilience:
+
+```text
+0.6 * savings_to_income_ratio
+0.4 * employment_stability_years
+```
+
+Repayment capacity pressure diberi bobot agar `debt_to_income_ratio` tidak terlalu dominan:
+
+```text
+0.4 * loan_to_income_ratio
+0.4 * expenses_to_income_ratio
+0.2 * debt_to_income_ratio
+```
+
+Financial Behavior:
+
+```text
+previous_default_count
+interest_rate
+```
+
+Demographic Context:
+
+```text
+age
+```
+
+Profile names adalah label segmen netral:
+
+```text
+Cluster 0 - Financially Stable
+Cluster 1 - Moderate Financial Capacity
+Cluster 2 - Financially Vulnerable
+```
+
+Cluster merupakan hasil segmentasi tanpa label (unsupervised learning) dan tidak merepresentasikan risiko gagal bayar aktual maupun keputusan kredit resmi.
+
+### Cluster Analysis
+
+K-Means memilih `k=3` berdasarkan silhouette score terbaik dari rentang `k=3` sampai `k=5`.
+
+Global feature averages:
+
+| Feature | Global Average |
+| --- | ---: |
+| `loan_to_income_ratio` | 0.4501 |
+| `expenses_to_income_ratio` | 0.5366 |
+| `savings_to_income_ratio` | 0.2747 |
+| `debt_to_income_ratio` | 0.4748 |
+| `previous_default_count` | 0.4840 |
+| `loan_duration_months` | 36.0768 |
+| `interest_rate` | 10.4989 |
+| `age` | 41.0138 |
+| `employment_stability_years` | 14.7094 |
+
+#### Raw Cluster 0 -> Moderate Financial Capacity
+
+Raw cluster ini dipetakan ke final label `1`.
+
+Dominant characteristics:
+
+- Higher loan-to-income and expenses-to-income ratios.
+- Higher savings-to-income ratio.
+- Stronger employment stability.
+- Slightly lower interest rate exposure.
+
+Dimension summary:
+
+| Dimension | Score |
+| --- | ---: |
+| Repayment Capacity Pressure | 0.9939 |
+| Financial Resilience | 0.6835 |
+| Financial Behavior Pressure | 0.0075 |
+
+Interpretation: segment ini memiliki repayment pressure yang tinggi, tetapi sebagian diimbangi oleh savings dan employment stability yang lebih kuat. Karena profilnya mixed dan tidak jelas fragile, segment ini dinamai `Moderate Financial Capacity`.
+
+#### Raw Cluster 1 -> Financially Vulnerable
+
+Raw cluster ini dipetakan ke final label `2`.
+
+Dominant characteristics:
+
+- Lower savings-to-income ratio.
+- Lower employment stability.
+- Higher interest rate exposure.
+- Slightly longer loan duration.
+
+Dimension summary:
+
+| Dimension | Score |
+| --- | ---: |
+| Repayment Capacity Pressure | -0.1862 |
+| Financial Resilience | -0.1837 |
+| Financial Behavior Pressure | 0.4327 |
+
+Interpretation: segment ini bukan yang tertinggi pada loan dan expense ratios, tetapi resilience yang lebih lemah dan interest exposure yang lebih tinggi membuatnya lebih rentan terhadap tekanan finansial. Segment ini dinamai `Financially Vulnerable`.
+
+#### Raw Cluster 2 -> Financially Stable
+
+Raw cluster ini dipetakan ke final label `0`.
+
+Dominant characteristics:
+
+- Lower loan-to-income and expenses-to-income ratios.
+- Lower debt-to-income ratio.
+- Stronger employment stability.
+- Much lower interest rate exposure.
+
+Dimension summary:
+
+| Dimension | Score |
+| --- | ---: |
+| Repayment Capacity Pressure | -0.2230 |
+| Financial Resilience | -0.0984 |
+| Financial Behavior Pressure | -0.4300 |
+
+Interpretation: segment ini memiliki repayment pressure lebih rendah, employment stability lebih kuat, dan interest exposure jauh lebih rendah. Segment ini dinamai `Financially Stable`.
+
+Final mapping:
+
+| Raw Cluster | Final Label | Profile Name |
+| ---: | ---: | --- |
+| 0 | 1 | Moderate Financial Capacity |
+| 1 | 2 | Financially Vulnerable |
+| 2 | 0 | Financially Stable |
+
+Cluster distribution after interpretation:
+
+| Final Label | Profile Name | Count |
+| ---: | --- | ---: |
+| 0 | Financially Stable | 2089 |
+| 1 | Moderate Financial Capacity | 854 |
+| 2 | Financially Vulnerable | 2057 |
+
+---
+
 ## 🐛 Troubleshooting
 
 ### 1. Calculator Service Not Running
@@ -815,7 +1153,34 @@ python api_server.py
 - Port 8001 sudah digunakan aplikasi lain
 - Virtual environment belum diaktifkan
 
-### 2. Timeout Error
+### 2. AI Risk Service Not Running
+
+**Error**: `Tidak bisa menghubungi AI service`, `AI service timeout`, atau risk assessment memakai fallback terus.
+
+**Solution**:
+```bash
+# Check AI risk service
+curl http://localhost:8002/health
+
+# Jika tidak running, start manual
+cd ai
+uvicorn app:app --reload --host 0.0.0.0 --port 8002
+```
+
+Pastikan `backend/.env.local` berisi:
+
+```env
+AI_SERVICE_URL=http://localhost:8002
+AI_SERVICE_TIMEOUT_MS=15000
+```
+
+**Common Causes**:
+- `AI_SERVICE_URL` masih mengarah ke production atau port yang salah
+- Port `8002` sudah digunakan aplikasi lain
+- File `risk_profile_model.keras` tidak ada di folder `ai/`
+- Dependency TensorFlow belum terinstall
+
+### 3. Timeout Error
 
 **Error**: `timeout of 30000ms exceeded`
 
@@ -839,7 +1204,7 @@ cd streamlit-ds
 python api_server.py
 ```
 
-### 3. Database Connection Error
+### 4. Database Connection Error
 
 **Error**: `Connection terminated unexpectedly` atau `SASL authentication failed`
 
@@ -852,7 +1217,7 @@ python api_server.py
 3. Check SSL certificate sudah di download
 4. Verifikasi `PGSSL=false` di development, `PGSSL=true` di production
 
-### 4. Better Auth Error
+### 5. Better Auth Error
 
 **Error**: `Secret is not set` atau `Invalid session`
 
@@ -871,7 +1236,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 # 3. Restart backend dan frontend
 ```
 
-### 5. Google OAuth Not Working
+### 6. Google OAuth Not Working
 
 **Error**: `redirect_uri_mismatch`
 
@@ -887,7 +1252,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 2. Pastikan menggunakan **backend URL**, bukan frontend!
 3. Check `GOOGLE_CLIENT_ID` dan `GOOGLE_CLIENT_SECRET` sama di backend & frontend
 
-### 6. Port Already in Use
+### 7. Port Already in Use
 
 **Windows**:
 ```bash
@@ -904,7 +1269,7 @@ taskkill /PID <PID> /F
 lsof -ti:8001 | xargs kill -9
 ```
 
-### 7. Python Module Not Found
+### 8. Python Module Not Found
 
 **Error**: `ModuleNotFoundError: No module named 'fastapi'`
 
@@ -923,7 +1288,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 8. Build Error di Vercel
+### 9. Build Error di Vercel
 
 **Error**: `Module not found` atau `Build failed`
 
@@ -933,7 +1298,7 @@ pip install -r requirements.txt
 3. Pastikan semua environment variables sudah di-set
 4. Clear cache dan redeploy
 
-### 9. Gemini API Error
+### 10. Gemini API Error
 
 **Error**: `API key not valid` atau `429 Too Many Requests`
 
