@@ -1,0 +1,8 @@
+.git
+.venv
+__pycache__
+*.pyc
+archive
+archive.zip
+classification.ipynb
+clustering.ipynb
