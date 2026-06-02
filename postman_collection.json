@@ -1,103 +1,761 @@
 {
   "info": {
-    "_postman_id": "a7f44c01-3c6b-4b6d-8c8d-risk-profile-api",
-    "name": "Financial Profile Segmentation API",
-    "description": "Postman collection for testing the FastAPI financial profile segmentation service locally or on Railway.",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    "_postman_id": "cuanselor-api-v1",
+    "name": "CuanSelor API Collection",
+    "description": "Complete API collection for CuanSelor - Retirement Planning Platform. Includes Authentication, Profile Management, Projection Calculation, Risk Assessment, and AI Advisor endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
   },
   "variable": [
     {
       "key": "base_url",
-      "value": "https://cc26-capstone-ai-production-e2d1.up.railway.app",
-      "type": "string"
+      "value": "http://localhost:8000",
+      "type": "string",
+      "description": "Backend API base URL"
+    },
+    {
+      "key": "calculator_url",
+      "value": "http://localhost:8001",
+      "type": "string",
+      "description": "Calculator service base URL"
+    },
+    {
+      "key": "auth_token",
+      "value": "",
+      "type": "string",
+      "description": "Authentication token (auto-filled from login)"
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "string",
+      "description": "Current user ID (auto-filled from login)"
     }
   ],
   "item": [
     {
-      "name": "Root",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{base_url}}/",
-          "host": [
-            "{{base_url}}"
-          ],
-          "path": [
-            ""
-          ]
+      "name": "Health Checks",
+      "item": [
+        {
+          "name": "Backend Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/health",
+              "host": ["{{base_url}}"],
+              "path": ["api", "health"]
+            },
+            "description": "Check backend API health status"
+          },
+          "response": []
         },
-        "description": "Checks whether the API is running."
-      },
-      "response": []
+        {
+          "name": "Calculator Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{calculator_url}}/health",
+              "host": ["{{calculator_url}}"],
+              "path": ["health"]
+            },
+            "description": "Check calculator service health and configuration"
+          },
+          "response": []
+        }
+      ],
+      "description": "Health check endpoints for all services"
     },
     {
-      "name": "Health Check",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{base_url}}/health",
-          "host": [
-            "{{base_url}}"
-          ],
-          "path": [
-            "health"
-          ]
-        },
-        "description": "Health check endpoint used by Railway."
-      },
-      "response": []
-    },
-    {
-      "name": "Swagger Docs",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{base_url}}/docs",
-          "host": [
-            "{{base_url}}"
-          ],
-          "path": [
-            "docs"
-          ]
-        },
-        "description": "FastAPI Swagger UI page."
-      },
-      "response": []
-    },
-    {
-      "name": "Predict Financial Profile Segment",
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"age\": 19,\n  \"annual_income\": 51140.4,\n  \"loan_amount\": 3899.6,\n  \"loan_duration_months\": 60,\n  \"interest_rate\": 9.57,\n  \"debt_to_income_ratio\": 0.73,\n  \"monthly_expenses\": 2704.1,\n  \"savings_balance\": 11805.1,\n  \"employment_stability_years\": 9,\n  \"previous_default_count\": 1\n}",
-          "options": {
-            "raw": {
-              "language": "json"
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register with Email",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.user && response.user.id) {",
+                  "        pm.collectionVariables.set('user_id', response.user.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
             }
-          }
-        },
-        "url": {
-          "raw": "{{base_url}}/predict",
-          "host": [
-            "{{base_url}}"
           ],
-          "path": [
-            "predict"
-          ]
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"SecurePass123!\",\n  \"callbackURL\": \"http://localhost:3000/auth/verify-email\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/signup/email",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "signup", "email"]
+            },
+            "description": "Register new user with email and password. Sends verification email."
+          },
+          "response": []
         },
-        "description": "Sends self-assessment financial profile data to the model and returns a financial profile segment. This is not a probability of default, loan eligibility score, or official credit decision."
-      },
-      "response": []
+        {
+          "name": "Login with Email",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.token) {",
+                  "        pm.collectionVariables.set('auth_token', response.token);",
+                  "    }",
+                  "    if (response.user && response.user.id) {",
+                  "        pm.collectionVariables.set('user_id', response.user.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"SecurePass123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/sign-in/email",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "sign-in", "email"]
+            },
+            "description": "Login with email and password. Returns authentication token."
+          },
+          "response": []
+        },
+        {
+          "name": "Verify Email",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/verify-email?token=verification_token_here",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "verify-email"],
+              "query": [
+                {
+                  "key": "token",
+                  "value": "verification_token_here",
+                  "description": "Email verification token from email"
+                }
+              ]
+            },
+            "description": "Verify email address using token sent to email"
+          },
+          "response": []
+        },
+        {
+          "name": "Resend Verification Email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"callbackURL\": \"http://localhost:3000/auth/verify-email\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/resend-verification",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "resend-verification"]
+            },
+            "description": "Resend verification email if not received"
+          },
+          "response": []
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"redirectTo\": \"http://localhost:3000/auth/reset-password\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/forget-password",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "forget-password"]
+            },
+            "description": "Request password reset email"
+          },
+          "response": []
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"reset_token_from_email\",\n  \"newPassword\": \"NewSecurePass123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/reset-password",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "reset-password"]
+            },
+            "description": "Reset password using token from email"
+          },
+          "response": []
+        },
+        {
+          "name": "Google OAuth - Initiate",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/sign-in/google",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "sign-in", "google"]
+            },
+            "description": "Initiate Google OAuth flow (open in browser)"
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/sign-out",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "sign-out"]
+            },
+            "description": "Logout current user"
+          },
+          "response": []
+        }
+      ],
+      "description": "Authentication endpoints including email/password and Google OAuth"
+    },
+    {
+      "name": "Profile Management",
+      "item": [
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "profile"]
+            },
+            "description": "Get current user's profile data"
+          },
+          "response": []
+        },
+        {
+          "name": "Create/Update Profile (Onboarding)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"John Doe\",\n  \"age\": 30,\n  \"gender\": \"male\",\n  \"monthly_income\": 10000000,\n  \"annual_bonus_months\": 2,\n  \"savings_percentage\": 20,\n  \"current_savings\": 50000000,\n  \"retirement_age\": 55,\n  \"planning_age\": 85,\n  \"lifestyle_percent\": 70,\n  \"risk_profile\": \"moderate\",\n  \"risk_answers\": {\n    \"age\": 30,\n    \"annual_income\": 120000000,\n    \"loan_amount\": 0,\n    \"loan_duration_months\": 0,\n    \"interest_rate\": 0,\n    \"debt_to_income_ratio\": 0,\n    \"monthly_expenses\": 7000000,\n    \"savings_balance\": 50000000,\n    \"employment_stability_years\": 5,\n    \"previous_default_count\": 0\n  },\n  \"sector\": \"Aktivitas Keuangan dan Asuransi\",\n  \"has_health_insurance\": true,\n  \"deposit_rate\": 5.5,\n  \"include_pandemic_risk\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "profile"]
+            },
+            "description": "Create or update user profile after onboarding"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Profile (Partial)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monthly_income\": 12000000,\n  \"current_savings\": 60000000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "profile"]
+            },
+            "description": "Update specific profile fields"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Profile",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "profile"]
+            },
+            "description": "Delete user profile (soft delete)"
+          },
+          "response": []
+        }
+      ],
+      "description": "User profile management endpoints"
+    },
+    {
+      "name": "Retirement Projection",
+      "item": [
+        {
+          "name": "Get Projection (Cached)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/projection",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projection"]
+            },
+            "description": "Get retirement projection for current user. Uses cache if available (1 hour TTL)."
+          },
+          "response": []
+        },
+        {
+          "name": "Clear Projection Cache",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/projection/cache",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projection", "cache"]
+            },
+            "description": "Clear cached projection for current user. Automatically triggered on profile update."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Cache Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/projection/cache/stats",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projection", "cache", "stats"]
+            },
+            "description": "Get cache statistics (hits, misses, hit rate, etc.)"
+          },
+          "response": []
+        },
+        {
+          "name": "Clear All Cache (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/projection/cache/flush",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projection", "cache", "flush"]
+            },
+            "description": "Clear all cached projections (admin only)"
+          },
+          "response": []
+        }
+      ],
+      "description": "Retirement projection calculation with caching"
+    },
+    {
+      "name": "Risk Assessment",
+      "item": [
+        {
+          "name": "Calculate Risk Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"age\": 30,\n  \"annual_income\": 120000000,\n  \"loan_amount\": 50000000,\n  \"loan_duration_months\": 36,\n  \"interest_rate\": 8.5,\n  \"debt_to_income_ratio\": 25,\n  \"monthly_expenses\": 7000000,\n  \"savings_balance\": 50000000,\n  \"employment_stability_years\": 5,\n  \"previous_default_count\": 0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/risk/calculate",
+              "host": ["{{base_url}}"],
+              "path": ["api", "risk", "calculate"]
+            },
+            "description": "Calculate user's financial risk profile (conservative, moderate, aggressive)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Risk Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/risk/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "risk", "profile"]
+            },
+            "description": "Get stored risk profile for current user"
+          },
+          "response": []
+        }
+      ],
+      "description": "Financial risk profile assessment"
+    },
+    {
+      "name": "AI Advisor (FindSor)",
+      "item": [
+        {
+          "name": "Chat with FindSor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Bagaimana cara memulai investasi untuk pemula dengan gaji 10 juta per bulan?\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/advisor/chat",
+              "host": ["{{base_url}}"],
+              "path": ["api", "advisor", "chat"]
+            },
+            "description": "Chat with AI financial advisor. Context-aware based on user profile."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Chat History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/advisor/history?limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["api", "advisor", "history"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Number of messages to return"
+                }
+              ]
+            },
+            "description": "Get chat history with AI advisor"
+          },
+          "response": []
+        },
+        {
+          "name": "Clear Chat History",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/advisor/history",
+              "host": ["{{base_url}}"],
+              "path": ["api", "advisor", "history"]
+            },
+            "description": "Clear all chat history for current user"
+          },
+          "response": []
+        }
+      ],
+      "description": "AI Financial Advisor powered by Google Gemini 1.5 Flash"
+    },
+    {
+      "name": "Calculator Service (Direct)",
+      "item": [
+        {
+          "name": "Calculator Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{calculator_url}}/health",
+              "host": ["{{calculator_url}}"],
+              "path": ["health"]
+            },
+            "description": "Check calculator service health and N_SIMULATIONS config"
+          },
+          "response": []
+        },
+        {
+          "name": "Calculate Projection (Direct)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"age\": 30,\n  \"gender\": \"male\",\n  \"retirement_age\": 55,\n  \"planning_age\": 85,\n  \"monthly_income\": 10000000,\n  \"annual_bonus\": 24000000,\n  \"savings_percentage\": 0.20,\n  \"current_savings\": 50000000,\n  \"lifestyle_percent\": 0.70,\n  \"sector\": \"finance\",\n  \"has_health_insurance\": true,\n  \"deposit_rate\": 0.055,\n  \"include_pandemic_risk\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{calculator_url}}/calculate",
+              "host": ["{{calculator_url}}"],
+              "path": ["calculate"]
+            },
+            "description": "Direct call to calculator service (bypass backend). Use for testing calculator only."
+          },
+          "response": []
+        },
+        {
+          "name": "Test Payload (Sample Data)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"age\": 24,\n  \"gender\": \"male\",\n  \"retirement_age\": 55,\n  \"planning_age\": 80,\n  \"monthly_income\": 8666667,\n  \"annual_bonus\": 17333334,\n  \"savings_percentage\": 0.20,\n  \"current_savings\": 25000000,\n  \"lifestyle_percent\": 0.70,\n  \"sector\": \"pendidikan\",\n  \"has_health_insurance\": true,\n  \"deposit_rate\": 0.055,\n  \"include_pandemic_risk\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{calculator_url}}/calculate",
+              "host": ["{{calculator_url}}"],
+              "path": ["calculate"]
+            },
+            "description": "Sample calculation with realistic Indonesian financial data"
+          },
+          "response": []
+        }
+      ],
+      "description": "Direct access to Python FastAPI calculator service"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{auth_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Pre-request script runs before each request",
+          "console.log('Request to:', pm.request.url.toString());"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Test script runs after each request",
+          "console.log('Response status:', pm.response.code);",
+          "",
+          "// Auto-save auth token from login responses",
+          "if (pm.request.url.toString().includes('/sign-in')) {",
+          "    try {",
+          "        const jsonData = pm.response.json();",
+          "        if (jsonData.token) {",
+          "            pm.collectionVariables.set('auth_token', jsonData.token);",
+          "            console.log('Auth token saved!');",
+          "        }",
+          "        if (jsonData.user && jsonData.user.id) {",
+          "            pm.collectionVariables.set('user_id', jsonData.user.id);",
+          "            console.log('User ID saved:', jsonData.user.id);",
+          "        }",
+          "    } catch (e) {",
+          "        console.log('Not a JSON response or no token found');",
+          "    }",
+          "}"
+        ]
+      }
     }
   ]
 }

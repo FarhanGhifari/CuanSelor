@@ -1,1 +1,0 @@
-# isinya perkakas AI (LLM, chatbot, dll)
