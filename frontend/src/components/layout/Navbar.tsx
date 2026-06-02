@@ -32,7 +32,7 @@ export function Navbar() {
                 top: 12,
                 left: "50%",
                 transform: "translateX(-50%)",
-                width: "calc(100% - 32px)",
+                width: "calc(100% - 24px)",
                 maxWidth: 1536,
                 borderRadius: 16,
                 zIndex: 50,
@@ -41,19 +41,20 @@ export function Navbar() {
                 WebkitBackdropFilter: "blur(30px)",
                 border: "1px solid rgba(15, 23, 42, 0.05)",
                 boxShadow: "0 12px 40px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.02)",
-                padding: "10px 24px",
+                padding: "8px 16px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
             }}
+            className="sm:px-6"
         >
             {/* Logo */}
-            <Link href="/" className="flex items-center relative h-12 w-48 overflow-hidden">
+            <Link href="/" className="flex items-center">
                 <img
                     src="/CuanSelor.png"
                     alt="CuanSelor Logo"
-                    className="absolute left-0 top-1/2 -translate-y-1/2 h-24 w-auto object-cover max-w-none"
-                    style={{ filter: "none" }} // No brightness filter in light mode to keep dark logo visible
+                    className="h-8 sm:h-10 md:h-12 w-auto object-contain"
+                    style={{ filter: "none" }}
                 />
             </Link>
 
@@ -99,9 +100,10 @@ export function Navbar() {
             </div>
 
             {/* CTA */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
                 {!mounted || isPending ? (
                     <span
+                        className="hidden sm:inline"
                         style={{
                             fontSize: 14,
                             color: "rgba(15, 23, 42, 0.5)",
@@ -118,8 +120,8 @@ export function Navbar() {
                             background: "linear-gradient(135deg, #10B981, #14B8A6)",
                             color: "#ffffff",
                             borderRadius: 12,
-                            padding: "8px 18px",
-                            fontSize: 14,
+                            padding: "6px 12px",
+                            fontSize: 13,
                             fontWeight: 600,
                             textDecoration: "none",
                             boxShadow: "0 4px 16px rgba(16,185,129,0.25)",
@@ -139,8 +141,9 @@ export function Navbar() {
                     <>
                         <Link
                             href={ROUTES.LOGIN}
+                            className="hidden sm:inline"
                             style={{
-                                fontSize: 14,
+                                fontSize: 13,
                                 color: "rgba(15, 23, 42, 0.65)",
                                 textDecoration: "none",
                                 transition: "color 0.2s",
@@ -156,12 +159,13 @@ export function Navbar() {
                             style={{
                                 background: "linear-gradient(135deg, #10B981, #14B8A6)",
                                 color: "#ffffff",
-                                borderRadius: 12,
-                                padding: "8px 18px",
-                                fontSize: 14,
+                                borderRadius: 10,
+                                padding: "6px 12px",
+                                fontSize: 13,
                                 fontWeight: 600,
                                 textDecoration: "none",
                                 boxShadow: "0 4px 16px rgba(16,185,129,0.25)",
+                                whiteSpace: "nowrap",
                             }}
                             onMouseEnter={(e) => {
                                 e.currentTarget.style.transform = "translateY(-1px)";
@@ -172,7 +176,8 @@ export function Navbar() {
                                 e.currentTarget.style.boxShadow = "0 4px 16px rgba(16,185,129,0.25)";
                             }}
                         >
-                            Get Started
+                            <span className="hidden sm:inline">Get Started</span>
+                            <span className="sm:hidden">Daftar</span>
                         </Link>
                     </>
                 )}

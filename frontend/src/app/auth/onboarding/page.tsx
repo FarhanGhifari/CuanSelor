@@ -85,12 +85,12 @@ export default function OnboardingPage() {
       `}} />
 
       {/* Absolute Logo */}
-      <div className="absolute top-6 left-6 lg:left-8 z-50">
-        <Link href="/" className="flex items-center relative h-12 w-48 overflow-hidden">
+      <div className="absolute top-4 left-4 lg:top-6 lg:left-8 z-50">
+        <Link href="/" className="flex items-center">
           <img
             src="/CuanSelor.png"
             alt="CuanSelor Logo"
-            className="absolute left-0 top-1/2 -translate-y-1/2 h-24 w-auto object-cover max-w-none"
+            className="h-8 sm:h-10 lg:h-12 w-auto object-contain"
           />
         </Link>
       </div>
@@ -117,14 +117,13 @@ export default function OnboardingPage() {
       </div>
 
       {/* Right Side - Wizard */}
-      <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-8 pt-24 lg:pt-8 relative h-screen overflow-hidden bg-white">
-        <div className="w-full max-w-lg flex flex-col justify-center h-full max-h-[85vh]">
+      <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 pt-16 sm:pt-20 lg:pt-8 relative h-screen overflow-hidden bg-white">
+        <div className="w-full max-w-lg flex flex-col justify-center h-full max-h-[90vh] sm:max-h-[85vh]">
           {/* Welcome hero */}
-          <div className="text-center mb-6 shrink-0">
-            <h1 className="text-[1.25rem] sm:text-[1.8rem] lg:text-[2.3rem] font-bold text-[#111827] tracking-tight mb-2 whitespace-nowrap">
+          <div className="text-center mb-4 sm:mb-6 shrink-0 px-2">
+            <h1 className="text-lg sm:text-xl lg:text-[2.3rem] font-bold text-[#111827] tracking-tight mb-2">
               Mari kenali kondisi finansialmu
             </h1>
-         
           </div>
 
           <div className="w-full flex flex-col">

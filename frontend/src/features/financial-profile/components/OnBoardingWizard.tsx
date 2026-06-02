@@ -385,7 +385,7 @@ function CurrencyField({
 
     return (
         <div className="relative">
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-base font-semibold pointer-events-none text-gray-400"
+            <div className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-sm sm:text-base font-semibold pointer-events-none text-gray-400"
                 style={{ color: value !== null ? T.blue : undefined }}>
                 Rp
             </div>
@@ -397,7 +397,7 @@ function CurrencyField({
                 value={raw ? fmt(Number(raw)) : ""}
                 onChange={handleChange}
                 className={cn(
-                    "w-full pl-11 pr-4 py-4 bg-white border rounded-xl outline-none transition-all duration-200 text-base font-semibold focus:border-[#10B981] focus:ring-4 focus:ring-[#10B981]/10",
+                    "w-full pl-9 sm:pl-11 pr-3 sm:pr-4 py-3 sm:py-4 bg-white border rounded-xl outline-none transition-all duration-200 text-sm sm:text-base font-semibold focus:border-[#10B981] focus:ring-4 focus:ring-[#10B981]/10",
                     value !== null ? "border-[#10B981]" : "border-gray-200"
                 )}
             />
@@ -407,7 +407,7 @@ function CurrencyField({
 
 /* ── Choice Chip ────────────────────────────────────────────────────── */
 function Chip({
-    selected, onClick, children, sub, icon, color, disabled = false,
+    selected, onClick, children, sub, icon, color, disabled = false, iconOnly = false,
 }: {
     selected: boolean;
     onClick: () => void;
@@ -416,6 +416,7 @@ function Chip({
     icon?: React.ReactNode;
     color?: string;
     disabled?: boolean;
+    iconOnly?: boolean;
 }) {
     const activeColor = color ?? T.blue;
     return (
@@ -424,7 +425,8 @@ function Chip({
             onClick={disabled ? undefined : onClick}
             disabled={disabled}
             className={cn(
-                "w-full text-left flex items-center gap-4 px-4 py-3.5 rounded-xl border transition-all duration-200",
+                "w-full flex items-center rounded-xl border transition-all duration-200",
+                iconOnly ? "justify-center px-3 py-3" : "text-left gap-3 sm:gap-4 px-3 sm:px-4 py-3 sm:py-3.5",
                 disabled ? "cursor-not-allowed opacity-45" : "active:scale-[0.98]"
             )}
             style={{
@@ -434,23 +436,28 @@ function Chip({
             }}
         >
             {icon && (
-                <div className="shrink-0 w-9 h-9 rounded-xl flex items-center justify-center text-lg"
+                <div className={cn(
+                    "shrink-0 rounded-xl flex items-center justify-center",
+                    iconOnly ? "w-10 h-10 sm:w-12 sm:h-12 text-2xl sm:text-3xl" : "w-8 h-8 sm:w-9 sm:h-9 text-base sm:text-lg"
+                )}
                     style={{ background: selected ? `${activeColor}15` : "rgba(0,0,0,0.04)" }}>
                     {icon}
                 </div>
             )}
-            <div className="flex-1 min-w-0">
-                <div className="font-semibold text-sm" style={{ color: selected ? activeColor : T.ink }}>
-                    {children}
+            {!iconOnly && (
+                <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-xs sm:text-sm" style={{ color: selected ? activeColor : T.ink }}>
+                        {children}
+                    </div>
+                    {sub && (
+                        <div className="text-[10px] sm:text-xs mt-0.5 text-gray-500">{sub}</div>
+                    )}
                 </div>
-                {sub && (
-                    <div className="text-xs mt-0.5 text-gray-500">{sub}</div>
-                )}
-            </div>
-            {selected && (
-                <div className="shrink-0 w-5 h-5 rounded-full flex items-center justify-center"
+            )}
+            {!iconOnly && selected && (
+                <div className="shrink-0 w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center"
                     style={{ background: activeColor }}>
-                    <Check className="w-3 h-3 text-white" />
+                    <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" />
                 </div>
             )}
         </button>
@@ -466,9 +473,9 @@ function StepHeader({
     sub?: string;
 }) {
     return (
-        <div className="mb-5">
+        <div className="mb-4 sm:mb-5">
             {emoji ? null : null}
-            <h2 className="text-[17px] font-bold leading-snug text-gray-900 mb-1">
+            <h2 className="text-base sm:text-[17px] font-bold leading-snug text-gray-900 mb-1">
                 {headline}
             </h2>
             {sub && (
@@ -489,8 +496,8 @@ function S0_Personal({ data, set }: { data: WizardData; set: (p: Partial<WizardD
             <StepHeader headline="Kenalan dulu, yuk 👋"/>
             
             {/* Nama */}
-            <div className="mb-6">
-                <label className="text-[14px] font-medium text-gray-700 block mb-2">
+            <div className="mb-4 sm:mb-6">
+                <label className="text-xs sm:text-[14px] font-medium text-gray-700 block mb-2">
                     Nama Lengkap
                 </label>
                 <input
@@ -499,7 +506,7 @@ function S0_Personal({ data, set }: { data: WizardData; set: (p: Partial<WizardD
                     value={data.fullName || ""}
                     onChange={e => set({ fullName: e.target.value || null })}
                     className={cn(
-                        "w-full px-4 py-4 bg-white border rounded-xl outline-none transition-all duration-200 text-base placeholder:text-gray-400 focus:border-[#10B981] focus:ring-4 focus:ring-[#10B981]/10",
+                        "w-full px-3 sm:px-4 py-3 sm:py-4 bg-white border rounded-xl outline-none transition-all duration-200 text-sm sm:text-base placeholder:text-gray-400 focus:border-[#10B981] focus:ring-4 focus:ring-[#10B981]/10",
                         data.fullName ? "border-[#10B981]" : "border-gray-200"
                     )}
                     autoFocus
@@ -507,8 +514,8 @@ function S0_Personal({ data, set }: { data: WizardData; set: (p: Partial<WizardD
             </div>
 
             {/* Usia */}
-            <div className="mb-6">
-                <label className="text-[14px] font-medium text-gray-700 block mb-2">
+            <div className="mb-4 sm:mb-6">
+                <label className="text-xs sm:text-[14px] font-medium text-gray-700 block mb-2">
                     Usia Saat Ini
                 </label>
                 <div className="flex items-center gap-3">
@@ -532,7 +539,7 @@ function S0_Personal({ data, set }: { data: WizardData; set: (p: Partial<WizardD
                             });
                         }}
                         className={cn(
-                            "w-28 py-4 px-4 bg-white border rounded-xl text-center outline-none transition-all duration-200 text-base font-bold focus:border-[#10B981] focus:ring-4 focus:ring-[#10B981]/10",
+                            "w-20 sm:w-28 py-3 sm:py-4 px-3 sm:px-4 bg-white border rounded-xl text-center outline-none transition-all duration-200 text-sm sm:text-base font-bold focus:border-[#10B981] focus:ring-4 focus:ring-[#10B981]/10",
                             ageInvalid
                                 ? "border-red-300 focus:border-red-400 focus:ring-red-500/10"
                                 : data.age
@@ -540,33 +547,59 @@ function S0_Personal({ data, set }: { data: WizardData; set: (p: Partial<WizardD
                                     : "border-gray-200"
                         )}
                     />
-                    <span className="text-base font-medium text-gray-500">tahun</span>
+                    <span className="text-sm sm:text-base font-medium text-gray-500">tahun</span>
                 </div>
             </div>
 
             {/* Gender */}
             <div>
-                <label className="text-[14px] font-medium text-gray-700 block mb-2">
+                <label className="text-xs sm:text-[14px] font-medium text-gray-700 block mb-2">
                     Jenis Kelamin
                 </label>
                 <div className="grid grid-cols-2 gap-3">
-                    <Chip
-                        selected={data.gender === "male"}
-                        onClick={() => set({ gender: "male" })}
-                        icon={<span className="text-2xl">👨</span>}
-                    >
-                        Laki-laki
-                    </Chip>
-                    <Chip
-                        selected={data.gender === "female"}
-                        onClick={() => set({ gender: "female" })}
-                        icon={<span className="text-2xl">👩</span>}
-                    >
-                        Perempuan
-                    </Chip>
+                    {/* Mobile: icon only (centered), Desktop: icon + label */}
+                    <div className="sm:hidden">
+                        <Chip
+                            selected={data.gender === "male"}
+                            onClick={() => set({ gender: "male" })}
+                            icon={<span>👨</span>}
+                            iconOnly={true}
+                        >
+                            Laki-laki
+                        </Chip>
+                    </div>
+                    <div className="hidden sm:block">
+                        <Chip
+                            selected={data.gender === "male"}
+                            onClick={() => set({ gender: "male" })}
+                            icon={<span className="text-2xl">👨</span>}
+                        >
+                            Laki-laki
+                        </Chip>
+                    </div>
+                    
+                    <div className="sm:hidden">
+                        <Chip
+                            selected={data.gender === "female"}
+                            onClick={() => set({ gender: "female" })}
+                            icon={<span>👩</span>}
+                            iconOnly={true}
+                        >
+                            Perempuan
+                        </Chip>
+                    </div>
+                    <div className="hidden sm:block">
+                        <Chip
+                            selected={data.gender === "female"}
+                            onClick={() => set({ gender: "female" })}
+                            icon={<span className="text-2xl">👩</span>}
+                        >
+                            Perempuan
+                        </Chip>
+                    </div>
                 </div>
-                <div className="mt-3 flex gap-3 p-3.5 bg-yellow-50 border border-yellow-200 rounded-xl text-xs text-yellow-900 leading-relaxed items-center">
-                    <Info className="w-5 h-5 shrink-0 text-yellow-600 self-center" />
+                <div className="mt-3 flex gap-2 sm:gap-3 p-2.5 sm:p-3.5 bg-yellow-50 border border-yellow-200 rounded-xl text-[10px] sm:text-xs text-yellow-900 leading-relaxed items-center">
+                    <Info className="w-4 h-4 sm:w-5 sm:h-5 shrink-0 text-yellow-600 self-center" />
                     <span className="flex-1">
                         Data ini digunakan untuk kalkulasi harapan hidup berdasarkan tabel mortalitas Indonesia
                     </span>
@@ -729,7 +762,7 @@ function S4_Savings({ data, set }: { data: WizardData; set: (p: Partial<WizardDa
 
     return (
         <div>
-            <StepHeader headline="Berapa % yang kamu alokasikan untuk nabung?" sub="Pilih persentase dari gaji bulanan Anda yang disisihkan untuk ditabung/investasi (contoh: 20% dari gaji bulanan)." />
+            <StepHeader headline="Berapa % yang kamu alokasikan untuk nabung?" sub="Pilih persentase dari gaji bulanan yang disisihkan untuk ditabung/investasi." />
             <div className="space-y-3">
                 {savingsOpts.map(o => (
                     <Chip key={o.pct} selected={!isCustom && data.savingsPercentage === o.pct}
@@ -1618,7 +1651,7 @@ function S12_Assumptions({ data, set }: { data: WizardData; set: (p: Partial<Wiz
                         className="flex gap-3 p-3.5 rounded-xl overflow-hidden bg-yellow-50 border border-yellow-200">
                         <Info className="w-5 h-5 shrink-0 text-yellow-600 self-center" />
                         <p className="text-xs leading-relaxed text-yellow-900 flex-1">
-                            Info: inflasi biaya kesehatan di Indonesia sering &gt;10%/tahun — pertimbangkan BPJS jika belum punya.
+                            Info: inflasi biaya kesehatan di Indonesia sering &gt;10%/tahun - pertimbangkan BPJS jika belum punya.
                         </p>
                     </motion.div>
                 )}
@@ -1853,7 +1886,7 @@ export function OnboardingWizard({
     return (
         <div
             ref={topRef}
-            className="w-full max-w-lg mx-auto flex flex-col"
+            className="w-full max-w-lg mx-auto flex flex-col px-4 sm:px-0"
         >
             {/* Top progress */}
             <div className="mb-3 px-1 shrink-0">
@@ -1867,10 +1900,10 @@ export function OnboardingWizard({
             </div>
 
             {/* Card */}
-            <div className="bg-white rounded-[24px] shadow-[0_12px_40px_rgba(0,0,0,0.06)] border border-gray-100 p-10 flex flex-col">
+            <div className="bg-white rounded-[20px] sm:rounded-[24px] shadow-[0_12px_40px_rgba(0,0,0,0.06)] border border-gray-100 p-5 sm:p-8 lg:p-10 flex flex-col">
 
                 {error && (
-                    <div className="mb-5 flex items-center gap-2.5 p-4 rounded-2xl text-sm"
+                    <div className="mb-4 sm:mb-5 flex items-center gap-2 sm:gap-2.5 p-3 sm:p-4 rounded-xl sm:rounded-2xl text-xs sm:text-sm"
                         style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", color: T.danger }}>
                         <AlertCircle className="w-4 h-4 shrink-0" />
                         {error}
@@ -1881,9 +1914,9 @@ export function OnboardingWizard({
                 <div className={cn(
                     "w-full px-1",
                     step === 10 
-                        ? "h-[320px] overflow-y-auto scrollbar-thin" 
+                        ? "h-[280px] sm:h-[320px] overflow-y-auto scrollbar-thin" 
                         : showSummary
-                        ? "h-[420px] overflow-y-auto scrollbar-thin"
+                        ? "h-[360px] sm:h-[420px] overflow-y-auto scrollbar-thin"
                         : "overflow-visible"
                 )}>
                     <AnimatePresence mode="wait" custom={dir}>
@@ -1915,26 +1948,39 @@ export function OnboardingWizard({
                 </div>
 
                 {/* Nav */}
-                <div className="flex gap-3 mt-6 pt-6 border-t border-gray-100 shrink-0">
+                <div className="flex gap-2 sm:gap-3 mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-100 shrink-0">
                     {(step > 0 || showSummary) && (
-                        <button type="button" onClick={goBack}
-                            className="flex items-center gap-1.5 px-6 py-4 rounded-xl border border-gray-200 text-base font-semibold text-gray-500 transition-all hover:bg-gray-50 active:scale-[0.97]"
+                        <button 
+                            type="button" 
+                            onClick={goBack}
+                            className="flex items-center justify-center gap-1 sm:gap-1.5 px-4 sm:px-6 py-3 sm:py-4 rounded-xl border border-gray-200 text-sm sm:text-base font-semibold text-gray-500 transition-all hover:bg-gray-50 active:scale-[0.97] min-w-0"
                         >
-                            <ChevronLeft className="w-4 h-4" /> Kembali
+                            <ChevronLeft className="w-4 h-4 shrink-0" />
+                            <span className="whitespace-nowrap">Kembali</span>
                         </button>
                     )}
                     <button 
                         type="button" 
                         onClick={goNext}
                         disabled={!canNext}
-                        className="flex-1 flex items-center justify-center gap-2 py-4 rounded-xl text-base font-bold text-white transition-all active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed"
-                        style={{ background: canNext ? `linear-gradient(135deg, ${T.blue}, #34d399)` : "#d1d5db" }}>
+                        className="flex-1 flex items-center justify-center gap-1.5 sm:gap-2 py-3 sm:py-4 px-4 sm:px-6 rounded-xl text-sm sm:text-base font-bold text-white transition-all active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed min-w-0"
+                        style={{ background: canNext ? `linear-gradient(135deg, ${T.blue}, #34d399)` : "#d1d5db" }}
+                    >
                         {showSummary ? (
-                            <><Sparkles className="w-4 h-4" /> Registrasi Sekarang...</>
+                            <>
+                                <Sparkles className="w-4 h-4 shrink-0" />
+                                <span className="whitespace-nowrap truncate">Registrasi Sekarang...</span>
+                            </>
                         ) : step === TOTAL ? (
-                            <>Lihat Ringkasan <ChevronRight className="w-4 h-4" /></>
+                            <>
+                                <span className="whitespace-nowrap">Lihat Ringkasan</span>
+                                <ChevronRight className="w-4 h-4 shrink-0" />
+                            </>
                         ) : (
-                            <>Lanjut <ChevronRight className="w-4 h-4" /></>
+                            <>
+                                <span className="whitespace-nowrap">Lanjut</span>
+                                <ChevronRight className="w-4 h-4 shrink-0" />
+                            </>
                         )}
                     </button>
                 </div>

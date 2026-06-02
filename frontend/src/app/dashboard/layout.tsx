@@ -116,49 +116,121 @@ export default function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] font-sans selection:bg-[#10B981]/30">
-      {/* Mobile Navbar */}
-      <nav className="lg:hidden fixed top-0 w-full bg-white/80 backdrop-blur-xl border-b border-gray-100 z-50 px-4 py-4 flex items-center justify-between">
-        <Link
-          href={ROUTES.HOME}
-          aria-label="Kembali ke homepage CuanSelor"
-          className="flex items-center gap-2"
-          onClick={() => setIsMobileMenuOpen(false)}
-        >
-          <Image
-            src="/CuanSelor.png"
-            alt="Logo CuanSelor"
-            width={140}
-            height={40}
-            className="h-10 w-auto object-contain"
-            priority
-          />
-        </Link>
-        <button 
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-        >
-          {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
+      {/* Mobile Top Bar with Hamburger Menu - Similar to Homepage Navbar */}
+      <nav className="lg:hidden fixed top-0 left-0 right-0 z-50 mx-3 mt-3">
+        <div className="bg-white/80 backdrop-blur-xl border border-gray-100 rounded-2xl shadow-sm px-4 py-3 flex items-center justify-between">
+          <Link
+            href={ROUTES.HOME}
+            aria-label="Kembali ke homepage CuanSelor"
+            className="flex items-center"
+          >
+            <Image
+              src="/CuanSelor.png"
+              alt="Logo CuanSelor"
+              width={140}
+              height={40}
+              className="h-8 w-auto object-contain"
+              priority
+            />
+          </Link>
+          
+          <button 
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="p-2 rounded-full hover:bg-gray-100 active:bg-gray-200 transition-colors"
+            aria-label="Toggle menu"
+          >
+            {isMobileMenuOpen ? <X size={24} className="text-gray-700" /> : <Menu size={24} className="text-gray-700" />}
+          </button>
+        </div>
+
+        {/* Mobile Dropdown Menu */}
+        {isMobileMenuOpen && (
+          <>
+            {/* Backdrop overlay */}
+            <div 
+              className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm -z-10"
+              onClick={() => setIsMobileMenuOpen(false)}
+            />
+            
+            {/* Menu dropdown */}
+            <div className="absolute top-full left-0 right-0 mt-2 mx-0">
+              <div className="bg-white/95 backdrop-blur-xl border border-gray-100 rounded-2xl shadow-lg p-3 space-y-2">
+                {/* Dashboard */}
+                <Link
+                  href={ROUTES.DASHBOARD}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={cn(
+                    "flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200",
+                    pathname === ROUTES.DASHBOARD
+                      ? "bg-emerald-50 text-[#10B981]"
+                      : "text-gray-700 active:bg-gray-50"
+                  )}
+                >
+                  <LayoutDashboard size={20} strokeWidth={pathname === ROUTES.DASHBOARD ? 2.5 : 2} />
+                  <span className="text-sm font-semibold">Dashboard</span>
+                </Link>
+
+                {/* Tanya FindSor */}
+                <Link
+                  href="/dashboard/projection"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={cn(
+                    "flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200",
+                    pathname === "/dashboard/projection"
+                      ? "bg-emerald-50 text-[#10B981]"
+                      : "text-gray-700 active:bg-gray-50"
+                  )}
+                >
+                  <MessageCircle size={20} strokeWidth={pathname === "/dashboard/projection" ? 2.5 : 2} />
+                  <span className="text-sm font-semibold">Tanya FindSor!</span>
+                </Link>
+
+                {/* Profile */}
+                <Link
+                  href="/dashboard/profile"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={cn(
+                    "flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200",
+                    pathname === "/dashboard/profile"
+                      ? "bg-emerald-50 text-[#10B981]"
+                      : "text-gray-700 active:bg-gray-50"
+                  )}
+                >
+                  <Smile size={20} strokeWidth={pathname === "/dashboard/profile" ? 2.5 : 2} />
+                  <span className="text-sm font-semibold">Profile</span>
+                </Link>
+
+                {/* Logout */}
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    handleLogout();
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-red-500 active:bg-red-50 transition-all duration-200"
+                >
+                  <LogOut size={20} strokeWidth={2} />
+                  <span className="text-sm font-semibold">Logout</span>
+                </button>
+              </div>
+            </div>
+          </>
+        )}
       </nav>
 
-      {/* Sidebar (Desktop) & Mobile Drawer */}
-      <aside className={cn(
-        "fixed inset-y-0 left-0 z-40 w-72 bg-white border-r border-gray-100 transform transition-transform duration-300 ease-in-out lg:translate-x-0 flex flex-col",
-        isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-      )}>
+      {/* Desktop Sidebar */}
+      <aside className="hidden lg:flex fixed inset-y-0 left-0 z-40 w-72 bg-white border-r border-gray-100 flex-col">
         {/* Brand */}
         <Link
           href={ROUTES.HOME}
           aria-label="Kembali ke homepage CuanSelor"
-          className="h-28 flex items-center justify-center px-4 pt-3"
-          onClick={() => setIsMobileMenuOpen(false)}
+          className="h-28 flex items-center justify-center px-6 pt-3"
         >
           <Image
             src="/CuanSelor.png"
             alt="Logo CuanSelor"
             width={540}
             height={156}
-            className="h-36 w-auto object-contain"
+            className="h-28 w-auto object-contain"
             priority
           />
         </Link>
@@ -172,7 +244,6 @@ export default function DashboardLayout({
               <Link
                 key={item.name}
                 href={item.href}
-                onClick={() => setIsMobileMenuOpen(false)}
                 className={cn(
                   "flex items-center gap-4 px-4 py-3.5 rounded-2xl font-medium transition-all duration-200 group relative overflow-hidden",
                   isActive 
@@ -210,7 +281,7 @@ export default function DashboardLayout({
       </aside>
 
       {/* Main Content */}
-      <main className="lg:pl-72 pt-16 lg:pt-0 min-h-screen flex flex-col">
+      <main className="lg:pl-72 pt-20 lg:pt-0 min-h-screen flex flex-col">
         {/* Top Header (Desktop only) */}
         <header className="hidden lg:flex h-20 items-center justify-between px-10 bg-white/50 backdrop-blur-xl sticky top-0 z-30">
           <div>
@@ -220,18 +291,10 @@ export default function DashboardLayout({
         </header>
 
         {/* Page Content */}
-        <div className="flex-1 p-6 lg:p-10 max-w-7xl mx-auto w-full">
+        <div className="flex-1 p-4 lg:p-10 max-w-7xl mx-auto w-full">
           {children}
         </div>
       </main>
-
-      {/* Mobile Overlay */}
-      {isMobileMenuOpen && (
-        <div 
-          className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm z-30 lg:hidden"
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-      )}
     </div>
   );
 }

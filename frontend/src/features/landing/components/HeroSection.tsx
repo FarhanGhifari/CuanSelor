@@ -138,26 +138,26 @@ export default function HeroSection() {
       <CanvasWave />
 
       <div
-        className="relative z-10 w-full max-w-[1536px] mx-auto px-6 md:px-10 lg:px-16"
-        style={{ paddingTop: 160, paddingBottom: 100 }}
+        className="relative z-10 w-full max-w-[1536px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16"
+        style={{ paddingTop: 120, paddingBottom: 60 }}
       >
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-16 lg:gap-24 items-center">
 
           {/* ══════════ LEFT COLUMN ══════════ */}
           <div className="lg:col-span-5 flex flex-col items-start">
 
             {/* ── Badge ── */}
             <div
-              className="hero-fade-1 inline-flex items-center gap-2 mb-8 animate-pulse-slow"
+              className="hero-fade-1 inline-flex items-center gap-2 mb-4 sm:mb-6 md:mb-8 animate-pulse-slow"
               style={{
                 background: T.emeraldDim,
                 border: "1px solid rgba(16,185,129,0.15)",
                 borderRadius: 50,
-                padding: "8px 16px",
+                padding: "6px 14px",
               }}
             >
-              <Sparkles style={{ width: 14, height: 14, color: T.emerald }} />
-              <span style={{ fontSize: 12, fontWeight: 700, color: T.emerald, fontFamily: FONT, letterSpacing: "0.05em" }}>
+              <Sparkles style={{ width: 12, height: 12, color: T.emerald }} className="sm:w-3.5 sm:h-3.5" />
+              <span style={{ fontSize: 11, fontWeight: 700, color: T.emerald, fontFamily: FONT, letterSpacing: "0.05em" }} className="sm:text-xs">
                 AI-Powered Financial Planning
               </span>
             </div>
@@ -167,12 +167,12 @@ export default function HeroSection() {
               className="hero-fade-2"
               style={{
                 fontFamily: FONT,
-                fontSize: "clamp(38px, 4.5vw, 64px)",
+                fontSize: "clamp(28px, 8vw, 64px)",
                 fontWeight: 800,
                 letterSpacing: "-0.035em",
-                lineHeight: 1.08,
+                lineHeight: 1.12,
                 color: T.ink,
-                marginBottom: 24,
+                marginBottom: 16,
               }}
             >
               Berhenti Menebak.<br />
@@ -193,11 +193,11 @@ export default function HeroSection() {
               className="hero-fade-3"
               style={{
                 fontFamily: FONT,
-                fontSize: 17,
+                fontSize: 14,
                 fontWeight: 400,
-                lineHeight: 1.7,
+                lineHeight: 1.6,
                 color: T.inkMuted,
-                marginBottom: 16,
+                marginBottom: 12,
                 maxWidth: 580,
               }}
             >
@@ -206,15 +206,15 @@ export default function HeroSection() {
 
             {/* ── Emotional Statement ── */}
             <p
-              className="hero-fade-3"
+              className="hero-fade-3 hidden sm:block"
               style={{
                 fontFamily: FONT,
-                fontSize: 14,
+                fontSize: 13,
                 fontWeight: 400,
                 fontStyle: "italic",
                 lineHeight: 1.6,
                 color: T.inkMuted48,
-                marginBottom: 36,
+                marginBottom: 24,
                 maxWidth: 500,
               }}
             >
@@ -223,21 +223,23 @@ export default function HeroSection() {
             </p>
 
             {/* ── CTA Buttons ── */}
-            <div className="hero-fade-4" style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 48 }}>
+            <div className="hero-fade-4 w-full sm:w-auto" style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 32 }}>
               <AuthAwarePillCTA
                 href={ROUTES.REGISTER}
                 dashboardChildren={
                   <>
                     Dashboard
-                    <ArrowRight className="transition-transform duration-300 group-hover:translate-x-1.5" style={{ width: 16, height: 16, marginLeft: 4 }} />
+                    <ArrowRight className="transition-transform duration-300 group-hover:translate-x-1.5" style={{ width: 14, height: 14, marginLeft: 4 }} />
                   </>
                 }
-                style={{ padding: "14px 28px", fontSize: 15 }}
+                style={{ padding: "12px 20px", fontSize: 14 }}
+                className="flex-1 sm:flex-initial whitespace-nowrap"
               >
-                Mulai Gratis Sekarang
-                <ArrowRight className="transition-transform duration-300 group-hover:translate-x-1.5" style={{ width: 16, height: 16, marginLeft: 4 }} />
+                <span className="hidden sm:inline">Mulai Gratis Sekarang</span>
+                <span className="sm:hidden">Mulai Gratis</span>
+                <ArrowRight className="transition-transform duration-300 group-hover:translate-x-1.5" style={{ width: 14, height: 14, marginLeft: 4 }} />
               </AuthAwarePillCTA>
-              <PillCTA href="/auth/register" variant="ghost" style={{ padding: "14px 28px", fontSize: 15 }}>
+              <PillCTA href="/auth/register" variant="ghost" style={{ padding: "12px 20px", fontSize: 14 }} className="flex-1 sm:flex-initial whitespace-nowrap">
                 Coba Simulasi
               </PillCTA>      
             </div>

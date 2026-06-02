@@ -64,12 +64,12 @@ export default function RegisterPage() {
             <>
                 <div className="h-screen w-full flex bg-white relative overflow-hidden">
                     {/* Absolute Logo */}
-                    <div className="absolute top-6 left-6 lg:left-8 z-50">
-                        <Link href="/" className="flex items-center relative h-12 w-48 overflow-hidden">
+                    <div className="absolute top-4 left-4 lg:top-6 lg:left-8 z-50">
+                        <Link href="/" className="flex items-center">
                             <img
                                 src="/CuanSelor.png"
                                 alt="CuanSelor Logo"
-                                className="absolute left-0 top-1/2 -translate-y-1/2 h-24 w-auto object-cover max-w-none"
+                                className="h-8 sm:h-10 lg:h-12 w-auto object-contain"
                             />
                         </Link>
                     </div>
@@ -98,11 +98,11 @@ export default function RegisterPage() {
                     </div>
 
                     {/* Right Side - Form */}
-                    <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-8 pt-20 lg:pt-8 relative">
-                        <div className="w-full max-w-lg">
-                            <div className="mb-4 text-center">
-                                <h2 className="text-[2.8rem] font-bold text-[#111827] tracking-tight mb-2">Buat Akun</h2>
-                                <p className="text-[#6B7280] text-[1.1rem]">Isi data diri kamu untuk memulai</p>
+                    <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 pt-16 sm:pt-20 lg:pt-8 relative">
+                        <div className="w-full max-w-lg px-2">
+                            <div className="mb-4 sm:mb-6 text-center">
+                                <h2 className="text-2xl sm:text-3xl lg:text-[2.8rem] font-bold text-[#111827] tracking-tight mb-2">Buat Akun</h2>
+                                <p className="text-[#6B7280] text-sm sm:text-base lg:text-[1.1rem]">Isi data diri kamu untuk memulai</p>
                             </div>
 
                             <Suspense fallback={<AuthLoadingScreen />}>
@@ -113,7 +113,7 @@ export default function RegisterPage() {
                                 />
                             </Suspense>
 
-                            <p className="text-center text-sm text-[#6B7280] mt-4">
+                            <p className="text-center text-xs sm:text-sm text-[#6B7280] mt-4">
                                 Dengan mendaftar, kamu menyetujui <Link href="/terms" className="text-[#10B981] hover:underline font-medium">Ketentuan Layanan</Link> dan <Link href="/privacy" className="text-[#10B981] hover:underline font-medium">Kebijakan Privasi</Link> kami
                             </p>
                         </div>
