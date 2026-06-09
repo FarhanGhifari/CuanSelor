@@ -56,7 +56,7 @@ CuanSelor adalah platform perencanaan pensiun yang membantu pengguna:
 - **Database**: PostgreSQL (Supabase)
 - **ORM**: Supabase Client
 - **Cache**: node-cache (in-memory)
-- **AI**: Google Gemini 1.5 Flash
+- **AI**: Google Gemini 3.1 Pro Preview
 - **Email**: Resend
 
 ### Calculator Service
@@ -294,7 +294,7 @@ Jika ingin mengaktifkan login dengan Google:
 
 ### 4. Setup Google Gemini API
 
-AI Advisor (FindSor) menggunakan Google Gemini 1.5 Flash.
+AI Advisor (FindSor) menggunakan Google Gemini 3.5 Flash.
 
 #### A. Dapatkan API Key
 
@@ -309,7 +309,7 @@ AI Advisor (FindSor) menggunakan Google Gemini 1.5 Flash.
 
 ```bash
 # Test API key dengan curl
-curl "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=YOUR_API_KEY" \
+curl "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent?key=YOUR_API_KEY" \
   -H 'Content-Type: application/json' \
   -d '{"contents":[{"parts":[{"text":"Hello"}]}]}'
 ```
@@ -684,7 +684,7 @@ Expected responses:
 - **Context-Aware**: Memahami data finansial user
 - **Personalized Advice**: Rekomendasi berdasarkan profil risiko
 - **Multi-Topic**: Dana darurat, investasi, pensiun, budgeting
-- **Powered by**: Google Gemini 1.5 Flash
+- **Powered by**: Google Gemini 3.1 Pro Preview
 
 ---
 
@@ -1570,7 +1570,7 @@ MIT License - Free to use for personal and commercial projects.
 - **Mortality Table**: TMPI 2023 (Indonesia)
 - **Icons**: Lucide React
 - **UI Components**: TailwindCSS
-- **AI**: Google Gemini 1.5 Flash
+- **AI**: Google Gemini 3.1 Pro Preview
 - **Database**: Supabase
 - **Deployment**: Vercel, Railway
 
