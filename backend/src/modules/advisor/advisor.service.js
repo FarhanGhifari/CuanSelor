@@ -6,11 +6,11 @@ import { AppError } from "../../utils/app-error.js";
 
 // ── Gemini Model ──────────────────────────────────────────────────────────────
 const model = new ChatGoogleGenerativeAI({
-  model: "gemini-3.1-pro-preview",
+  model: "gemini-3.5-flash",
   apiKey: env.geminiApiKey,
   temperature: 0.7,
   maxOutputTokens: 4096,
-  topP: 0.95,
+  topP: 0.95, 
   streaming: true,
 });
 
