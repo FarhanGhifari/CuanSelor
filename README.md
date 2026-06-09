@@ -56,7 +56,7 @@ CuanSelor adalah platform perencanaan pensiun yang membantu pengguna:
 - **Database**: PostgreSQL (Supabase)
 - **ORM**: Supabase Client
 - **Cache**: node-cache (in-memory)
-- **AI**: Google Gemini 3.1 Pro Preview
+- **AI**: Google Gemini 2.5 Flash
 - **Email**: Resend
 
 ### Calculator Service
@@ -309,7 +309,7 @@ AI Advisor (FindSor) menggunakan Google Gemini 3.5 Flash.
 
 ```bash
 # Test API key dengan curl
-curl "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent?key=YOUR_API_KEY" \
+curl "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=YOUR_API_KEY" \
   -H 'Content-Type: application/json' \
   -d '{"contents":[{"parts":[{"text":"Hello"}]}]}'
 ```
@@ -684,7 +684,7 @@ Expected responses:
 - **Context-Aware**: Memahami data finansial user
 - **Personalized Advice**: Rekomendasi berdasarkan profil risiko
 - **Multi-Topic**: Dana darurat, investasi, pensiun, budgeting
-- **Powered by**: Google Gemini 3.1 Pro Preview
+- **Powered by**: Google Gemini 2.5 Flash
 
 ---
 
@@ -1570,7 +1570,7 @@ MIT License - Free to use for personal and commercial projects.
 - **Mortality Table**: TMPI 2023 (Indonesia)
 - **Icons**: Lucide React
 - **UI Components**: TailwindCSS
-- **AI**: Google Gemini 3.1 Pro Preview
+- **AI**: Google Gemini 2.5 Flash
 - **Database**: Supabase
 - **Deployment**: Vercel, Railway
 
